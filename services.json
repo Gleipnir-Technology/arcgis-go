@@ -1,0 +1,280 @@
+{
+  "currentVersion" : 11.2, 
+  "services" : [
+    {
+      "name" : "_APR_AUG_2024_Aegypti_Abundance", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/_APR_AUG_2024_Aegypti_Abundance/FeatureServer"
+    }, 
+    {
+      "name" : "2024_Urban_Inspections_(July)_", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/2024_Urban_Inspections_(July)_/FeatureServer"
+    }, 
+    {
+      "name" : "AddressPoints", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/AddressPoints/FeatureServer"
+    }, 
+    {
+      "name" : "AerialOnline", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/AerialOnline/FeatureServer"
+    }, 
+    {
+      "name" : "BorderDistrict", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/BorderDistrict/FeatureServer"
+    }, 
+    {
+      "name" : "CatchBasins", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/CatchBasins/FeatureServer"
+    }, 
+    {
+      "name" : "Collections", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Collections/FeatureServer"
+    }, 
+    {
+      "name" : "CollectsPositive", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/CollectsPositive/FeatureServer"
+    }, 
+    {
+      "name" : "Curated_Trap_Sites", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Curated_Trap_Sites/FeatureServer"
+    }, 
+    {
+      "name" : "DeltaParcels", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/DeltaParcels/FeatureServer"
+    }, 
+    {
+      "name" : "FieldSeekerGIS", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/FieldSeekerGIS/FeatureServer"
+    }, 
+    {
+      "name" : "FieldSeekerSurveillance", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/FieldSeekerSurveillance/FeatureServer"
+    }, 
+    {
+      "name" : "Grouped_Site_Codes", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Grouped_Site_Codes/FeatureServer"
+    }, 
+    {
+      "name" : "Inspection_Data", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Inspection_Data/FeatureServer"
+    }, 
+    {
+      "name" : "Keys", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Keys/FeatureServer"
+    }, 
+    {
+      "name" : "Parcels2Online", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Parcels2Online/FeatureServer"
+    }, 
+    {
+      "name" : "Sections", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Sections/FeatureServer"
+    }, 
+    {
+      "name" : "service_25bbf54a858b4f11a9cd90ae48b1abd3", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_25bbf54a858b4f11a9cd90ae48b1abd3/FeatureServer"
+    }, 
+    {
+      "name" : "service_2fa8f54cf08e49f68ffde7eb183a480f", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_2fa8f54cf08e49f68ffde7eb183a480f/FeatureServer"
+    }, 
+    {
+      "name" : "service_60d895e4946d4c99a454419f5abddef0", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_60d895e4946d4c99a454419f5abddef0/FeatureServer"
+    }, 
+    {
+      "name" : "service_7712f09740094e31a92feb6c1e2bffb3", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_7712f09740094e31a92feb6c1e2bffb3/FeatureServer"
+    }, 
+    {
+      "name" : "service_889ebcc287334d72b6e504f65d74649d", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_889ebcc287334d72b6e504f65d74649d/FeatureServer"
+    }, 
+    {
+      "name" : "service_8c0bf1c724d74b6396b3412f7bf78c06", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_8c0bf1c724d74b6396b3412f7bf78c06/FeatureServer"
+    }, 
+    {
+      "name" : "service_92b68353d2c2488ea7b53fd2f781c057", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_92b68353d2c2488ea7b53fd2f781c057/FeatureServer"
+    }, 
+    {
+      "name" : "service_d39c491948264bb6b983d1e1169896d6", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_d39c491948264bb6b983d1e1169896d6/FeatureServer"
+    }, 
+    {
+      "name" : "service_d7d3dc20f6374865936acdd517faa1b5", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_d7d3dc20f6374865936acdd517faa1b5/FeatureServer"
+    }, 
+    {
+      "name" : "service_f1d26e9bc1f64dff819a57e1fe50b843", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_f1d26e9bc1f64dff819a57e1fe50b843/FeatureServer"
+    }, 
+    {
+      "name" : "Site_code_duplicates", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Site_code_duplicates/FeatureServer"
+    }, 
+    {
+      "name" : "SourceLab", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/SourceLab/FeatureServer"
+    }, 
+    {
+      "name" : "Sources", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Sources/FeatureServer"
+    }, 
+    {
+      "name" : "SourceWd", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/SourceWd/FeatureServer"
+    }, 
+    {
+      "name" : "Strategic_Trapsets", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Strategic_Trapsets/FeatureServer"
+    }, 
+    {
+      "name" : "survey123_8da289475de6425496f7f0ac3c140c6c", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/survey123_8da289475de6425496f7f0ac3c140c6c/FeatureServer"
+    }, 
+    {
+      "name" : "TriatomineSurveillancePosterMap", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/TriatomineSurveillancePosterMap/FeatureServer"
+    }, 
+    {
+      "name" : "TRSQQ", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/TRSQQ/FeatureServer"
+    }, 
+    {
+      "name" : "Vectorserv_trap_counts", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Vectorserv_trap_counts/FeatureServer"
+    }, 
+    {
+      "name" : "Vectorserve_Trap_Sites", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Vectorserve_Trap_Sites/FeatureServer"
+    }, 
+    {
+      "name" : "WeedDairySites", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/WeedDairySites/FeatureServer"
+    }, 
+    {
+      "name" : "WNv_Pos_8_5_2024", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/WNv_Pos_8_5_2024/FeatureServer"
+    }, 
+    {
+      "name" : "WNV_Postiives_2024_through_August_1", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/WNV_Postiives_2024_through_August_1/FeatureServer"
+    }, 
+    {
+      "name" : "ZonesReg", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/ZonesReg/FeatureServer"
+    }, 
+    {
+      "name" : "MVCAC_VCDs", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/MVCAC_VCDs/FeatureServer"
+    }, 
+    {
+      "name" : "Gateway_Sync_DMVCD", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Gateway_Sync_DMVCD/FeatureServer"
+    }, 
+    {
+      "name" : "Universal_Layer", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Universal_Layer/FeatureServer"
+    }, 
+    {
+      "name" : "Habitat_class_", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Habitat_class_/FeatureServer"
+    }, 
+    {
+      "name" : "NPDES_2024_WFL1", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/NPDES_2024_WFL1/FeatureServer"
+    }, 
+    {
+      "name" : "service_3f14ed95acb34f5b927d7a971c552de5", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/service_3f14ed95acb34f5b927d7a971c552de5/FeatureServer"
+    }, 
+    {
+      "name" : "Notes", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Notes/FeatureServer"
+    }, 
+    {
+      "name" : "Delta_MCD_Known_Contacts", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Delta_MCD_Known_Contacts/FeatureServer"
+    }, 
+    {
+      "name" : "Test_Layer", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Test_Layer/FeatureServer"
+    }, 
+    {
+      "name" : "Pool_Self_Report", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Pool_Self_Report/FeatureServer"
+    }, 
+    {
+      "name" : "Pool_Self_Report_view", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/Pool_Self_Report_view/FeatureServer"
+    }, 
+    {
+      "name" : "FieldSeekerTestingService", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/FieldSeekerTestingService/FeatureServer"
+    }, 
+    {
+      "name" : "False_Pool", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/False_Pool/FeatureServer"
+    }, 
+    {
+      "name" : "ServiceRequest", 
+      "type" : "FeatureServer", 
+      "url" : "https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/ServiceRequest/FeatureServer"
+    }
+  ]
+}
