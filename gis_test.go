@@ -1,21 +1,43 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"testing"
 )
 
-func TestParseServices(t *testing.T) {
-	jsonFile, err := os.Open("services.json")
+func readFileOrFail(t *testing.T, filename string) ([]byte, error) {
+	jsonFile, err := os.Open(filename)
 	if err != nil {
-		t.Errorf("Failed to open JSON data")
+		t.Errorf(`Failed to open %s`, filename)
+		return nil, err
 	}
-	fmt.Println("Opened services.json")
+	defer jsonFile.Close()
 	byteValue, _ := io.ReadAll(jsonFile)
+	return byteValue, nil
+}
+
+func TestParseRestInfo(t *testing.T) {
+	content, err := readFileOrFail(t, "rest.json")
+	if err != nil {
+		return
+	}
+	rest, err := ParseRestInfo(content)
+	if err != nil {
+		t.Error("Failed to parse")
+	}
+	if rest.CurrentVersion != 11.2 {
+		t.Error("Incorrect version")
+	}
+}
+
+func TestParseServices(t *testing.T) {
+	content, err := readFileOrFail(t, "services.json")
+	if err != nil {
+		return
+	}
 	
-	services, err := ParseServiceInfo(byteValue)
+	services, err := ParseServiceInfo(content)
 	if err != nil {
 		t.Error("Failed to parse")
 	}
@@ -25,5 +47,4 @@ func TestParseServices(t *testing.T) {
 	if services.Services[0].Name != "_APR_AUG_2024_Aegypti_Abundance" {
 		t.Error("Wrong service name")
 	}
-	defer jsonFile.Close()
 }

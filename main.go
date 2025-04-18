@@ -7,24 +7,6 @@ import "io"
 import "net/http"
 import "net/url"
 
-type ArcGIS struct {
-	ServiceRoot string
-	TenantId string
-	Token string
-}
-
-type AuthInfo struct {
-	isTokenBasedSecurity bool
-	tokenServiceUrl string
-}
-type RestInfo struct {
-	CurrentVersion float64
-	FullVersion string
-	OwningSystemUrl string
-	OwningTenant string
-	AuthInfo AuthInfo
-}
-
 func (arcgis ArcGIS) info() (*RestInfo, error) {  
 	u := fmt.Sprintf("%s/%s/arcgis/rest/info", arcgis.ServiceRoot, arcgis.TenantId)
 	base, err := url.Parse(u)

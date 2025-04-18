@@ -1,0 +1,11 @@
+{
+  "currentVersion" : 11.2, 
+  "fullVersion" : "11.2.0", 
+  "owningSystemUrl" : "https://www.arcgis.com", 
+  "owningTenant" : "pV7SH1EgRc6tpxlJ", 
+  "authInfo" : 
+  {
+    "isTokenBasedSecurity" : true, 
+    "tokenServicesUrl" : "https://www.arcgis.com/sharing/generateToken"
+  }
+}
