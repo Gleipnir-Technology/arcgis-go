@@ -26,3 +26,7 @@ go.work.sum
 
 # The output file
 arcgis-go
+
+# Private notes
+api.key
+PRIVATE.md
