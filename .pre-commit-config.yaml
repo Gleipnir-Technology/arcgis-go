@@ -6,3 +6,8 @@ repos:
           language: system
           entry: gofmt -w
           files: '\.go$'
+      -   id: gotest
+          name: test go code
+          language: system
+          entry: go test
+          files: '\.go$'
