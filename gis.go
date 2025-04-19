@@ -40,6 +40,59 @@ type ServiceInfo struct {
 	Services       []ServiceListing
 }
 
+// Feature Server details
+type SpatialReference struct {
+	WKID       int
+	LatestWKID int
+}
+
+type Extent struct {
+	XMin             float64
+	YMin             float64
+	XMax             float64
+	YMax             float64
+	SpatialReference SpatialReference
+}
+
+type Layer struct {
+	ID                int
+	Name              string
+	ParentLayerID     int
+	DefaultVisibility bool
+	SubLayerIDs       *string
+	MinScale          int
+	MaxScale          int
+	Type              string
+	GeometryType      string
+}
+
+type FeatureServer struct {
+	CurrentVersion                 float64
+	ServiceItemId                  string
+	ServiceDescription             string
+	HasVersionedData               bool
+	HasSharedDomains               bool
+	MaxRecordCount                 int
+	SupportedQueryFormats          string
+	SupportsVCSProjection          bool
+	SupportedExportFormats         string
+	SupportedConvertFileFormats    string
+	SupportedConvertContentFormats string
+	SupportedFullTextLocales       []string
+	Capabilities                   string
+	Description                    string
+	CopyrightText                  string
+	SpatialReference               SpatialReference
+	InitialExtent                  Extent
+	FullExtent                     Extent
+	AllowGeometryUpdates           bool
+	SupportsTrueCurve              bool
+	SupportedCurveTypes            []string
+	AllowTrueCurvesUpdates         bool
+	Layers                         []Layer
+	// many missing fields
+}
+
 func parseRestInfo(data []byte) (*RestInfo, error) {
 	var result RestInfo
 	err := json.Unmarshal(data, &result)
@@ -51,6 +104,15 @@ func parseRestInfo(data []byte) (*RestInfo, error) {
 
 func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 	var result ServiceInfo
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func parseFeatureServer(data []byte) (*FeatureServer, error) {
+	var result FeatureServer
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil, err

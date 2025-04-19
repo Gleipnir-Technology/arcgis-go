@@ -18,7 +18,7 @@ func readFileOrFail(t *testing.T, filename string) ([]byte, error) {
 }
 
 func TestParseRestInfo(t *testing.T) {
-	content, err := readFileOrFail(t, "rest.json")
+	content, err := readFileOrFail(t, "test-data/rest.json")
 	if err != nil {
 		return
 	}
@@ -32,7 +32,7 @@ func TestParseRestInfo(t *testing.T) {
 }
 
 func TestParseServices(t *testing.T) {
-	content, err := readFileOrFail(t, "services.json")
+	content, err := readFileOrFail(t, "test-data/services.json")
 	if err != nil {
 		return
 	}
@@ -46,5 +46,23 @@ func TestParseServices(t *testing.T) {
 	}
 	if services.Services[0].Name != "_APR_AUG_2024_Aegypti_Abundance" {
 		t.Error("Wrong service name")
+	}
+}
+
+func TestParseFeatureServer(t *testing.T) {
+	content, err := readFileOrFail(t, "test-data/feature_server.json")
+	if err != nil {
+		return
+	}
+
+	featureServer, err := parseFeatureServer(content)
+	if err != nil {
+		t.Error("Failed to parse")
+	}
+	if len(featureServer.Description) != 0 {
+		t.Error("Bad description")
+	}
+	if len(featureServer.Layers) != 1 {
+		t.Error("Missing layer")
 	}
 }
