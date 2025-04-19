@@ -22,7 +22,7 @@ func TestParseRestInfo(t *testing.T) {
 	if err != nil {
 		return
 	}
-	rest, err := ParseRestInfo(content)
+	rest, err := parseRestInfo(content)
 	if err != nil {
 		t.Error("Failed to parse")
 	}
@@ -36,8 +36,8 @@ func TestParseServices(t *testing.T) {
 	if err != nil {
 		return
 	}
-	
-	services, err := ParseServiceInfo(content)
+
+	services, err := parseServiceInfo(content)
 	if err != nil {
 		t.Error("Failed to parse")
 	}
