@@ -1,4 +1,4 @@
-package main
+package arcgis
 
 import (
 	"encoding/json"
@@ -146,7 +146,7 @@ func requestJSON(u *url.URL) ([]byte, error) {
 	return body, nil
 }
 
-func (arcgis ArcGIS) info() (*RestInfo, error) {
+func (arcgis ArcGIS) Info() (*RestInfo, error) {
 	u, err := arcgis.serviceUrl("/info")
 	if err != nil {
 		return nil, err
