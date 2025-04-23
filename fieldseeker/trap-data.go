@@ -25,7 +25,7 @@ type TrapData struct {
 }
 
 func (fs *FieldSeeker) TrapData(objectID string) (*TrapData, error) {
-	err := fs.ensureHasServiceInfo()
+	err := fs.EnsureHasServiceInfo()
 	if err != nil {
 		return nil, err
 	}

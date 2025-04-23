@@ -79,6 +79,16 @@ type Layer struct {
 	GeometryType      string
 }
 
+type Table struct {
+	ID                int
+	Name              string
+	ParentLayerID     int
+	DefaultVisibility bool
+	SubLayerIDs       *string
+	MinScale          int
+	MaxScale          int
+}
+
 type FeatureServer struct {
 	CurrentVersion                 float64
 	ServiceItemId                  string
@@ -103,6 +113,7 @@ type FeatureServer struct {
 	SupportedCurveTypes            []string
 	AllowTrueCurvesUpdates         bool
 	Layers                         []Layer
+	Tables                         []Table
 	// many missing fields
 }
 
@@ -129,6 +140,10 @@ type QueryResult struct {
 	UniqueIdField     UniqueIdField
 }
 
+type QueryResultCount struct {
+	Count int
+}
+
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
 	err := json.Unmarshal(data, &result)
@@ -140,6 +155,16 @@ func parseFeatureServer(data []byte) (*FeatureServer, error) {
 
 func parseQueryResult(data []byte) (*QueryResult, error) {
 	var result QueryResult
+	err := json.Unmarshal(data, &result)
+	log.Println("Parsing", string(data))
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
+	var result QueryResultCount
 	err := json.Unmarshal(data, &result)
 	log.Println("Parsing", string(data))
 	if err != nil {
@@ -327,4 +352,20 @@ func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResul
 	}
 	return parseQueryResult(content)
 
+}
+
+func (arcgis ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, error) {
+	params := make(map[string]string)
+	params["returnCountOnly"] = "true"
+	params["where"] = "9999=9999"
+	u, err := arcgis.serviceUrlWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := requestJSON(u)
+	if err != nil {
+		return nil, err
+	}
+	return parseQueryResultCount(content)
 }

@@ -22,7 +22,7 @@ func NewFieldSeeker(ag *arcgis.ArcGIS, service string) *FieldSeeker {
 }
 
 // Make sure we have the Layer IDs we need to perform queries
-func (fs *FieldSeeker) ensureHasServiceInfo() error {
+func (fs *FieldSeeker) EnsureHasServiceInfo() error {
 	fs.ensureHasServices()
 	if fs.ServiceInfo != nil {
 		return nil

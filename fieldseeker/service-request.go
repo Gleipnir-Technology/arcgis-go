@@ -24,7 +24,7 @@ type ServiceRequest struct {
 }
 
 func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
-	err := fs.ensureHasServiceInfo()
+	err := fs.EnsureHasServiceInfo()
 	if err != nil {
 		return nil, err
 	}
