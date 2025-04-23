@@ -156,7 +156,7 @@ func parseFeatureServer(data []byte) (*FeatureServer, error) {
 func parseQueryResult(data []byte) (*QueryResult, error) {
 	var result QueryResult
 	err := json.Unmarshal(data, &result)
-	log.Println("Parsing", string(data))
+	//log.Println("Parsing", string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func parseQueryResult(data []byte) (*QueryResult, error) {
 func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
 	var result QueryResultCount
 	err := json.Unmarshal(data, &result)
-	log.Println("Parsing", string(data))
+	//log.Println("Parsing", string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -316,10 +316,12 @@ func (arcgis ArcGIS) Services() (*ServiceInfo, error) {
 }
 
 type Query struct {
-	Limit     int
-	ObjectIDs string
-	OutFields string
-	Where     string
+	Limit             int
+	ObjectIDs         string
+	OutFields         string
+	ResultRecordCount int
+	ResultOffset      int
+	Where             string
 }
 
 func NewQuery() *Query {
@@ -327,7 +329,7 @@ func NewQuery() *Query {
 	return q
 }
 
-func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResult, error) {
+func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
 	params := make(map[string]string)
 	if query.Limit > 0 {
 		params["limit"] = strconv.Itoa(query.Limit)
@@ -341,12 +343,11 @@ func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResul
 	if query.Where != "" {
 		params["where"] = query.Where
 	}
-	u, err := arcgis.serviceUrlWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
-	if err != nil {
-		return nil, err
-	}
+	return arcgis.serviceUrlWithParams(base, params)
+}
 
-	content, err := requestJSON(u)
+func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResult, error) {
+	content, err := arcgis.QueryRaw(service, layer, query)
 	if err != nil {
 		return nil, err
 	}
@@ -368,4 +369,13 @@ func (arcgis ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, e
 		return nil, err
 	}
 	return parseQueryResultCount(content)
+}
+
+func (arcgis ArcGIS) QueryRaw(service string, layer int, query *Query) ([]byte, error) {
+	u, err := arcgis.queryURL(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
+	if err != nil {
+		return nil, err
+	}
+
+	return requestJSON(u)
 }
