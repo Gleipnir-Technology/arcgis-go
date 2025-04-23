@@ -19,7 +19,7 @@ func main() {
 		os.Exit(2)
 	}
 	if sr != nil {
-		fmt.Println("Source: ", sr.Source)
+		fmt.Println("Field Request: ", sr)
 	} else {
 		fmt.Println("Nil service request")
 	}

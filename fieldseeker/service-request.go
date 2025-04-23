@@ -15,7 +15,17 @@ type FieldSeeker struct {
 }
 
 type ServiceRequest struct {
-	Source string
+	Address          string
+	City             string
+	Description      string
+	FieldNotes       string
+	NotesForCustomer string
+	NotesForTech     string
+	Permission       string
+	Priority         string
+	Source           string
+	Target           string
+	Zip              string
 }
 
 func NewFieldSeeker(ag *arcgis.ArcGIS, service string) *FieldSeeker {
@@ -58,13 +68,26 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	}
 	f := results.Features[0]
 	sr := new(ServiceRequest)
-	source, ok := f.Attributes["SOURCE"].(string)
-	if ok {
-		sr.Source = source
-	} else {
-		return nil, errors.New("SOURCE not a string")
-	}
+	sr.Address = stringOrEmpty(f.Attributes, "REQADDR1") + stringOrEmpty(f.Attributes, "REQADDR2")
+	sr.City = stringOrEmpty(f.Attributes, "REQCITY")
+	sr.Description = stringOrEmpty(f.Attributes, "REQDESCR")
+	sr.FieldNotes = stringOrEmpty(f.Attributes, "REQFLDNOTES")
+	sr.NotesForCustomer = stringOrEmpty(f.Attributes, "REQNOTESFORCUST")
+	sr.NotesForTech = stringOrEmpty(f.Attributes, "REQNOTESFORTECH")
+	sr.Permission = stringOrEmpty(f.Attributes, "REQPERMISSION")
+	sr.Priority = stringOrEmpty(f.Attributes, "PRIORITY")
+	sr.Source = stringOrEmpty(f.Attributes, "SOURCE")
+	sr.Target = stringOrEmpty(f.Attributes, "REQTARGET")
+	sr.Zip = stringOrEmpty(f.Attributes, "REQZIP")
 	return sr, nil
+}
+
+func stringOrEmpty(data map[string]any, key string) string {
+	source, ok := data[key].(string)
+	if ok {
+		return source
+	}
+	return ""
 }
 
 // Make sure we have the Layer IDs we need to perform queries
