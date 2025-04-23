@@ -2,6 +2,7 @@ package fieldseeker
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
@@ -19,6 +20,7 @@ type ServiceRequest struct {
 	City             string
 	Description      string
 	FieldNotes       string
+	Location         arcgis.Geometry
 	NotesForCustomer string
 	NotesForTech     string
 	Permission       string
@@ -63,6 +65,11 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	if err != nil {
 		return nil, err
 	}
+	if results.SpatialReference.WKID != 102100 {
+		// See https://developers.arcgis.com/rest/services-reference/enterprise/geometry-objects/
+		// for understanding how to support new spatial references
+		return nil, fmt.Errorf("Unrecognized spatial reference %v", results.SpatialReference.WKID)
+	}
 	if len(results.Features) == 0 {
 		return nil, errors.New("Got no results")
 	}
@@ -72,6 +79,7 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	sr.City = stringOrEmpty(f.Attributes, "REQCITY")
 	sr.Description = stringOrEmpty(f.Attributes, "REQDESCR")
 	sr.FieldNotes = stringOrEmpty(f.Attributes, "REQFLDNOTES")
+	sr.Location = f.Geometry
 	sr.NotesForCustomer = stringOrEmpty(f.Attributes, "REQNOTESFORCUST")
 	sr.NotesForTech = stringOrEmpty(f.Attributes, "REQNOTESFORTECH")
 	sr.Permission = stringOrEmpty(f.Attributes, "REQPERMISSION")
@@ -80,14 +88,6 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	sr.Target = stringOrEmpty(f.Attributes, "REQTARGET")
 	sr.Zip = stringOrEmpty(f.Attributes, "REQZIP")
 	return sr, nil
-}
-
-func stringOrEmpty(data map[string]any, key string) string {
-	source, ok := data[key].(string)
-	if ok {
-		return source
-	}
-	return ""
 }
 
 // Make sure we have the Layer IDs we need to perform queries
@@ -118,4 +118,12 @@ func (fs FieldSeeker) ensureHasServices() error {
 	}
 	fs.ServiceInfo = s
 	return nil
+}
+
+func stringOrEmpty(data map[string]any, key string) string {
+	source, ok := data[key].(string)
+	if ok {
+		return source
+	}
+	return ""
 }

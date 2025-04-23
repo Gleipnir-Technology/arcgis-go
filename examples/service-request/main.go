@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Gleipnir-Technology/arcgis-go"
 	"github.com/Gleipnir-Technology/arcgis-go/examples"
 )
 
@@ -20,6 +21,7 @@ func main() {
 	}
 	if sr != nil {
 		fmt.Println("Field Request: ", sr)
+		fmt.Println("Lat/Long: ", arcgis.GeometryToPosition(sr.Location))
 	} else {
 		fmt.Println("Nil service request")
 	}

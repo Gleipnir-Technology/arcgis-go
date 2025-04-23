@@ -55,8 +55,8 @@ type ServiceInfo struct {
 
 // Feature Server details
 type SpatialReference struct {
-	WKID       int
 	LatestWKID int
+	WKID       int
 }
 
 type Extent struct {
@@ -112,12 +112,20 @@ type UniqueIdField struct {
 	IsSystemMaintained bool
 }
 
+type Geometry struct {
+	X float64
+	Y float64
+}
+
 type Feature struct {
 	Attributes map[string]any
+	Geometry   Geometry
 }
+
 type QueryResult struct {
 	Features          []Feature
 	ObjectIdFieldName string
+	SpatialReference  SpatialReference
 	UniqueIdField     UniqueIdField
 }
 
