@@ -66,3 +66,18 @@ func TestParseFeatureServer(t *testing.T) {
 		t.Error("Missing layer")
 	}
 }
+
+func TestParseQuery(t *testing.T) {
+	content, err := readFileOrFail(t, "test-data/query.json")
+	if err != nil {
+		return
+	}
+
+	query, err := parseQueryResult(content)
+	if err != nil {
+		t.Error("Failed to parse")
+	}
+	if query.UniqueIdField.Name != "OBJECTID_12" {
+		t.Error("No.")
+	}
+}
