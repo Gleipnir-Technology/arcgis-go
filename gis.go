@@ -141,6 +141,7 @@ func parseFeatureServer(data []byte) (*FeatureServer, error) {
 func parseQueryResult(data []byte) (*QueryResult, error) {
 	var result QueryResult
 	err := json.Unmarshal(data, &result)
+	log.Println("Parsing", string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -291,6 +292,7 @@ func (arcgis ArcGIS) Services() (*ServiceInfo, error) {
 
 type Query struct {
 	Limit     int
+	ObjectIDs string
 	OutFields string
 	Where     string
 }
@@ -304,6 +306,9 @@ func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResul
 	params := make(map[string]string)
 	if query.Limit > 0 {
 		params["limit"] = strconv.Itoa(query.Limit)
+	}
+	if query.ObjectIDs != "" {
+		params["objectIds"] = query.ObjectIDs
 	}
 	if query.OutFields != "" {
 		params["outFields"] = query.OutFields
