@@ -144,6 +144,58 @@ type QueryResultCount struct {
 	Count int
 }
 
+var ag *ArcGIS;
+
+func DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
+	content, err := DoQueryRaw(service, layer, query)
+	if err != nil {
+		return nil, err
+	}
+	return parseQueryResult(content)
+
+}
+
+func DoQueryRaw(service string, layer int, query *Query) ([]byte, error) {
+	u, err := ag.queryURL(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
+	if err != nil {
+		return nil, err
+	}
+
+	return requestJSON(u)
+}
+
+func GetFeatureServer(service string) (*FeatureServer, error) {
+	u, err := ag.serviceUrl(fmt.Sprintf("/services/%s/FeatureServer", service))
+	if err != nil {
+		return nil, err
+	}
+	content, err := requestJSON(u)
+	if err != nil {
+		return nil, err
+	}
+	return parseFeatureServer(content)
+}
+
+func Initialize(service_root string, tenant_id string, token string) {
+	ag = new(ArcGIS)
+	ag.ServiceRoot = service_root
+	ag.TenantId = tenant_id
+	ag.Token = token
+}
+
+func Services() (*ServiceInfo, error) {
+	u, err := ag.serviceUrl("/services")
+	if err != nil {
+		return nil, err
+	}
+	content, err := requestJSON(u)
+	if err != nil {
+		return nil, err
+	}
+	return parseServiceInfo(content)
+}
+
+
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
 	err := json.Unmarshal(data, &result)
@@ -291,30 +343,6 @@ func (arcgis ArcGIS) Info() (*RestInfo, error) {
 	return parseRestInfo(content)
 }
 
-func (arcgis ArcGIS) FeatureServer(service string) (*FeatureServer, error) {
-	u, err := arcgis.serviceUrl(fmt.Sprintf("/services/%s/FeatureServer", service))
-	if err != nil {
-		return nil, err
-	}
-	content, err := requestJSON(u)
-	if err != nil {
-		return nil, err
-	}
-	return parseFeatureServer(content)
-}
-
-func (arcgis ArcGIS) Services() (*ServiceInfo, error) {
-	u, err := arcgis.serviceUrl("/services")
-	if err != nil {
-		return nil, err
-	}
-	content, err := requestJSON(u)
-	if err != nil {
-		return nil, err
-	}
-	return parseServiceInfo(content)
-}
-
 type Query struct {
 	Limit             int
 	ObjectIDs         string
@@ -346,20 +374,11 @@ func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
 	return arcgis.serviceUrlWithParams(base, params)
 }
 
-func (arcgis ArcGIS) Query(service string, layer int, query *Query) (*QueryResult, error) {
-	content, err := arcgis.QueryRaw(service, layer, query)
-	if err != nil {
-		return nil, err
-	}
-	return parseQueryResult(content)
-
-}
-
-func (arcgis ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, error) {
+func QueryCount(service string, layer int) (*QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"
 	params["where"] = "9999=9999"
-	u, err := arcgis.serviceUrlWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
+	u, err := ag.serviceUrlWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
 	if err != nil {
 		return nil, err
 	}
@@ -371,11 +390,32 @@ func (arcgis ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, e
 	return parseQueryResultCount(content)
 }
 
-func (arcgis ArcGIS) QueryRaw(service string, layer int, query *Query) ([]byte, error) {
-	u, err := arcgis.queryURL(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
-	if err != nil {
-		return nil, err
+func (c *CodeWrapper) UnmarshalJSON(data []byte) (err error) {
+	// Does it look like a string?
+	var content string
+	if len(data) > 1 && data[0] == '"' && data[len(data)-1] == '"' {
+        content = string(data[1 : len(data)-1])
+    } else {
+		if data[0] == 0 {
+			content = "0"
+		} else {
+			content = "1"
+		}
 	}
 
-	return requestJSON(u)
+    *c = CodeWrapper(string(content))
+    return nil
+}
+
+func (d *DefaultValueWrapper) UnmarshalJSON(data []byte) (err error) {
+	// Does it look like a string?
+	var content string
+	if len(data) > 1 && data[0] == '"' && data[len(data)-1] == '"' {
+        content = string(data[1 : len(data)-1])
+    } else {
+		content = hex.EncodeToString(data)
+	}
+
+    *d = DefaultValueWrapper(string(content))
+    return nil
 }

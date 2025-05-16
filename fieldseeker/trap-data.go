@@ -25,10 +25,6 @@ type TrapData struct {
 }
 
 func (fs *FieldSeeker) TrapData(objectID string) (*TrapData, error) {
-	err := fs.EnsureHasServiceInfo()
-	if err != nil {
-		return nil, err
-	}
 	var layer_location *arcgis.Layer
 	var layer_data *arcgis.Layer
 	for _, l := range fs.FeatureServer.Layers {
@@ -51,7 +47,7 @@ func (fs *FieldSeeker) TrapData(objectID string) (*TrapData, error) {
 	query.Where = "1=1"
 	//query.ObjectIDs = objectID
 	query.OutFields = "*"
-	results, err := fs.Arcgis.Query(
+	results, err := arcgis.DoQuery(
 		fs.ServiceName,
 		layer_data.ID,
 		query,
@@ -85,7 +81,7 @@ func (fs *FieldSeeker) TrapData(objectID string) (*TrapData, error) {
 	query.Limit = 10
 	query.Where = fmt.Sprintf("GlobalID='%v'", location_id)
 	query.OutFields = "*"
-	results, err = fs.Arcgis.Query(
+	results, err = arcgis.DoQuery(
 		fs.ServiceName,
 		layer_location.ID,
 		query,
