@@ -1,6 +1,7 @@
 package arcgis
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -133,8 +134,38 @@ type Feature struct {
 	Geometry   Geometry
 }
 
+type CodeWrapper string
+
+type CodedValue struct {
+	Code CodeWrapper
+	Name string
+}
+
+type Domain struct {
+	CodedValues []CodedValue
+	MergePolicy string
+	Name string
+	SplitPolicy string
+	Type string
+}
+
+type DefaultValueWrapper string
+
+type Field struct {
+	Alias string
+	DefaultValue *DefaultValueWrapper
+	Domain *Domain
+	Length int
+	Name string
+	SQLType string
+	Type string
+}
+
 type QueryResult struct {
 	Features          []Feature
+	Fields            []Field
+	GeometryType      string
+	GlobalIDFieldName string
 	ObjectIdFieldName string
 	SpatialReference  SpatialReference
 	UniqueIdField     UniqueIdField
