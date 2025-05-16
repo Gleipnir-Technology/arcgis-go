@@ -1,6 +1,10 @@
 repos:
-  - repo: https://github.com/tekwizely/pre-commit-golang
-    rev: v1.0.0-rc.1
-    hooks:
-    - id: go-test-mod
+- repo: local
+  hooks:
     - id: go-fmt
+      name: 'go fmt'
+      language: system
+      entry: pre-commit/run-go-fmt.sh
+      types: [go]
+
+
