@@ -14,13 +14,13 @@ type FieldSeeker struct {
 	ServiceName   string
 }
 
-var fs *FieldSeeker;
+var fs *FieldSeeker
 
 func DoQuery(layer int, query *arcgis.Query) (*arcgis.QueryResult, error) {
 	return arcgis.DoQuery(fs.ServiceName, layer, query)
 }
 
-func FeatureServerLayers() ([]arcgis.Layer) {
+func FeatureServerLayers() []arcgis.Layer {
 	return fs.FeatureServer.Layers
 }
 

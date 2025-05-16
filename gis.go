@@ -144,21 +144,21 @@ type CodedValue struct {
 type Domain struct {
 	CodedValues []CodedValue
 	MergePolicy string
-	Name string
+	Name        string
 	SplitPolicy string
-	Type string
+	Type        string
 }
 
 type DefaultValueWrapper string
 
 type Field struct {
-	Alias string
+	Alias        string
 	DefaultValue *DefaultValueWrapper
-	Domain *Domain
-	Length int
-	Name string
-	SQLType string
-	Type string
+	Domain       *Domain
+	Length       int
+	Name         string
+	SQLType      string
+	Type         string
 }
 
 type QueryResult struct {
@@ -175,7 +175,7 @@ type QueryResultCount struct {
 	Count int
 }
 
-var ag *ArcGIS;
+var ag *ArcGIS
 
 func DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
 	content, err := DoQueryRaw(service, layer, query)
@@ -225,7 +225,6 @@ func Services() (*ServiceInfo, error) {
 	}
 	return parseServiceInfo(content)
 }
-
 
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
@@ -425,8 +424,8 @@ func (c *CodeWrapper) UnmarshalJSON(data []byte) (err error) {
 	// Does it look like a string?
 	var content string
 	if len(data) > 1 && data[0] == '"' && data[len(data)-1] == '"' {
-        content = string(data[1 : len(data)-1])
-    } else {
+		content = string(data[1 : len(data)-1])
+	} else {
 		if data[0] == 0 {
 			content = "0"
 		} else {
@@ -434,19 +433,19 @@ func (c *CodeWrapper) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-    *c = CodeWrapper(string(content))
-    return nil
+	*c = CodeWrapper(string(content))
+	return nil
 }
 
 func (d *DefaultValueWrapper) UnmarshalJSON(data []byte) (err error) {
 	// Does it look like a string?
 	var content string
 	if len(data) > 1 && data[0] == '"' && data[len(data)-1] == '"' {
-        content = string(data[1 : len(data)-1])
-    } else {
+		content = string(data[1 : len(data)-1])
+	} else {
 		content = hex.EncodeToString(data)
 	}
 
-    *d = DefaultValueWrapper(string(content))
-    return nil
+	*d = DefaultValueWrapper(string(content))
+	return nil
 }

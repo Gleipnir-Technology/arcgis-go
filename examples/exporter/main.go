@@ -30,14 +30,14 @@ func main() {
 	}
 }
 
-func downloadAllRecords(fs *fieldseeker.FieldSeeker, layer arcgis.Layer) (error) {
+func downloadAllRecords(fs *fieldseeker.FieldSeeker, layer arcgis.Layer) error {
 	fmt.Printf("%v %v\n", layer.ID, layer.Name)
 	count, err := fs.Arcgis.QueryCount(fs.ServiceName, layer.ID)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("Need to get %v records\n", count.Count)
-	
+
 	output, err := os.Create(fmt.Sprintf("records/%v-%v.json", layer.Name, layer.ID))
 	if err != nil {
 		return err
