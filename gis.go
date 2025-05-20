@@ -399,6 +399,9 @@ func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
 	if query.OutFields != "" {
 		params["outFields"] = query.OutFields
 	}
+	if query.ResultOffset > 0 {
+		params["resultOffset"] = strconv.Itoa(query.ResultOffset)
+	}
 	if query.Where != "" {
 		params["where"] = query.Where
 	}
