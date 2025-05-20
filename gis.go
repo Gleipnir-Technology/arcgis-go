@@ -379,6 +379,7 @@ type Query struct {
 	OutFields         string
 	ResultRecordCount int
 	ResultOffset      int
+	SpatialReference  string // Should eventually make an enum, probably
 	Where             string
 }
 
@@ -400,6 +401,9 @@ func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
 	}
 	if query.Where != "" {
 		params["where"] = query.Where
+	}
+	if len(query.SpatialReference) > 0 {
+		params["outSR"] = query.SpatialReference
 	}
 	return arcgis.serviceUrlWithParams(base, params)
 }
