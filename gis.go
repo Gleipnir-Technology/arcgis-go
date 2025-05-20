@@ -312,7 +312,10 @@ func logRequestBase(u *url.URL) {
 	cleanURL := *u
 
 	// Remove query parameters
-	cleanURL.RawQuery = ""
+	//cleanURL.RawQuery = ""
+	q, _ := url.ParseQuery(cleanURL.RawQuery)
+	q.Del("token")
+	cleanURL.RawQuery = q.Encode()
 
 	log.Printf("GET %s", cleanURL.String())
 
