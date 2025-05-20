@@ -19,6 +19,9 @@ var fs *FieldSeeker
 func DoQuery(layer int, query *arcgis.Query) (*arcgis.QueryResult, error) {
 	return arcgis.DoQuery(fs.ServiceName, layer, query)
 }
+func DoQueryRaw(layer int, query *arcgis.Query) ([]byte, error) {
+	return arcgis.DoQueryRaw(fs.ServiceName, layer, query)
+}
 
 func FeatureServerLayers() []arcgis.Layer {
 	return fs.FeatureServer.Layers
