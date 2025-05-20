@@ -175,7 +175,17 @@ type QueryResultCount struct {
 	Count int
 }
 
+type Usage struct {
+	// Units used on the last request
+	LastRequest int
+	// The maximum units we can use in a minute
+	MaxPerMinute int
+	// The amount used in the current minute
+	ThisMinute int
+}
+
 var ag *ArcGIS
+var usage *Usage
 
 func DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
 	content, err := DoQueryRaw(service, layer, query)
@@ -212,6 +222,8 @@ func Initialize(service_root string, tenant_id string, token string) {
 	ag.ServiceRoot = service_root
 	ag.TenantId = tenant_id
 	ag.Token = token
+
+	usage = new(Usage)
 }
 
 func Services() (*ServiceInfo, error) {
@@ -344,11 +356,7 @@ func requestJSON(u *url.URL) ([]byte, error) {
 	if errorFromJSON != nil {
 		return nil, errorFromJSON
 	}
-	//for n, values := range resp.Header {
-	//for _, value := range values {
-	//fmt.Println(n, value)
-	//}
-	//}
+	updateUsage(resp)
 	return body, nil
 }
 
@@ -362,6 +370,30 @@ func tryParseError(data []byte) error {
 		return fmt.Errorf("ArcGIS API Error: %v", msg)
 	}
 	return nil
+}
+
+func updateUsage(resp *http.Response) {
+	qru := resp.Header["X-Esri-Query-Request-Units"]
+	for _, v := range qru {
+		n, err := fmt.Sscanf(v, "%d", &usage.LastRequest)
+		if err != nil {
+			log.Println("Failed to parse X-Esri-Query-Request-Units:", err)
+		}
+		if n < 1 {
+			log.Println("Parsed no values from X-Esri-Query-Request-Units")
+		}
+	}
+	orupm := resp.Header["X-Esri-Org-Request-Units-Per-Min"]
+	for _, v := range orupm {
+		// The rupm value is of the form "usage=97;max=10000"
+		n, err := fmt.Sscanf(v, "usage=%d;max=%d", &usage.ThisMinute, &usage.MaxPerMinute)
+		if err != nil {
+			log.Println("Failed to parse X-Esri-Org-Request-Units-Per-Min:", err)
+		}
+		if n < 2 {
+			log.Println("Parsed too few values from X-Esri-Org-Request-Per-Min")
+		}
+	}
 }
 
 func (arcgis ArcGIS) Info() (*RestInfo, error) {
