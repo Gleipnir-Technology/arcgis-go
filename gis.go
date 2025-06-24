@@ -329,8 +329,7 @@ func logRequestBase(u *url.URL) {
 	q.Del("token")
 	cleanURL.RawQuery = q.Encode()
 
-	log.Printf("GET %s", cleanURL.String())
-
+	//log.Printf("GET %s", cleanURL.String())
 }
 
 func requestJSON(u *url.URL) ([]byte, error) {
@@ -339,7 +338,7 @@ func requestJSON(u *url.URL) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
+	//log.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 		return nil, fmt.Errorf("Client request error %v", resp.StatusCode)
 	}
