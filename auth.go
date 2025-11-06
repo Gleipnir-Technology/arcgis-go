@@ -15,8 +15,8 @@ type AuthenticatorToken struct {
 }
 
 type AuthenticatorOAuth struct {
-	AccessToken string
-	Expires time.Time
+	AccessToken  string
+	Expires      time.Time
 	RefreshToken string
 }
 
@@ -24,6 +24,6 @@ func (a AuthenticatorToken) addAuthentication(req *http.Request) (*http.Request,
 	return nil, nil
 }
 func (a AuthenticatorOAuth) addAuthentication(req *http.Request) (*http.Request, error) {
- 	req.Header.Add("X-ESRI-Authorization", "Bearer "+a.AccessToken)
+	req.Header.Add("X-ESRI-Authorization", "Bearer "+a.AccessToken)
 	return req, nil
 }

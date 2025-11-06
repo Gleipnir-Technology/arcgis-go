@@ -28,9 +28,9 @@ type ErrorMessage struct {
 // Root structure for an instance of the ArcGIS API
 type ArcGIS struct {
 	Authenticator Authenticator
-	client http.Client
-	ServiceRoot string
-	Usage Usage
+	client        http.Client
+	ServiceRoot   string
+	Usage         Usage
 }
 
 // Basic information about the REST API itself
@@ -178,8 +178,8 @@ type Usage struct {
 func NewArcGIS(auth Authenticator) *ArcGIS {
 	return &ArcGIS{
 		Authenticator: auth,
-		client: http.Client{},
-		ServiceRoot: "https://www.arcgis.com/sharing/rest",
+		client:        http.Client{},
+		ServiceRoot:   "https://www.arcgis.com/sharing/rest",
 	}
 }
 
@@ -249,16 +249,16 @@ func (ag *ArcGIS) Search(query string) (*SearchResponse, error) {
 	content, err := io.ReadAll(resp.Body)
 	slog.Info("Search response", slog.Int("status", resp.StatusCode))
 	/*
-	params := make(map[string]string)
-	params["q"] = "FieldseekerGIS"
-	req, err := ag.serviceRequestWithParams("/search", params)
-	if err != nil {
-		return nil, err
-	}
-	content, err := ag.requestJSON(req)
-	if err != nil {
-		return nil, err
-	}
+		params := make(map[string]string)
+		params["q"] = "FieldseekerGIS"
+		req, err := ag.serviceRequestWithParams("/search", params)
+		if err != nil {
+			return nil, err
+		}
+		content, err := ag.requestJSON(req)
+		if err != nil {
+			return nil, err
+		}
 	*/
 	dest, err := os.Create("search.json")
 	if err != nil {
