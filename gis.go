@@ -1,13 +1,16 @@
 package arcgis
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 )
 
@@ -24,9 +27,10 @@ type ErrorMessage struct {
 
 // Root structure for an instance of the ArcGIS API
 type ArcGIS struct {
+	Authenticator Authenticator
+	client http.Client
 	ServiceRoot string
-	TenantId    string
-	Token       string
+	Usage Usage
 }
 
 // Basic information about the REST API itself
@@ -55,20 +59,7 @@ type ServiceInfo struct {
 }
 
 // Feature Server details
-type SpatialReference struct {
-	LatestWKID int
-	WKID       int
-}
-
-type Extent struct {
-	XMin             float64
-	YMin             float64
-	XMax             float64
-	YMax             float64
-	SpatialReference SpatialReference
-}
-
-type Layer struct {
+type LayerFeature struct {
 	ID                int
 	Name              string
 	ParentLayerID     int
@@ -113,7 +104,7 @@ type FeatureServer struct {
 	SupportsTrueCurve              bool
 	SupportedCurveTypes            []string
 	AllowTrueCurvesUpdates         bool
-	Layers                         []Layer
+	Layers                         []LayerFeature
 	Tables                         []Table
 	// many missing fields
 }
@@ -184,11 +175,20 @@ type Usage struct {
 	ThisMinute int
 }
 
-var ag *ArcGIS
-var usage *Usage
+func NewArcGIS(auth Authenticator) *ArcGIS {
+	return &ArcGIS{
+		Authenticator: auth,
+		client: http.Client{},
+		ServiceRoot: "https://www.arcgis.com/sharing/rest",
+	}
+}
 
-func DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
-	content, err := DoQueryRaw(service, layer, query)
+func ServiceRootFromTenant(base string, tenantId string) string {
+	return fmt.Sprintf("%s/%s", base, tenantId)
+}
+
+func (ag *ArcGIS) DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
+	content, err := ag.DoQueryRaw(service, layer, query)
 	if err != nil {
 		return nil, err
 	}
@@ -196,42 +196,90 @@ func DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
 
 }
 
-func DoQueryRaw(service string, layer int, query *Query) ([]byte, error) {
-	u, err := ag.queryURL(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
+func (ag *ArcGIS) DoQueryRaw(service string, layer int, query *Query) ([]byte, error) {
+	r, err := ag.query(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create request: %v", err)
 	}
-
-	return requestJSON(u)
+	return ag.requestJSON(r)
 }
 
-func GetFeatureServer(service string) (*FeatureServer, error) {
-	u, err := ag.serviceUrl(fmt.Sprintf("/services/%s/FeatureServer", service))
+func (ag *ArcGIS) GetFeatureServer(service string) (*FeatureServer, error) {
+	req, err := ag.serviceRequest(fmt.Sprintf("/services/%s/FeatureServer", service))
 	if err != nil {
 		return nil, err
 	}
-	content, err := requestJSON(u)
+	content, err := ag.requestJSON(req)
 	if err != nil {
 		return nil, err
 	}
 	return parseFeatureServer(content)
 }
 
-func Initialize(service_root string, tenant_id string, token string) {
-	ag = new(ArcGIS)
-	ag.ServiceRoot = service_root
-	ag.TenantId = tenant_id
-	ag.Token = token
-
-	usage = new(Usage)
-}
-
-func Services() (*ServiceInfo, error) {
-	u, err := ag.serviceUrl("/services")
+func (ag *ArcGIS) PortalsSelf() (*PortalsResponse, error) {
+	req, err := ag.serviceRequest("/portals/self")
 	if err != nil {
 		return nil, err
 	}
-	content, err := requestJSON(u)
+	content, err := ag.requestJSON(req)
+	if err != nil {
+		return nil, err
+	}
+	return parsePortalsResponse(content)
+}
+
+func (ag *ArcGIS) Search(query string) (*SearchResponse, error) {
+	baseURL := "https://www.arcgis.com/sharing/rest/search?q=FieldseekerGIS&f=pjson"
+	req, err := http.NewRequest("GET", baseURL, nil)
+	if err != nil {
+		slog.Error("Failed to make request", slog.String("err", err.Error()))
+		return nil, err
+	}
+	auth, ok := ag.Authenticator.(AuthenticatorOAuth)
+	if !ok {
+		slog.Error("Couldn't munch auth")
+		return nil, errors.New("Bad auth munge")
+	}
+	req.Header.Add("X-ESRI-Authorization", "Bearer "+auth.AccessToken)
+	resp, err := ag.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to do request: %v", err)
+	}
+	defer resp.Body.Close()
+	content, err := io.ReadAll(resp.Body)
+	slog.Info("Search response", slog.Int("status", resp.StatusCode))
+	/*
+	params := make(map[string]string)
+	params["q"] = "FieldseekerGIS"
+	req, err := ag.serviceRequestWithParams("/search", params)
+	if err != nil {
+		return nil, err
+	}
+	content, err := ag.requestJSON(req)
+	if err != nil {
+		return nil, err
+	}
+	*/
+	dest, err := os.Create("search.json")
+	if err != nil {
+		slog.Error("Failed to create search.json", slog.String("err", err.Error()))
+		return nil, err
+	}
+	_, err = io.Copy(dest, bytes.NewReader(content))
+	if err != nil {
+		slog.Error("Failed to write search.json", slog.String("err", err.Error()))
+		return nil, err
+	}
+	slog.Info("Wrote search.json")
+
+	return parseSearchResponse(content)
+}
+func (ag *ArcGIS) Services() (*ServiceInfo, error) {
+	req, err := ag.serviceRequest("/services")
+	if err != nil {
+		return nil, err
+	}
+	content, err := ag.requestJSON(req)
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +288,15 @@ func Services() (*ServiceInfo, error) {
 
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func parsePortalsResponse(data []byte) (*PortalsResponse, error) {
+	var result PortalsResponse
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil, err
@@ -276,6 +333,15 @@ func parseRestInfo(data []byte) (*RestInfo, error) {
 	return &result, nil
 }
 
+func parseSearchResponse(data []byte) (*SearchResponse, error) {
+	var result SearchResponse
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 	var result ServiceInfo
 	err := json.Unmarshal(data, &result)
@@ -285,6 +351,43 @@ func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 	return &result, nil
 }
 
+func (ag *ArcGIS) serviceRequest(endpoint string) (*http.Request, error) {
+	//u := fmt.Sprintf("%s/%s/arcgis/rest%s", ag.ServiceRoot, ag.TenantId, endpoint)
+	u := fmt.Sprintf("%s%s", ag.ServiceRoot, endpoint)
+	base, err := url.Parse(u)
+	if err != nil {
+		return nil, err
+	}
+	params := url.Values{}
+	params.Add("f", "json")
+	base.RawQuery = params.Encode()
+	req, err := http.NewRequest("GET", base.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create request: %v", err)
+	}
+	return ag.Authenticator.addAuthentication(req)
+}
+
+func (ag *ArcGIS) serviceRequestWithParams(endpoint string, params map[string]string) (*http.Request, error) {
+	u := fmt.Sprintf("%s%s", ag.ServiceRoot, endpoint)
+	base, err := url.Parse(u)
+	if err != nil {
+		return nil, err
+	}
+	p := url.Values{}
+	p.Add("f", "json")
+	for k, v := range params {
+		p.Add(k, v)
+	}
+	base.RawQuery = p.Encode()
+	req, err := http.NewRequest("GET", base.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create request: %v", err)
+	}
+	return ag.Authenticator.addAuthentication(req)
+}
+
+/*
 func (arcgis ArcGIS) serviceUrl(endpoint string) (*url.URL, error) {
 	u := fmt.Sprintf("%s/%s/arcgis/rest%s", arcgis.ServiceRoot, arcgis.TenantId, endpoint)
 	base, err := url.Parse(u)
@@ -313,15 +416,16 @@ func (arcgis ArcGIS) serviceUrlWithParams(endpoint string, params map[string]str
 	base.RawQuery = p.Encode()
 	return base, nil
 }
+*/
 
-func logRequestBase(u *url.URL) {
-	if u == nil {
-		log.Println("URL is nil")
+func logRequestBase(r *http.Request) {
+	if r == nil {
+		slog.Warn("Can't log request, it's nil")
 		return
 	}
 
 	// Create a copy of the URL to avoid modifying the original
-	cleanURL := *u
+	cleanURL := *r.URL
 
 	// Remove query parameters
 	//cleanURL.RawQuery = ""
@@ -329,12 +433,12 @@ func logRequestBase(u *url.URL) {
 	q.Del("token")
 	cleanURL.RawQuery = q.Encode()
 
-	//log.Printf("GET %s", cleanURL.String())
+	slog.Info("ArcGIS request", slog.String("method", r.Method), slog.String("url", cleanURL.String()))
 }
 
-func requestJSON(u *url.URL) ([]byte, error) {
-	logRequestBase(u)
-	resp, err := http.Get(u.String())
+func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
+	logRequestBase(r)
+	resp, err := ag.client.Do(r)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +459,7 @@ func requestJSON(u *url.URL) ([]byte, error) {
 	if errorFromJSON != nil {
 		return nil, errorFromJSON
 	}
-	updateUsage(resp)
+	ag.updateUsage(resp)
 	return body, nil
 }
 
@@ -371,36 +475,36 @@ func tryParseError(data []byte) error {
 	return nil
 }
 
-func updateUsage(resp *http.Response) {
+func (ag *ArcGIS) updateUsage(resp *http.Response) {
 	qru := resp.Header["X-Esri-Query-Request-Units"]
 	for _, v := range qru {
-		n, err := fmt.Sscanf(v, "%d", &usage.LastRequest)
+		n, err := fmt.Sscanf(v, "%d", &ag.Usage.LastRequest)
 		if err != nil {
-			log.Println("Failed to parse X-Esri-Query-Request-Units:", err)
+			slog.Warn("Failed to parse X-Esri-Query-Request-Units", slog.String("err", err.Error()))
 		}
 		if n < 1 {
-			log.Println("Parsed no values from X-Esri-Query-Request-Units")
+			slog.Warn("Parsed no values from X-Esri-Query-Request-Units")
 		}
 	}
 	orupm := resp.Header["X-Esri-Org-Request-Units-Per-Min"]
 	for _, v := range orupm {
 		// The rupm value is of the form "usage=97;max=10000"
-		n, err := fmt.Sscanf(v, "usage=%d;max=%d", &usage.ThisMinute, &usage.MaxPerMinute)
+		n, err := fmt.Sscanf(v, "usage=%d;max=%d", &ag.Usage.ThisMinute, &ag.Usage.MaxPerMinute)
 		if err != nil {
-			log.Println("Failed to parse X-Esri-Org-Request-Units-Per-Min:", err)
+			slog.Warn("Failed to parse X-Esri-Org-Request-Units-Per-Min:", slog.String("err", err.Error()))
 		}
 		if n < 2 {
-			log.Println("Parsed too few values from X-Esri-Org-Request-Per-Min")
+			slog.Warn("Parsed too few values from X-Esri-Org-Request-Per-Min")
 		}
 	}
 }
 
-func (arcgis ArcGIS) Info() (*RestInfo, error) {
-	u, err := arcgis.serviceUrl("/info")
+func (ag *ArcGIS) Info() (*RestInfo, error) {
+	r, err := ag.serviceRequest("/info")
 	if err != nil {
 		return nil, err
 	}
-	content, err := requestJSON(u)
+	content, err := ag.requestJSON(r)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +526,7 @@ func NewQuery() *Query {
 	return q
 }
 
-func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
+func (arcgis ArcGIS) query(base string, query *Query) (*http.Request, error) {
 	params := make(map[string]string)
 	if query.Limit > 0 {
 		params["limit"] = strconv.Itoa(query.Limit)
@@ -442,19 +546,19 @@ func (arcgis ArcGIS) queryURL(base string, query *Query) (*url.URL, error) {
 	if len(query.SpatialReference) > 0 {
 		params["outSR"] = query.SpatialReference
 	}
-	return arcgis.serviceUrlWithParams(base, params)
+	return arcgis.serviceRequestWithParams(base, params)
 }
 
-func QueryCount(service string, layer int) (*QueryResultCount, error) {
+func (ag *ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"
 	params["where"] = "9999=9999"
-	u, err := ag.serviceUrlWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
+	r, err := ag.serviceRequestWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
 	if err != nil {
 		return nil, err
 	}
 
-	content, err := requestJSON(u)
+	content, err := ag.requestJSON(r)
 	if err != nil {
 		return nil, err
 	}
