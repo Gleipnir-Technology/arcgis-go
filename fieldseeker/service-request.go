@@ -24,7 +24,7 @@ type ServiceRequest struct {
 }
 
 func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
-	var layer *arcgis.Layer
+	var layer *arcgis.LayerFeature
 	for _, l := range fs.FeatureServer.Layers {
 		if l.Name == "ServiceRequest" {
 			layer = &l
@@ -36,7 +36,7 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	query := arcgis.NewQuery()
 	query.Where = "1=1"
 	query.OutFields = "*"
-	results, err := arcgis.DoQuery(
+	results, err := fs.arcgis.DoQuery(
 		fs.ServiceName,
 		layer.ID,
 		query,
