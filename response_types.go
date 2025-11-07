@@ -173,7 +173,7 @@ type Group struct {
 type UserInfo struct {
 	Username             string   `json:"username"`
 	Udn                  *string  `json:"udn"`
-	Id                   string   `json:"id"`
+	ID                   string   `json:"id"`
 	FullName             string   `json:"fullName"`
 	Categories           []string `json:"categories"`
 	EmailStatus          string   `json:"emailStatus"`
@@ -191,12 +191,12 @@ type UserInfo struct {
 	MfaEnforcementExempt bool     `json:"mfaEnforcementExempt"`
 	StorageUsage         int64    `json:"storageUsage"`
 	StorageQuota         int64    `json:"storageQuota"`
-	OrgId                string   `json:"orgId"`
+	OrgID                string   `json:"orgId"`
 	Role                 string   `json:"role"`
 	Privileges           []string `json:"privileges"`
 	RoleId               string   `json:"roleId"`
 	Level                string   `json:"level"`
-	UserLicenseTypeId    string   `json:"userLicenseTypeId"`
+	UserLicenseTypeID    string   `json:"userLicenseTypeId"`
 	Disabled             bool     `json:"disabled"`
 	Tags                 []string `json:"tags"`
 	Culture              string   `json:"culture"`

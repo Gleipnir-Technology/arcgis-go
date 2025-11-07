@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -229,49 +228,16 @@ func (ag *ArcGIS) PortalsSelf() (*PortalsResponse, error) {
 }
 
 func (ag *ArcGIS) Search(query string) (*SearchResponse, error) {
-	baseURL := "https://www.arcgis.com/sharing/rest/search?q=FieldseekerGIS&f=pjson"
-	req, err := http.NewRequest("GET", baseURL, nil)
+	params := make(map[string]string)
+	params["q"] = "FieldseekerGIS"
+	req, err := ag.serviceRequestWithParams("/search", params)
 	if err != nil {
-		slog.Error("Failed to make request", slog.String("err", err.Error()))
 		return nil, err
 	}
-	auth, ok := ag.Authenticator.(AuthenticatorOAuth)
-	if !ok {
-		slog.Error("Couldn't munch auth")
-		return nil, errors.New("Bad auth munge")
-	}
-	req.Header.Add("X-ESRI-Authorization", "Bearer "+auth.AccessToken)
-	resp, err := ag.client.Do(req)
+	content, err := ag.requestJSON(req)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to do request: %v", err)
-	}
-	defer resp.Body.Close()
-	content, err := io.ReadAll(resp.Body)
-	slog.Info("Search response", slog.Int("status", resp.StatusCode))
-	/*
-		params := make(map[string]string)
-		params["q"] = "FieldseekerGIS"
-		req, err := ag.serviceRequestWithParams("/search", params)
-		if err != nil {
-			return nil, err
-		}
-		content, err := ag.requestJSON(req)
-		if err != nil {
-			return nil, err
-		}
-	*/
-	dest, err := os.Create("search.json")
-	if err != nil {
-		slog.Error("Failed to create search.json", slog.String("err", err.Error()))
 		return nil, err
 	}
-	_, err = io.Copy(dest, bytes.NewReader(content))
-	if err != nil {
-		slog.Error("Failed to write search.json", slog.String("err", err.Error()))
-		return nil, err
-	}
-	slog.Info("Wrote search.json")
-
 	return parseSearchResponse(content)
 }
 func (ag *ArcGIS) Services() (*ServiceInfo, error) {
@@ -297,6 +263,7 @@ func parseFeatureServer(data []byte) (*FeatureServer, error) {
 
 func parsePortalsResponse(data []byte) (*PortalsResponse, error) {
 	var result PortalsResponse
+	saveResponse(data, "portal.json")
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil, err
@@ -334,6 +301,7 @@ func parseRestInfo(data []byte) (*RestInfo, error) {
 }
 
 func parseSearchResponse(data []byte) (*SearchResponse, error) {
+	saveResponse(data, "search.json")
 	var result SearchResponse
 	err := json.Unmarshal(data, &result)
 	if err != nil {
@@ -349,6 +317,20 @@ func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+func saveResponse(data []byte, filename string) {
+	dest, err := os.Create(filename)
+	if err != nil {
+		slog.Error("Failed to create file", slog.String("filename", filename), slog.String("err", err.Error()))
+		return
+	}
+	_, err = io.Copy(dest, bytes.NewReader(data))
+	if err != nil {
+		slog.Error("Failed to write", slog.String("filename", filename), slog.String("err", err.Error()))
+		return
+	}
+	slog.Info("Wrote response", slog.String("filename", filename))
 }
 
 func (ag *ArcGIS) serviceRequest(endpoint string) (*http.Request, error) {
