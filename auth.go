@@ -15,9 +15,10 @@ type AuthenticatorToken struct {
 }
 
 type AuthenticatorOAuth struct {
-	AccessToken  string
-	Expires      time.Time
-	RefreshToken string
+	AccessToken         string
+	AccessTokenExpires  time.Time
+	RefreshToken        string
+	RefreshTokenExpires time.Time
 }
 
 func (a AuthenticatorToken) addAuthentication(req *http.Request) (*http.Request, error) {
