@@ -17,16 +17,40 @@ type FieldSeeker struct {
 	ServiceName   string
 }
 
+func extractURLParts(urlString string) (string, []string, error) {
+	parsedURL, err := url.Parse(urlString)
+	if err != nil {
+		return "", nil, err
+	}
+
+	host := parsedURL.Scheme + "://" + parsedURL.Host
+
+	// Split the path and filter empty parts
+	var pathParts []string
+	for _, part := range strings.Split(parsedURL.Path, "/") {
+		if part != "" {
+			pathParts = append(pathParts, part)
+		}
+	}
+
+	return host, pathParts, nil
+}
+
 func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
 	// The URL for fieldseeker should be something like
 	// https://foo.arcgis.com/123abc/arcgis/rest/services/FieldSeekerGIS/FeatureServer
 	// We need to break it up
-	base, err := truncateURL(fieldseeker_url, "rest")
+	host, pathParts, err := extractURLParts(fieldseeker_url)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to break up provided url: %v", err)
 	}
-	slog.Info("Using base fieldseeker URL", slog.String("base", base))
-	ar.ServiceRoot = base
+	if len(pathParts) < 1 {
+		return nil, errors.New("Didn't get enough path parts")
+	}
+	context := pathParts[0]
+	slog.Info("Using base fieldseeker URL", slog.String("host", host), slog.String("context", context))
+	ar.Context = &context
+	ar.Host = host
 	fs := FieldSeeker{
 		arcgis:        ar,
 		FeatureServer: nil,
@@ -57,6 +81,10 @@ func (fs *FieldSeeker) MaxRecordCount() int {
 
 func (fs *FieldSeeker) QueryCount(layer_id int) (*arcgis.QueryResultCount, error) {
 	return fs.arcgis.QueryCount(fs.ServiceName, layer_id)
+}
+
+func (fs *FieldSeeker) WebhookList() ([]arcgis.Webhook, error) {
+	return fs.arcgis.WebhookList(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
 // Make sure we have the Layer IDs we need to perform queries
