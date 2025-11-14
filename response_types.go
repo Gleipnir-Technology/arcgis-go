@@ -5,6 +5,19 @@ type Basemap struct {
 	Title         string          `json:"title"`
 }
 
+// Errors at the API level
+type ErrorFromAPI struct {
+	Code        int      `json:"code"`
+	Details     []string `json:"details"`
+	Error       string   `json:"error"`
+	Description string   `json:"error_description"`
+	Message     string   `json:"message"`
+}
+
+type ErrorResponse struct {
+	Error ErrorFromAPI `json:"error"`
+}
+
 type Extent struct {
 	XMin             float64 `json:"xmin"`
 	YMin             float64 `json:"ymin"`
@@ -264,4 +277,14 @@ type SearchResult struct {
 	//ApiToken1ExpirationDate int `json:"apiToken1ExpirationDate"`
 	//ApiToken2ExpirationDate int `json:"apiToken2ExpirationDate"`
 	//LastViewed int64 `json:"lastViewed"`
+}
+
+func (e ErrorResponse) AsError() error {
+	return ArcGISAPIError{
+		Code:        e.Error.Code,
+		Description: e.Error.Description,
+		Details:     e.Error.Details,
+		ErrorType:   errorTypeFromString(e.Error.Error),
+		Message:     e.Error.Message,
+	}
 }

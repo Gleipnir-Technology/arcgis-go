@@ -13,17 +13,6 @@ import (
 	"strconv"
 )
 
-// Errors at the API level
-type ErrorFromAPI struct {
-	Code    int
-	Details []string
-	Message string
-}
-
-type ErrorMessage struct {
-	Error ErrorFromAPI
-}
-
 // Root structure for an instance of the ArcGIS API
 type ArcGIS struct {
 	Authenticator Authenticator
@@ -490,13 +479,13 @@ func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 }
 
 func tryParseError(data []byte) error {
-	var msg ErrorMessage
+	var msg ErrorResponse
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
 		return err
 	}
 	if msg.Error.Code != 0 || msg.Error.Message != "" || len(msg.Error.Details) > 0 {
-		return fmt.Errorf("ArcGIS API Error: %v", msg)
+		return msg.AsError()
 	}
 	return nil
 }
