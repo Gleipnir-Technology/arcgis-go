@@ -75,7 +75,31 @@ func (fs *FieldSeeker) FeatureServerLayers() []arcgis.LayerFeature {
 	return fs.FeatureServer.Layers
 }
 
-func (fs *FieldSeeker) MaxRecordCount() int {
+func (fs *FieldSeeker) LocationTracking(offset uint) ([]*LocationTracking, error) {
+	var results []*LocationTracking
+
+	q := arcgis.NewQuery()
+	q.ResultRecordCount = fs.MaxRecordCount()
+	q.ResultOffset = offset
+	q.SpatialReference = "4326"
+	q.OutFields = "*"
+	q.Where = "1=1"
+	layer_id := 0
+	qr, err := fs.DoQuery(layer_id, q)
+	if err != nil {
+		return results, fmt.Errorf("Failed to query LocationTracking (layer %d): %w", layer_id, err)
+	}
+	for _, feature := range qr.Features {
+		lt, err := locationTrackingFromAttributes(feature.Attributes)
+		if err != nil {
+			return results, fmt.Errorf("Failed to get LocationTracking from query result: %w", err)
+		}
+		results = append(results, lt)
+	}
+	return results, nil
+}
+
+func (fs *FieldSeeker) MaxRecordCount() uint {
 	return fs.FeatureServer.MaxRecordCount
 }
 
