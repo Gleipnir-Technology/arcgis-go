@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -150,10 +151,22 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		code.WriteString(fmt.Sprintf("type %s %s\n\n", enumName, enumBaseType))
 		code.WriteString("const (\n")
 
+		// Keep track of used constant names to ensure uniqueness
+		usedConstNames := make(map[string]bool)
+
 		// Add enum values
 		for _, value := range field.Domain.CodedValues {
-			valueName := cleanEnumValueName(value.Name)
+			valueName := descriptiveEnumValueName(value.Name)
 			constName := fmt.Sprintf("%s%s", enumPrefix, valueName)
+
+			// Ensure uniqueness of const names
+			originalConstName := constName
+			suffix := 1
+			for usedConstNames[constName] {
+				constName = fmt.Sprintf("%s%d", originalConstName, suffix)
+				suffix++
+			}
+			usedConstNames[constName] = true
 
 			// Format the code value based on its type
 			var codeValue string
@@ -220,6 +233,57 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("}\n")
 
 	return code.String()
+}
+
+// Create a descriptive enum value name that handles mathematical symbols
+func descriptiveEnumValueName(name string) string {
+	// Convert numeric values to words for better readability
+	re := regexp.MustCompile(`\b(\d+)\b`)
+	name = re.ReplaceAllStringFunc(name, func(s string) string {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			return s
+		}
+		return numberToWord(n)
+	})
+
+	// Replace mathematical symbols with descriptive text
+	name = strings.ReplaceAll(name, "~", "About")
+	name = strings.ReplaceAll(name, "<", "LessThan")
+	name = strings.ReplaceAll(name, ">", "GreaterThan")
+	name = strings.ReplaceAll(name, "=", "Equals")
+	name = strings.ReplaceAll(name, "≤", "LessThanOrEqual")
+	name = strings.ReplaceAll(name, "≥", "GreaterThanOrEqual")
+
+	// Finally clean the string for a Go identifier
+	return cleanEnumValueName(name)
+}
+
+// Convert a number to its word representation
+func numberToWord(n int) string {
+	words := map[int]string{
+		0:  "Zero",
+		1:  "One",
+		2:  "Two",
+		3:  "Three",
+		4:  "Four",
+		5:  "Five",
+		6:  "Six",
+		7:  "Seven",
+		8:  "Eight",
+		9:  "Nine",
+		10: "Ten",
+		11: "Eleven",
+		12: "Twelve",
+		// Add more as needed
+	}
+
+	if word, ok := words[n]; ok {
+		return word
+	}
+
+	// For numbers not in the map, just convert to string
+	return strconv.Itoa(n)
 }
 
 // Clean a string literal for use in Go code by removing or escaping problematic characters
