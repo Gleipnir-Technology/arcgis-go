@@ -4,11 +4,11 @@ import (
 	"fmt"
 )
 
-type APIErrorType int
+type APIErrorType string
 
 const (
-	APIErrorUnrecognized APIErrorType = iota
-	APIErrorInvalidRequest
+	APIErrorUnrecognized   APIErrorType = ""
+	APIErrorInvalidRequest APIErrorType = "invalid_request"
 )
 
 type ArcGISAPIError struct {
@@ -22,10 +22,19 @@ type ArcGISAPIError struct {
 func (ae ArcGISAPIError) Error() string {
 	return fmt.Sprintf("API error %d: %s (%s)", ae.Code, ae.Message, ae.Description)
 }
-
-type InvalidatedRefreshTokenError struct {
-	ArcGISAPIError
+func (ae ArcGISAPIError) Is(target error) bool {
+	return ae.Error() == target.Error()
 }
+
+var (
+	InvalidatedRefreshTokenError *ArcGISAPIError = &ArcGISAPIError{
+		Code:        498,
+		Description: "invalidated refresh_token",
+		Details:     []string{},
+		ErrorType:   APIErrorInvalidRequest,
+		Message:     "invalidated refresh_token",
+	}
+)
 
 func errorTypeFromString(s string) APIErrorType {
 	switch s {

@@ -280,17 +280,11 @@ type SearchResult struct {
 }
 
 func (e ErrorResponse) AsError() error {
-	api_error := ArcGISAPIError{
+	return ArcGISAPIError{
 		Code:        e.Error.Code,
 		Description: e.Error.Description,
 		Details:     e.Error.Details,
 		ErrorType:   errorTypeFromString(e.Error.Error),
 		Message:     e.Error.Message,
 	}
-	if e.Error.Code == 498 {
-		return InvalidatedRefreshTokenError{
-			ArcGISAPIError: api_error,
-		}
-	}
-	return api_error
 }
