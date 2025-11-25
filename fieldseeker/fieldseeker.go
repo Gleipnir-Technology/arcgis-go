@@ -90,7 +90,7 @@ func (fs *FieldSeeker) LocationTracking(offset uint) ([]*LocationTracking, error
 		return results, fmt.Errorf("Failed to query LocationTracking (layer %d): %w", layer_id, err)
 	}
 	for _, feature := range qr.Features {
-		lt, err := locationTrackingFromAttributes(feature.Attributes)
+		lt, err := structFromAttributes[LocationTracking](feature.Attributes)
 		if err != nil {
 			return results, fmt.Errorf("Failed to get LocationTracking from query result: %w", err)
 		}
@@ -107,8 +107,51 @@ func (fs *FieldSeeker) QueryCount(layer_id int) (*arcgis.QueryResultCount, error
 	return fs.arcgis.QueryCount(fs.ServiceName, layer_id)
 }
 
+func (fs *FieldSeeker) Schema(layer_id int) ([]byte, error) {
+	query := arcgis.NewQuery()
+	query.ResultRecordCount = 1
+	query.ResultOffset = 0
+	query.OutFields = "*"
+	query.Where = "1=1"
+	return fs.DoQueryRaw(layer_id, query)
+}
+
+func (fs *FieldSeeker) ServiceRequest(offset uint) ([]*ServiceRequest, error) {
+	return featureToStruct[ServiceRequest](fs, "ServiceRequest", 2, offset)
+}
+
+func (fs *FieldSeeker) Tracklog(offset uint) ([]*Tracklog, error) {
+	var results []*Tracklog
+
+	layer_id := 1
+	qr, err := fs.doQueryAll(layer_id, offset)
+	if err != nil {
+		return results, fmt.Errorf("Failed to query Tracklog (layer %d): %w", layer_id, err)
+	}
+
+	for _, feature := range qr.Features {
+		tl, err := structFromAttributes[Tracklog](feature.Attributes)
+		if err != nil {
+			return results, fmt.Errorf("Failed to get LocationTracking from query result: %w", err)
+		}
+		results = append(results, tl)
+	}
+	return results, nil
+}
+
 func (fs *FieldSeeker) WebhookList() ([]arcgis.Webhook, error) {
 	return fs.arcgis.WebhookList(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+}
+
+func (fs *FieldSeeker) doQueryAll(layer_id int, offset uint) (*arcgis.QueryResult, error) {
+	q := arcgis.NewQuery()
+	q.ResultRecordCount = fs.MaxRecordCount()
+	q.ResultOffset = offset
+	q.SpatialReference = "4326"
+	q.OutFields = "*"
+	q.Where = "1=1"
+	qr, err := fs.DoQuery(layer_id, q)
+	return qr, err
 }
 
 // Make sure we have the Layer IDs we need to perform queries
@@ -149,6 +192,24 @@ func (fs *FieldSeeker) ensureHasServices() error {
 	fs.ServiceInfo = s
 	slog.Info("Add service info", slog.Float64("version", s.CurrentVersion), slog.Int("services", len(s.Services)))
 	return nil
+}
+
+func featureToStruct[S any](fs *FieldSeeker, layer_name string, layer_id int, offset uint) ([]*S, error) {
+	var results []*S
+
+	qr, err := fs.doQueryAll(layer_id, offset)
+	if err != nil {
+		return results, fmt.Errorf("Failed to query %s (layer %d): %w", layer_name, layer_id, err)
+	}
+
+	for _, feature := range qr.Features {
+		s, err := structFromAttributes[S](feature.Attributes)
+		if err != nil {
+			return results, fmt.Errorf("Failed to get %s from query result: %w", layer_name, err)
+		}
+		results = append(results, s)
+	}
+	return results, nil
 }
 
 func stringOrEmpty(data map[string]any, key string) string {

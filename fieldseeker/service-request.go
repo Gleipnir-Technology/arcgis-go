@@ -1,5 +1,6 @@
 package fieldseeker
 
+/*
 import (
 	"errors"
 	"fmt"
@@ -7,7 +8,6 @@ import (
 
 	"github.com/Gleipnir-Technology/arcgis-go"
 )
-
 type ServiceRequest struct {
 	Address          string
 	City             string
@@ -69,3 +69,4 @@ func (fs *FieldSeeker) ServiceRequest() (*ServiceRequest, error) {
 	sr.Zip = stringOrEmpty(f.Attributes, "REQZIP")
 	return sr, nil
 }
+*/

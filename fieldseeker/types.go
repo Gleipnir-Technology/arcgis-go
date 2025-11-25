@@ -25,9 +25,50 @@ type LocationTracking struct {
 	Editor         string    `field:"Editor"`
 }
 
-func locationTrackingFromAttributes(attributes map[string]any) (*LocationTracking, error) {
+type ServiceRequestSourceType int
+
+const (
+	SourceTypeUnknown ServiceRequestSourceType = iota
+	SourceTypePhone
+	SourceTypeEmail
+	SourceTypeWebsite
+	SourceTypeDropin
+)
+
+type ServiceRequestPriorityType int
+
+const (
+	ServiceRequestPriorityUnknown ServiceRequestPriorityType = iota
+	ServiceRequestPriorityLow
+	ServiceRequestPriorityMedium
+	ServiceRequestPriorityHigh
+	ServiceRequestPriorityFollowupVisit
+	ServiceRequestPriorityHTCResponse
+	ServiceRequestPriorityDiseaseActivityResponse
+)
+
+type ServiceRequest struct {
+	ObjectID        uint                       `field:"OBJECTID"`
+	Received        time.Time                  `field:"RECDATETIME"`
+	Source          ServiceRequestSourceType   `field:"SOURCE"`
+	EnteredBy       string                     `field:"ENTRYTECH"`
+	Priority        ServiceRequestPriorityType `field:"PRIORITY"`
+	Supervisor      string                     `field:"SUPERVISOR"`
+	AssignedTech    string                     `field:"ASSIGNEDTECH"`
+	Status          string                     `field:"STATUS"`
+	AnonymousCaller bool                       `field:"CLRANON"`
+	CallerName      string                     `field:"CLRFNAME"`
+	CallerPhone     string                     `field:"CLRPHONE"`
+}
+
+type Tracklog struct {
+	ObjectID uint      `field:"OBJECTID"`
+	GlobalID uuid.UUID `field:"GlobalID"`
+}
+
+func structFromAttributes[S any](attributes map[string]any) (*S, error) {
 	// Create new LocationTracking instance
-	result := &LocationTracking{}
+	result := new(S)
 
 	// Get the reflect.Value and reflect.Type of our struct
 	val := reflect.ValueOf(result).Elem()
