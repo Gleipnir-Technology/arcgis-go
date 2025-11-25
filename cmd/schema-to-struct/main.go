@@ -120,6 +120,10 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	// First determine if we need time or UUID imports
 	for _, field := range schema.Fields {
 		fieldType := mapFieldType(field.Type)
+		if fieldType == "" {
+			fmt.Printf("No mapping exists for field type %s", field.Type)
+			os.Exit(1)
+		}
 		if fieldType == "time.Time" {
 			needsTimeImport = true
 		} else if fieldType == "uuid.UUID" {
@@ -461,7 +465,9 @@ func mapFieldType(fieldType string) string {
 		return "time.Time"
 	case "esriFieldTypeGlobalID":
 		return "uuid.UUID"
+	case "esriFieldTypeGUID":
+		return "uuid.UUID"
 	default:
-		return "interface{}"
+		return ""
 	}
 }
