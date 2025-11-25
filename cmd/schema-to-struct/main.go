@@ -124,18 +124,24 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 
 	// Generate enum types for fields with domains
 	domainFields := make(map[string]Field)
+	domainTypeNames := make(map[string]string) // Maps domain names to their clean Go type names
 
 	// First pass: collect all fields with domains
 	for _, field := range schema.Fields {
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
 			domainFields[field.Domain.Name] = field
+
+			// Create a clean domain name for Go
+			cleanDomainName := cleanIdentifier(field.Domain.Name)
+			domainTypeNames[field.Domain.Name] = structName + cleanDomainName + "Type"
 		}
 	}
 
 	// Second pass: generate enums
 	for domainName, field := range domainFields {
-		enumName := domainName + "Type"
-		enumPrefix := domainName
+		// Use the clean type name we created in the first pass
+		enumName := domainTypeNames[domainName]
+		enumPrefix := structName + cleanIdentifier(domainName)
 
 		// Determine enum base type based on field type
 		enumBaseType := getEnumBaseType(field.Type)
@@ -199,7 +205,8 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		// Determine field type
 		var fieldType string
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			fieldType = field.Domain.Name + "Type"
+			// Use our clean domain type name from the map
+			fieldType = domainTypeNames[field.Domain.Name]
 		} else {
 			fieldType = mapFieldType(field.Type)
 		}
@@ -211,6 +218,20 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("}\n")
 
 	return code.String()
+}
+
+// Clean an identifier for use in Go code
+func cleanIdentifier(s string) string {
+	// Replace non-alphanumeric characters with empty string
+	re := regexp.MustCompile(`[^a-zA-Z0-9]`)
+	cleaned := re.ReplaceAllString(s, "")
+
+	// Ensure it starts with a capital letter
+	if len(cleaned) > 0 {
+		return strings.ToUpper(cleaned[:1]) + cleaned[1:]
+	}
+
+	return "Unknown"
 }
 
 // Return the base type for an enum based on field type
