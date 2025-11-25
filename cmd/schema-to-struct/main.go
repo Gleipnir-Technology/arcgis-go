@@ -12,9 +12,10 @@ import (
 )
 
 // CodedValue represents a value in a coded domain
+// Uses json.RawMessage for Code to handle different types
 type CodedValue struct {
-	Name string `json:"name"`
-	Code string `json:"code"`
+	Name string          `json:"name"`
+	Code json.RawMessage `json:"code"`
 }
 
 // Domain represents a domain definition
@@ -113,15 +114,6 @@ func processFile(filePath, outputDir, packageName string) {
 
 func generateGoCode(structName string, schema Schema, packageName string) string {
 	var code strings.Builder
-	var enums []string
-
-	// Extract domains that need to be converted to enums
-	domains := make(map[string]*Domain)
-	for _, field := range schema.Fields {
-		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			domains[field.Domain.Name] = field.Domain
-		}
-	}
 
 	// Write package declaration and imports
 	code.WriteString(fmt.Sprintf("package %s\n\n", packageName))
@@ -130,27 +122,55 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("\t\"github.com/google/uuid\"\n")
 	code.WriteString(")\n\n")
 
-	// Generate enum types
-	for domainName, domain := range domains {
+	// Generate enum types for fields with domains
+	domainFields := make(map[string]Field)
+
+	// First pass: collect all fields with domains
+	for _, field := range schema.Fields {
+		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
+			domainFields[field.Domain.Name] = field
+		}
+	}
+
+	// Second pass: generate enums
+	for domainName, field := range domainFields {
 		enumName := domainName + "Type"
 		enumPrefix := domainName
 
+		// Determine enum base type based on field type
+		enumBaseType := getEnumBaseType(field.Type)
+
 		// Begin enum type definition
-		code.WriteString(fmt.Sprintf("type %s string\n\n", enumName))
+		code.WriteString(fmt.Sprintf("type %s %s\n\n", enumName, enumBaseType))
 		code.WriteString("const (\n")
 
 		// Add enum values
-		for _, value := range domain.CodedValues {
+		for _, value := range field.Domain.CodedValues {
 			valueName := cleanEnumValueName(value.Name)
 			constName := fmt.Sprintf("%s%s", enumPrefix, valueName)
-			code.WriteString(fmt.Sprintf("\t%s %s = \"%s\"\n", constName, enumName, value.Code))
+
+			// Format the code value based on its type
+			var codeValue string
+
+			// Detect if it's a string or numeric value by checking first character
+			if len(value.Code) > 0 && value.Code[0] == '"' {
+				// It's a string value
+				var strVal string
+				if err := json.Unmarshal(value.Code, &strVal); err == nil {
+					codeValue = fmt.Sprintf("\"%s\"", strVal)
+				} else {
+					codeValue = "0 // Error parsing code value"
+				}
+			} else {
+				// It's a numeric value, use as is
+				codeValue = string(value.Code)
+			}
+
+			code.WriteString(fmt.Sprintf("\t%s %s = %s\n", constName, enumName, codeValue))
 		}
 
 		// Close enum definition
 		code.WriteString(")\n\n")
-
-		// Keep track of generated enums
-		enums = append(enums, enumName)
 	}
 
 	// Begin struct definition
@@ -191,6 +211,22 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("}\n")
 
 	return code.String()
+}
+
+// Return the base type for an enum based on field type
+func getEnumBaseType(fieldType string) string {
+	switch fieldType {
+	case "esriFieldTypeSmallInteger":
+		return "int16"
+	case "esriFieldTypeInteger":
+		return "int32"
+	case "esriFieldTypeSingle":
+		return "float32"
+	case "esriFieldTypeDouble":
+		return "float64"
+	default:
+		return "string"
+	}
 }
 
 func cleanEnumValueName(name string) string {
@@ -249,6 +285,12 @@ func mapFieldType(fieldType string) string {
 	switch fieldType {
 	case "esriFieldTypeOID":
 		return "uint"
+	case "esriFieldTypeSmallInteger":
+		return "int16"
+	case "esriFieldTypeInteger":
+		return "int32"
+	case "esriFieldTypeSingle":
+		return "float32"
 	case "esriFieldTypeDouble":
 		return "float64"
 	case "esriFieldTypeString":
