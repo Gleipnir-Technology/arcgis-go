@@ -163,9 +163,11 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 				// It's a string value
 				var strVal string
 				if err := json.Unmarshal(value.Code, &strVal); err == nil {
-					codeValue = fmt.Sprintf("\"%s\"", strVal)
+					// Clean up the string value to remove or escape problematic characters
+					cleanedStr := cleanStringLiteral(strVal)
+					codeValue = fmt.Sprintf("\"%s\"", cleanedStr)
 				} else {
-					codeValue = "0 // Error parsing code value"
+					codeValue = "\"\" // Error parsing code value"
 				}
 			} else {
 				// It's a numeric value, use as is
@@ -218,6 +220,21 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("}\n")
 
 	return code.String()
+}
+
+// Clean a string literal for use in Go code by removing or escaping problematic characters
+func cleanStringLiteral(s string) string {
+	// Replace quotes with empty string to avoid Go syntax errors
+	s = strings.ReplaceAll(s, "\"", "")
+	s = strings.ReplaceAll(s, "'", "")
+
+	// Replace other potentially problematic characters
+	s = strings.ReplaceAll(s, "\\", "")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\t", " ")
+
+	return s
 }
 
 // Clean an identifier for use in Go code
