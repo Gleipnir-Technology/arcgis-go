@@ -13,7 +13,6 @@ import (
 )
 
 // CodedValue represents a value in a coded domain
-// Uses json.RawMessage for Code to handle different types
 type CodedValue struct {
 	Name string          `json:"name"`
 	Code json.RawMessage `json:"code"`
@@ -50,7 +49,7 @@ func main() {
 	// Parse command line arguments
 	inputDir := flag.String("input", "", "Directory containing JSON schema files")
 	outputDir := flag.String("output", "", "Directory where Go files will be written")
-	packageName := flag.String("package", "layers", "Package name for generated Go files")
+	packageName := flag.String("package", "layer", "Package name for generated Go files")
 	flag.Parse()
 
 	// Validate input
@@ -115,13 +114,39 @@ func processFile(filePath, outputDir, packageName string) {
 
 func generateGoCode(structName string, schema Schema, packageName string) string {
 	var code strings.Builder
+	needsTimeImport := false
+	needsUUIDImport := false
 
-	// Write package declaration and imports
+	// First determine if we need time or UUID imports
+	for _, field := range schema.Fields {
+		fieldType := mapFieldType(field.Type)
+		if fieldType == "time.Time" {
+			needsTimeImport = true
+		} else if fieldType == "uuid.UUID" {
+			needsUUIDImport = true
+		}
+	}
+
+	// Write package declaration
 	code.WriteString(fmt.Sprintf("package %s\n\n", packageName))
-	code.WriteString("import (\n")
-	code.WriteString("\t\"time\"\n\n")
-	code.WriteString("\t\"github.com/google/uuid\"\n")
-	code.WriteString(")\n\n")
+
+	// Write imports only if needed
+	if needsTimeImport || needsUUIDImport {
+		code.WriteString("import (\n")
+
+		if needsTimeImport {
+			code.WriteString("\t\"time\"\n")
+		}
+
+		if needsUUIDImport {
+			if needsTimeImport {
+				code.WriteString("\n")
+			}
+			code.WriteString("\t\"github.com/google/uuid\"\n")
+		}
+
+		code.WriteString(")\n\n")
+	}
 
 	// Generate enum types for fields with domains
 	domainFields := make(map[string]Field)
@@ -197,14 +222,17 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	// Begin struct definition
 	code.WriteString(fmt.Sprintf("type %s struct {\n", structName))
 
+	// Keep track of field names to ensure uniqueness
+	usedFieldNames := make(map[string]bool)
+
 	// Add fields
 	for _, field := range schema.Fields {
 		// Use alias if available, otherwise use field name
 		displayName := field.Name
 		if field.Alias != "" && field.Alias != field.Name {
-			// Remove parentheses and other non-alphanumeric chars from alias if present
+			// Remove parentheses, question marks, and other non-alphanumeric chars from alias
 			cleanAlias := strings.Map(func(r rune) rune {
-				if strings.ContainsRune("()[]{}.,;:!@#$%^&*-+", r) {
+				if strings.ContainsRune("()[]{}.,;:!@#$%^&*-+?", r) {
 					return -1 // Remove the character
 				}
 				return r
@@ -215,7 +243,16 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 			}
 		}
 
-		fieldName := toPascalCase(displayName)
+		fieldName := toPascalCasePreserveNumbers(displayName)
+
+		// Ensure field name uniqueness
+		originalFieldName := fieldName
+		suffix := 2
+		for usedFieldNames[fieldName] {
+			fieldName = fmt.Sprintf("%s%d", originalFieldName, suffix)
+			suffix++
+		}
+		usedFieldNames[fieldName] = true
 
 		// Determine field type
 		var fieldType string
@@ -348,17 +385,34 @@ func cleanEnumValueName(name string) string {
 	return "Unknown"
 }
 
-func toPascalCase(s string) string {
+// Similar to toPascalCase but preserves numeric suffixes
+func toPascalCasePreserveNumbers(s string) string {
 	// Handle empty strings
 	if s == "" {
 		return ""
 	}
 
+	// Check for numeric suffix
+	re := regexp.MustCompile(`^([a-zA-Z_]+)(\d+)$`)
+	matches := re.FindStringSubmatch(s)
+
+	var base string
+	var numericSuffix string
+
+	if len(matches) == 3 {
+		// There is a numeric suffix, separate it
+		base = matches[1]
+		numericSuffix = matches[2]
+	} else {
+		base = s
+	}
+
+	// Process the base part using our standard Pascal case logic
 	// Split on underscores, spaces, or case changes
 	var parts []string
 
 	// First, split on underscores and spaces
-	for _, part := range strings.FieldsFunc(s, func(r rune) bool {
+	for _, part := range strings.FieldsFunc(base, func(r rune) bool {
 		return r == '_' || r == ' '
 	}) {
 		// Check if the part is all uppercase
@@ -380,7 +434,13 @@ func toPascalCase(s string) string {
 		}
 	}
 
-	return strings.Join(parts, "")
+	// Rejoin and add numeric suffix if present
+	result := strings.Join(parts, "")
+	if numericSuffix != "" {
+		result += numericSuffix
+	}
+
+	return result
 }
 
 func mapFieldType(fieldType string) string {
