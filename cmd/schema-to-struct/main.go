@@ -7,8 +7,24 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+// CodedValue represents a value in a coded domain
+type CodedValue struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+// Domain represents a domain definition
+type Domain struct {
+	Type        string       `json:"type"`
+	Name        string       `json:"name"`
+	MergePolicy string       `json:"mergePolicy"`
+	SplitPolicy string       `json:"splitPolicy"`
+	CodedValues []CodedValue `json:"codedValues"`
+}
 
 // Field represents a field in the schema
 type Field struct {
@@ -17,7 +33,7 @@ type Field struct {
 	Alias   string      `json:"alias"`
 	SQLType string      `json:"sqlType"`
 	Length  int         `json:"length,omitempty"`
-	Domain  interface{} `json:"domain"`
+	Domain  *Domain     `json:"domain"`
 	Default interface{} `json:"defaultValue"`
 }
 
@@ -97,6 +113,15 @@ func processFile(filePath, outputDir, packageName string) {
 
 func generateGoCode(structName string, schema Schema, packageName string) string {
 	var code strings.Builder
+	var enums []string
+
+	// Extract domains that need to be converted to enums
+	domains := make(map[string]*Domain)
+	for _, field := range schema.Fields {
+		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
+			domains[field.Domain.Name] = field.Domain
+		}
+	}
 
 	// Write package declaration and imports
 	code.WriteString(fmt.Sprintf("package %s\n\n", packageName))
@@ -104,6 +129,29 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("\t\"time\"\n\n")
 	code.WriteString("\t\"github.com/google/uuid\"\n")
 	code.WriteString(")\n\n")
+
+	// Generate enum types
+	for domainName, domain := range domains {
+		enumName := domainName + "Type"
+		enumPrefix := domainName
+
+		// Begin enum type definition
+		code.WriteString(fmt.Sprintf("type %s string\n\n", enumName))
+		code.WriteString("const (\n")
+
+		// Add enum values
+		for _, value := range domain.CodedValues {
+			valueName := cleanEnumValueName(value.Name)
+			constName := fmt.Sprintf("%s%s", enumPrefix, valueName)
+			code.WriteString(fmt.Sprintf("\t%s %s = \"%s\"\n", constName, enumName, value.Code))
+		}
+
+		// Close enum definition
+		code.WriteString(")\n\n")
+
+		// Keep track of generated enums
+		enums = append(enums, enumName)
+	}
 
 	// Begin struct definition
 	code.WriteString(fmt.Sprintf("type %s struct {\n", structName))
@@ -127,7 +175,15 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		}
 
 		fieldName := toPascalCase(displayName)
-		fieldType := mapFieldType(field.Type)
+
+		// Determine field type
+		var fieldType string
+		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
+			fieldType = field.Domain.Name + "Type"
+		} else {
+			fieldType = mapFieldType(field.Type)
+		}
+
 		code.WriteString(fmt.Sprintf("\t%s %s `field:\"%s\"`\n", fieldName, fieldType, field.Name))
 	}
 
@@ -135,6 +191,23 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString("}\n")
 
 	return code.String()
+}
+
+func cleanEnumValueName(name string) string {
+	// Replace dashes, underscores, spaces with nothing
+	re := regexp.MustCompile(`[-_ ]`)
+	cleanName := re.ReplaceAllString(name, "")
+
+	// Remove any non-alphanumeric characters
+	re = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	cleanName = re.ReplaceAllString(cleanName, "")
+
+	// Ensure it starts with a capital letter
+	if len(cleanName) > 0 {
+		return strings.ToUpper(cleanName[:1]) + cleanName[1:]
+	}
+
+	return "Unknown"
 }
 
 func toPascalCase(s string) string {
