@@ -10,21 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type LocationTracking struct {
-	ObjectID       uint      `field:"OBJECTID"`
-	Accuracy       string    `field:"Accuracy"`
-	CreatedUser    string    `field:"created_user"`
-	CreatedDate    time.Time `field:"created_date"`
-	LastEditedUser string    `field:"last_edited_user"`
-	LastEditedDate time.Time `field:"last_edited_date"`
-	GlobalID       uuid.UUID `field:"GlobalID"`
-	FieldTech      string    `field:"FIELDTECH"`
-	CreationDate   time.Time `field:"CreationDate"`
-	Creator        string    `field:"Creator"`
-	EditDate       time.Time `field:"EditDate"`
-	Editor         string    `field:"Editor"`
-}
-
 type ServiceRequestSourceType int
 
 const (
@@ -113,6 +98,14 @@ func setFieldValue(field reflect.Value, value any) error {
 	}
 
 	switch field.Kind() {
+	case reflect.Float32:
+		return setFloat32Field(field, value)
+	case reflect.Float64:
+		return setFloat64Field(field, value)
+	case reflect.Int16:
+		return setInt16Field(field, value)
+	case reflect.Int32:
+		return setInt32Field(field, value)
 	case reflect.Uint:
 		return setUintField(field, value)
 	case reflect.String:
@@ -129,6 +122,128 @@ func setFieldValue(field reflect.Value, value any) error {
 	default:
 		return fmt.Errorf("unsupported field type: %s", field.Kind())
 	}
+}
+
+func setFloat32Field(field reflect.Value, value any) error {
+	var floatVal float32
+
+	// Handle different input types
+	switch v := value.(type) {
+	case float32:
+		floatVal = v
+	case float64:
+		floatVal = float32(v)
+	case int:
+		floatVal = float32(v)
+	case int64:
+		floatVal = float32(v)
+	case uint:
+		floatVal = float32(v)
+	case int16:
+		floatVal = float32(v)
+	case string:
+		parsedVal, err := strconv.ParseFloat(v, 10)
+		if err != nil {
+			return err
+		}
+		floatVal = float32(parsedVal)
+	default:
+		return fmt.Errorf("cannot convert %T to uint", value)
+	}
+
+	field.SetFloat(float64(floatVal))
+	return nil
+}
+
+func setFloat64Field(field reflect.Value, value any) error {
+	var floatVal float64
+
+	// Handle different input types
+	switch v := value.(type) {
+	case float32:
+		floatVal = float64(v)
+	case float64:
+		floatVal = v
+	case int:
+		floatVal = float64(v)
+	case int64:
+		floatVal = float64(v)
+	case uint:
+		floatVal = float64(v)
+	case int16:
+		floatVal = float64(v)
+	case string:
+		parsedVal, err := strconv.ParseFloat(v, 10)
+		if err != nil {
+			return err
+		}
+		floatVal = float64(parsedVal)
+	default:
+		return fmt.Errorf("cannot convert %T to uint", value)
+	}
+
+	field.SetFloat(floatVal)
+	return nil
+}
+
+func setInt16Field(field reflect.Value, value any) error {
+	var intVal int16
+
+	// Handle different input types
+	switch v := value.(type) {
+	case float64:
+		intVal = int16(v)
+	case int:
+		intVal = int16(v)
+	case int64:
+		intVal = int16(v)
+	case uint:
+		intVal = int16(v)
+	case int16:
+		intVal = v
+	case string:
+		parsedVal, err := strconv.ParseInt(v, 10, 16)
+		if err != nil {
+			return err
+		}
+		intVal = int16(parsedVal)
+	default:
+		return fmt.Errorf("cannot convert %T to uint", value)
+	}
+
+	field.SetInt(int64(intVal))
+	return nil
+}
+
+func setInt32Field(field reflect.Value, value any) error {
+	var intVal int32
+
+	// Handle different input types
+	switch v := value.(type) {
+	case float64:
+		intVal = int32(v)
+	case int:
+		intVal = int32(v)
+	case int64:
+		intVal = int32(v)
+	case uint:
+		intVal = int32(v)
+	case int16:
+		intVal = int32(v)
+	case int32:
+		intVal = v
+	case string:
+		parsedVal, err := strconv.ParseInt(v, 10, 32)
+		if err != nil {
+			return err
+		}
+		intVal = int32(parsedVal)
+	default:
+		return fmt.Errorf("cannot convert %T to uint", value)
+	}
+
+	field.SetInt(int64(intVal))
+	return nil
 }
 
 func setUintField(field reflect.Value, value any) error {

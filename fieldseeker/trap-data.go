@@ -1,5 +1,6 @@
 package fieldseeker
 
+/*
 import (
 	"errors"
 	"fmt"
@@ -100,3 +101,4 @@ func (fs *FieldSeeker) TrapData(objectID string) (*TrapData, error) {
 	// Now we have *some* of the data. Get more of it.
 	return td, nil
 }
+*/

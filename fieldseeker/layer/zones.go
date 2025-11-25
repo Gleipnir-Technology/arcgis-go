@@ -1,0 +1,24 @@
+package layer
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Zones struct {
+	Objectid       uint      `field:"OBJECTID"`
+	Name           string    `field:"NAME"`
+	GlobalID       uuid.UUID `field:"GlobalID"`
+	CreatedUser    string    `field:"created_user"`
+	CreatedDate    time.Time `field:"created_date"`
+	LastEditedUser string    `field:"last_edited_user"`
+	LastEditedDate time.Time `field:"last_edited_date"`
+	Active         int32     `field:"ACTIVE"`
+	CreationDate   time.Time `field:"CreationDate"`
+	Creator        string    `field:"Creator"`
+	EditDate       time.Time `field:"EditDate"`
+	Editor         string    `field:"Editor"`
+	ShapeArea      float64   `field:"Shape__Area"`
+	ShapeLength    float64   `field:"Shape__Length"`
+}

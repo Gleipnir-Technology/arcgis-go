@@ -75,30 +75,6 @@ func (fs *FieldSeeker) FeatureServerLayers() []arcgis.LayerFeature {
 	return fs.FeatureServer.Layers
 }
 
-func (fs *FieldSeeker) LocationTracking(offset uint) ([]*LocationTracking, error) {
-	var results []*LocationTracking
-
-	q := arcgis.NewQuery()
-	q.ResultRecordCount = fs.MaxRecordCount()
-	q.ResultOffset = offset
-	q.SpatialReference = "4326"
-	q.OutFields = "*"
-	q.Where = "1=1"
-	layer_id := 0
-	qr, err := fs.DoQuery(layer_id, q)
-	if err != nil {
-		return results, fmt.Errorf("Failed to query LocationTracking (layer %d): %w", layer_id, err)
-	}
-	for _, feature := range qr.Features {
-		lt, err := structFromAttributes[LocationTracking](feature.Attributes)
-		if err != nil {
-			return results, fmt.Errorf("Failed to get LocationTracking from query result: %w", err)
-		}
-		results = append(results, lt)
-	}
-	return results, nil
-}
-
 func (fs *FieldSeeker) MaxRecordCount() uint {
 	return fs.FeatureServer.MaxRecordCount
 }
@@ -114,29 +90,6 @@ func (fs *FieldSeeker) Schema(layer_id int) ([]byte, error) {
 	query.OutFields = "*"
 	query.Where = "1=1"
 	return fs.DoQueryRaw(layer_id, query)
-}
-
-func (fs *FieldSeeker) ServiceRequest(offset uint) ([]*ServiceRequest, error) {
-	return featureToStruct[ServiceRequest](fs, "ServiceRequest", 2, offset)
-}
-
-func (fs *FieldSeeker) Tracklog(offset uint) ([]*Tracklog, error) {
-	var results []*Tracklog
-
-	layer_id := 1
-	qr, err := fs.doQueryAll(layer_id, offset)
-	if err != nil {
-		return results, fmt.Errorf("Failed to query Tracklog (layer %d): %w", layer_id, err)
-	}
-
-	for _, feature := range qr.Features {
-		tl, err := structFromAttributes[Tracklog](feature.Attributes)
-		if err != nil {
-			return results, fmt.Errorf("Failed to get LocationTracking from query result: %w", err)
-		}
-		results = append(results, tl)
-	}
-	return results, nil
 }
 
 func (fs *FieldSeeker) WebhookList() ([]arcgis.Webhook, error) {
