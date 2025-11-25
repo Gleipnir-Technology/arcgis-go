@@ -110,7 +110,23 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 
 	// Add fields
 	for _, field := range schema.Fields {
-		fieldName := toPascalCase(field.Name)
+		// Use alias if available, otherwise use field name
+		displayName := field.Name
+		if field.Alias != "" && field.Alias != field.Name {
+			// Remove parentheses and other non-alphanumeric chars from alias if present
+			cleanAlias := strings.Map(func(r rune) rune {
+				if strings.ContainsRune("()[]{}.,;:!@#$%^&*-+", r) {
+					return -1 // Remove the character
+				}
+				return r
+			}, field.Alias)
+
+			if cleanAlias != "" {
+				displayName = cleanAlias
+			}
+		}
+
+		fieldName := toPascalCase(displayName)
 		fieldType := mapFieldType(field.Type)
 		code.WriteString(fmt.Sprintf("\t%s %s `field:\"%s\"`\n", fieldName, fieldType, field.Name))
 	}
@@ -122,11 +138,38 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 }
 
 func toPascalCase(s string) string {
-	// Simple implementation - capitalize first letter
+	// Handle empty strings
 	if s == "" {
 		return ""
 	}
-	return strings.ToUpper(s[:1]) + s[1:]
+
+	// Split on underscores, spaces, or case changes
+	var parts []string
+
+	// First, split on underscores and spaces
+	for _, part := range strings.FieldsFunc(s, func(r rune) bool {
+		return r == '_' || r == ' '
+	}) {
+		// Check if the part is all uppercase
+		if strings.ToUpper(part) == part && len(part) > 1 {
+			// Convert all-caps words to lowercase first
+			part = strings.ToLower(part)
+		}
+		parts = append(parts, part)
+	}
+
+	// Capitalize the first letter of each part
+	for i, part := range parts {
+		if len(part) > 0 {
+			if i == 0 || len(part) > 1 {
+				parts[i] = strings.ToUpper(part[:1]) + part[1:]
+			} else {
+				parts[i] = strings.ToUpper(part)
+			}
+		}
+	}
+
+	return strings.Join(parts, "")
 }
 
 func mapFieldType(fieldType string) string {
