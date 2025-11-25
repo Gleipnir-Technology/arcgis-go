@@ -22,6 +22,11 @@ type ArcGISAPIError struct {
 func (ae ArcGISAPIError) Error() string {
 	return fmt.Sprintf("API error %d: %s (%s)", ae.Code, ae.Message, ae.Description)
 }
+
+type InvalidatedRefreshTokenError struct {
+	ArcGISAPIError
+}
+
 func errorTypeFromString(s string) APIErrorType {
 	switch s {
 	case "invalid_request":
