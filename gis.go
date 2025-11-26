@@ -52,7 +52,7 @@ type ServiceInfo struct {
 
 // Feature Server details
 type LayerFeature struct {
-	ID                int
+	ID                uint
 	Name              string
 	ParentLayerID     int
 	DefaultVisibility bool
@@ -179,8 +179,8 @@ func ServiceRootFromTenant(base string, tenantId string) string {
 	return fmt.Sprintf("%s/%s", base, tenantId)
 }
 
-func (ag *ArcGIS) DoQuery(service string, layer int, query *Query) (*QueryResult, error) {
-	content, err := ag.DoQueryRaw(service, layer, query)
+func (ag *ArcGIS) DoQuery(service string, layer_id uint, query *Query) (*QueryResult, error) {
+	content, err := ag.DoQueryRaw(service, layer_id, query)
 	if err != nil {
 		return nil, err
 	}
@@ -188,8 +188,8 @@ func (ag *ArcGIS) DoQuery(service string, layer int, query *Query) (*QueryResult
 
 }
 
-func (ag *ArcGIS) DoQueryRaw(service string, layer int, query *Query) ([]byte, error) {
-	r, err := ag.query(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), query)
+func (ag *ArcGIS) DoQueryRaw(service string, layer_id uint, query *Query) ([]byte, error) {
+	r, err := ag.query(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id), query)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request: %v", err)
 	}
@@ -565,11 +565,11 @@ func (arcgis ArcGIS) query(base string, query *Query) (*http.Request, error) {
 	return arcgis.serviceRequestWithParams(base, params)
 }
 
-func (ag *ArcGIS) QueryCount(service string, layer int) (*QueryResultCount, error) {
+func (ag *ArcGIS) QueryCount(service string, layer_id uint) (*QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"
 	params["where"] = "9999=9999"
-	r, err := ag.serviceRequestWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer), params)
+	r, err := ag.serviceRequestWithParams(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id), params)
 	if err != nil {
 		return nil, err
 	}
