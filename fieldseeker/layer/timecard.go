@@ -48,12 +48,12 @@ const (
 )
 
 type TimeCard struct {
-	Objectid       uint                                                         `field:"OBJECTID"`
+	ObjectID       uint                                                         `field:"OBJECTID"`
 	Activity       TimeCardTimeCardACTIVITY451e67260c084304a35457170dc13366Type `field:"ACTIVITY"`
 	Start          time.Time                                                    `field:"STARTDATETIME"`
 	Finish         time.Time                                                    `field:"ENDDATETIME"`
 	Comments       string                                                       `field:"COMMENTS"`
-	Externalid     string                                                       `field:"EXTERNALID"`
+	ExternalID     string                                                       `field:"EXTERNALID"`
 	EquipmentType  TimeCardTimeCardEquipmentTypeType                            `field:"EQUIPTYPE"`
 	LocationName   string                                                       `field:"LOCATIONNAME"`
 	Zone           string                                                       `field:"ZONE"`
@@ -63,17 +63,17 @@ type TimeCard struct {
 	CreatedDate    time.Time                                                    `field:"created_date"`
 	LastEditedUser string                                                       `field:"last_edited_user"`
 	LastEditedDate time.Time                                                    `field:"last_edited_date"`
-	Linelocid      uuid.UUID                                                    `field:"LINELOCID"`
-	Pointlocid     uuid.UUID                                                    `field:"POINTLOCID"`
-	Polygonlocid   uuid.UUID                                                    `field:"POLYGONLOCID"`
-	Lclocid        uuid.UUID                                                    `field:"LCLOCID"`
-	Samplelocid    uuid.UUID                                                    `field:"SAMPLELOCID"`
-	Srid           uuid.UUID                                                    `field:"SRID"`
-	Traplocid      uuid.UUID                                                    `field:"TRAPLOCID"`
+	LinelocID      uuid.UUID                                                    `field:"LINELOCID"`
+	PointlocID     uuid.UUID                                                    `field:"POINTLOCID"`
+	PolygonlocID   uuid.UUID                                                    `field:"POLYGONLOCID"`
+	LclocID        uuid.UUID                                                    `field:"LCLOCID"`
+	SamplelocID    uuid.UUID                                                    `field:"SAMPLELOCID"`
+	SrID           uuid.UUID                                                    `field:"SRID"`
+	TraplocID      uuid.UUID                                                    `field:"TRAPLOCID"`
 	FieldTech      string                                                       `field:"FIELDTECH"`
 	CreationDate   time.Time                                                    `field:"CreationDate"`
 	Creator        string                                                       `field:"Creator"`
 	EditDate       time.Time                                                    `field:"EditDate"`
 	Editor         string                                                       `field:"Editor"`
-	Rodentlocid    uuid.UUID                                                    `field:"RODENTLOCID"`
+	RodentlocID    uuid.UUID                                                    `field:"RODENTLOCID"`
 }

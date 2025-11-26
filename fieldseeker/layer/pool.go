@@ -6,13 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type PoolNotInUITFType int16
-
-const (
-	PoolNotInUITFTrue  PoolNotInUITFType = 1
-	PoolNotInUITFFalse PoolNotInUITFType = 0
-)
-
 type PoolPoolTESTMETHOD670efbfba86d41ba8e2d3cab5d749e7fType string
 
 const (
@@ -49,17 +42,24 @@ const (
 	PoolMosquitoLabNameStateLab    PoolMosquitoLabNameType = "State Lab"
 )
 
+type PoolNotInUITFType int16
+
+const (
+	PoolNotInUITFTrue  PoolNotInUITFType = 1
+	PoolNotInUITFFalse PoolNotInUITFType = 0
+)
+
 type Pool struct {
-	Objectid               uint                                                      `field:"OBJECTID"`
-	TrapDataId             uuid.UUID                                                 `field:"TRAPDATA_ID"`
+	ObjectID               uint                                                      `field:"OBJECTID"`
+	TrapDataID             uuid.UUID                                                 `field:"TRAPDATA_ID"`
 	DateSent               time.Time                                                 `field:"DATESENT"`
 	SurveyTech             string                                                    `field:"SURVTECH"`
 	DateTested             time.Time                                                 `field:"DATETESTED"`
 	TestTech               string                                                    `field:"TESTTECH"`
 	Comments               string                                                    `field:"COMMENTS"`
-	SampleId               string                                                    `field:"SAMPLEID"`
+	SampleID               string                                                    `field:"SAMPLEID"`
 	Processed              PoolNotInUITFType                                         `field:"PROCESSED"`
-	LabId                  uuid.UUID                                                 `field:"LAB_ID"`
+	LabID                  uuid.UUID                                                 `field:"LAB_ID"`
 	TestMethods            PoolPoolTESTMETHOD670efbfba86d41ba8e2d3cab5d749e7fType    `field:"TESTMETHOD"`
 	DiseasesTested         PoolPoolDISEASETESTED0f02232949c04c7e8de820b9b515ed97Type `field:"DISEASETESTED"`
 	DiseasesPositive       PoolPoolDISEASEPOS6889f8dd00074874aa726907e78497faType    `field:"DISEASEPOS"`
@@ -71,9 +71,9 @@ type Pool struct {
 	Lab                    PoolMosquitoLabNameType                                   `field:"LAB"`
 	PoolYear               int16                                                     `field:"POOLYEAR"`
 	GatewaySync            int16                                                     `field:"GATEWAYSYNC"`
-	Vectorsurvcollectionid string                                                    `field:"VECTORSURVCOLLECTIONID"`
-	Vectorsurvpoolid       string                                                    `field:"VECTORSURVPOOLID"`
-	Vectorsurvtrapdataid   string                                                    `field:"VECTORSURVTRAPDATAID"`
+	VectorsurvcollectionID string                                                    `field:"VECTORSURVCOLLECTIONID"`
+	VectorsurvpoolID       string                                                    `field:"VECTORSURVPOOLID"`
+	VectorsurvtrapdataID   string                                                    `field:"VECTORSURVTRAPDATAID"`
 	CreationDate           time.Time                                                 `field:"CreationDate"`
 	Creator                string                                                    `field:"Creator"`
 	EditDate               time.Time                                                 `field:"EditDate"`

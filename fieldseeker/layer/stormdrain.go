@@ -15,7 +15,7 @@ const (
 )
 
 type StormDrain struct {
-	Objectid          uint                              `field:"OBJECTID"`
+	ObjectID          uint                              `field:"OBJECTID"`
 	NextTreatmentDate time.Time                         `field:"NextTreatmentDate"`
 	LastTreatDate     time.Time                         `field:"LastTreatDate"`
 	LastAction        string                            `field:"LastAction"`

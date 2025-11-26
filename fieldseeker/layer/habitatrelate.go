@@ -53,8 +53,8 @@ const (
 )
 
 type HabitatRelate struct {
-	Objectid       uint                                                                      `field:"OBJECTID"`
-	ForeignId      uuid.UUID                                                                 `field:"FOREIGN_ID"`
+	ObjectID       uint                                                                      `field:"OBJECTID"`
+	ForeignID      uuid.UUID                                                                 `field:"FOREIGN_ID"`
 	GlobalID       uuid.UUID                                                                 `field:"GlobalID"`
 	CreatedUser    string                                                                    `field:"created_user"`
 	CreatedDate    time.Time                                                                 `field:"created_date"`

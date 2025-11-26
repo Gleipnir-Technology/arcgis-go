@@ -6,36 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type QAMosquitoInspectionQAWaterSourceType string
-
-const (
-	QAMosquitoInspectionQAWaterSourceIrrigation         QAMosquitoInspectionQAWaterSourceType = "Irrigation"
-	QAMosquitoInspectionQAWaterSourceManuallyControlled QAMosquitoInspectionQAWaterSourceType = "Manually Controlled"
-	QAMosquitoInspectionQAWaterSourcePercolation        QAMosquitoInspectionQAWaterSourceType = "Percolation"
-	QAMosquitoInspectionQAWaterSourceRainRunoff         QAMosquitoInspectionQAWaterSourceType = "Rain Runoff"
-	QAMosquitoInspectionQAWaterSourceTidal              QAMosquitoInspectionQAWaterSourceType = "Tidal"
-	QAMosquitoInspectionQAWaterSourceWaterTable         QAMosquitoInspectionQAWaterSourceType = "Water Table"
-)
-
-type QAMosquitoInspectionQAWaterConditionsType string
-
-const (
-	QAMosquitoInspectionQAWaterConditionsRustmaterial         QAMosquitoInspectionQAWaterConditionsType = "rust material"
-	QAMosquitoInspectionQAWaterConditionsClear                QAMosquitoInspectionQAWaterConditionsType = "Clear"
-	QAMosquitoInspectionQAWaterConditionsCloudyfines          QAMosquitoInspectionQAWaterConditionsType = "Cloudy/fines"
-	QAMosquitoInspectionQAWaterConditionsFloatingdebris       QAMosquitoInspectionQAWaterConditionsType = "Floating debris"
-	QAMosquitoInspectionQAWaterConditionsSubmergeddecomdebris QAMosquitoInspectionQAWaterConditionsType = "Submerged/decom. debris"
-)
-
-type QAMosquitoInspectionMosquitoActionType string
-
-const (
-	QAMosquitoInspectionMosquitoActionTreatment        QAMosquitoInspectionMosquitoActionType = "Treatment"
-	QAMosquitoInspectionMosquitoActionCoveredcontainer QAMosquitoInspectionMosquitoActionType = "Covered container"
-	QAMosquitoInspectionMosquitoActionCleareddebris    QAMosquitoInspectionMosquitoActionType = "Cleared debris"
-	QAMosquitoInspectionMosquitoActionMaintenance      QAMosquitoInspectionMosquitoActionType = "Maintenance"
-)
-
 type QAMosquitoInspectionNotInUITFType int16
 
 const (
@@ -43,28 +13,12 @@ const (
 	QAMosquitoInspectionNotInUITFFalse QAMosquitoInspectionNotInUITFType = 0
 )
 
-type QAMosquitoInspectionQASiteTypeType string
+type QAMosquitoInspectionQAAquaticOrganismsType string
 
 const (
-	QAMosquitoInspectionQASiteTypeDetentionPond QAMosquitoInspectionQASiteTypeType = "Detention Pond"
-	QAMosquitoInspectionQASiteTypeDitch         QAMosquitoInspectionQASiteTypeType = "Ditch"
-	QAMosquitoInspectionQASiteTypeLowArea       QAMosquitoInspectionQASiteTypeType = "Low Area"
-	QAMosquitoInspectionQASiteTypeMangroveEdge  QAMosquitoInspectionQASiteTypeType = "Mangrove Edge"
-	QAMosquitoInspectionQASiteTypePond          QAMosquitoInspectionQASiteTypeType = "Pond"
-	QAMosquitoInspectionQASiteTypePondEdge      QAMosquitoInspectionQASiteTypeType = "Pond Edge"
-	QAMosquitoInspectionQASiteTypeSwale         QAMosquitoInspectionQASiteTypeType = "Swale"
-)
-
-type QAMosquitoInspectionQALarvaeReasonType string
-
-const (
-	QAMosquitoInspectionQALarvaeReasonMissedArea      QAMosquitoInspectionQALarvaeReasonType = "Missed Area"
-	QAMosquitoInspectionQALarvaeReasonNewSite         QAMosquitoInspectionQALarvaeReasonType = "New Site"
-	QAMosquitoInspectionQALarvaeReasonNotVisited      QAMosquitoInspectionQALarvaeReasonType = "Not Visited"
-	QAMosquitoInspectionQALarvaeReasonRateLow         QAMosquitoInspectionQALarvaeReasonType = "Rate Low"
-	QAMosquitoInspectionQALarvaeReasonTreatedRecently QAMosquitoInspectionQALarvaeReasonType = "Treated Recently"
-	QAMosquitoInspectionQALarvaeReasonUnknown         QAMosquitoInspectionQALarvaeReasonType = "Unknown"
-	QAMosquitoInspectionQALarvaeReasonWrongProduct    QAMosquitoInspectionQALarvaeReasonType = "Wrong Product"
+	QAMosquitoInspectionQAAquaticOrganismsFish   QAMosquitoInspectionQAAquaticOrganismsType = "fish"
+	QAMosquitoInspectionQAAquaticOrganismsScuds  QAMosquitoInspectionQAAquaticOrganismsType = "scuds"
+	QAMosquitoInspectionQAAquaticOrganismsSnails QAMosquitoInspectionQAAquaticOrganismsType = "snails"
 )
 
 type QAMosquitoInspectionQAVegetationType string
@@ -83,6 +37,20 @@ const (
 	QAMosquitoInspectionQAVegetationRottingvegetation QAMosquitoInspectionQAVegetationType = "Rotting vegetation"
 	QAMosquitoInspectionQAVegetationSaltwort          QAMosquitoInspectionQAVegetationType = "Saltwort"
 	QAMosquitoInspectionQAVegetationSedges            QAMosquitoInspectionQAVegetationType = "Sedges"
+)
+
+type QAMosquitoInspectionQASourceReductionType string
+
+const (
+	QAMosquitoInspectionQASourceReductionOnetractorLessThanday QAMosquitoInspectionQASourceReductionType = "1 tractor < day"
+	QAMosquitoInspectionQASourceReductionAdjustfloodirrigation QAMosquitoInspectionQASourceReductionType = "adjust flood irrigation"
+	QAMosquitoInspectionQASourceReductionAdjustturfirrigation  QAMosquitoInspectionQASourceReductionType = "adjust turf irrigation"
+	QAMosquitoInspectionQASourceReductionClearoutflow          QAMosquitoInspectionQASourceReductionType = "clear outflow"
+	QAMosquitoInspectionQASourceReductionCutditch              QAMosquitoInspectionQASourceReductionType = "cut ditch"
+	QAMosquitoInspectionQASourceReductionHandgrading           QAMosquitoInspectionQASourceReductionType = "hand grading"
+	QAMosquitoInspectionQASourceReductionLaserleveling         QAMosquitoInspectionQASourceReductionType = "laser leveling"
+	QAMosquitoInspectionQASourceReductionMultipleloadssoil     QAMosquitoInspectionQASourceReductionType = "multiple loads soil"
+	QAMosquitoInspectionQASourceReductionNone                  QAMosquitoInspectionQASourceReductionType = "none"
 )
 
 type QAMosquitoInspectionQAWaterMovementType string
@@ -117,6 +85,18 @@ const (
 	QAMosquitoInspectionQAWaterDurationGreaterThanweek  QAMosquitoInspectionQAWaterDurationType = ">week"
 )
 
+type QAMosquitoInspectionQASiteTypeType string
+
+const (
+	QAMosquitoInspectionQASiteTypeDetentionPond QAMosquitoInspectionQASiteTypeType = "Detention Pond"
+	QAMosquitoInspectionQASiteTypeDitch         QAMosquitoInspectionQASiteTypeType = "Ditch"
+	QAMosquitoInspectionQASiteTypeLowArea       QAMosquitoInspectionQASiteTypeType = "Low Area"
+	QAMosquitoInspectionQASiteTypeMangroveEdge  QAMosquitoInspectionQASiteTypeType = "Mangrove Edge"
+	QAMosquitoInspectionQASiteTypePond          QAMosquitoInspectionQASiteTypeType = "Pond"
+	QAMosquitoInspectionQASiteTypePondEdge      QAMosquitoInspectionQASiteTypeType = "Pond Edge"
+	QAMosquitoInspectionQASiteTypeSwale         QAMosquitoInspectionQASiteTypeType = "Swale"
+)
+
 type QAMosquitoInspectionQABreedingPotentialType string
 
 const (
@@ -143,30 +123,50 @@ const (
 	QAMosquitoInspectionQAMosquitoHabitatVegonedges        QAMosquitoInspectionQAMosquitoHabitatType = "Veg. on edges"
 )
 
-type QAMosquitoInspectionQAAquaticOrganismsType string
+type QAMosquitoInspectionQALarvaeReasonType string
 
 const (
-	QAMosquitoInspectionQAAquaticOrganismsFish   QAMosquitoInspectionQAAquaticOrganismsType = "fish"
-	QAMosquitoInspectionQAAquaticOrganismsScuds  QAMosquitoInspectionQAAquaticOrganismsType = "scuds"
-	QAMosquitoInspectionQAAquaticOrganismsSnails QAMosquitoInspectionQAAquaticOrganismsType = "snails"
+	QAMosquitoInspectionQALarvaeReasonMissedArea      QAMosquitoInspectionQALarvaeReasonType = "Missed Area"
+	QAMosquitoInspectionQALarvaeReasonNewSite         QAMosquitoInspectionQALarvaeReasonType = "New Site"
+	QAMosquitoInspectionQALarvaeReasonNotVisited      QAMosquitoInspectionQALarvaeReasonType = "Not Visited"
+	QAMosquitoInspectionQALarvaeReasonRateLow         QAMosquitoInspectionQALarvaeReasonType = "Rate Low"
+	QAMosquitoInspectionQALarvaeReasonTreatedRecently QAMosquitoInspectionQALarvaeReasonType = "Treated Recently"
+	QAMosquitoInspectionQALarvaeReasonUnknown         QAMosquitoInspectionQALarvaeReasonType = "Unknown"
+	QAMosquitoInspectionQALarvaeReasonWrongProduct    QAMosquitoInspectionQALarvaeReasonType = "Wrong Product"
 )
 
-type QAMosquitoInspectionQASourceReductionType string
+type QAMosquitoInspectionQAWaterSourceType string
 
 const (
-	QAMosquitoInspectionQASourceReductionOnetractorLessThanday QAMosquitoInspectionQASourceReductionType = "1 tractor < day"
-	QAMosquitoInspectionQASourceReductionAdjustfloodirrigation QAMosquitoInspectionQASourceReductionType = "adjust flood irrigation"
-	QAMosquitoInspectionQASourceReductionAdjustturfirrigation  QAMosquitoInspectionQASourceReductionType = "adjust turf irrigation"
-	QAMosquitoInspectionQASourceReductionClearoutflow          QAMosquitoInspectionQASourceReductionType = "clear outflow"
-	QAMosquitoInspectionQASourceReductionCutditch              QAMosquitoInspectionQASourceReductionType = "cut ditch"
-	QAMosquitoInspectionQASourceReductionHandgrading           QAMosquitoInspectionQASourceReductionType = "hand grading"
-	QAMosquitoInspectionQASourceReductionLaserleveling         QAMosquitoInspectionQASourceReductionType = "laser leveling"
-	QAMosquitoInspectionQASourceReductionMultipleloadssoil     QAMosquitoInspectionQASourceReductionType = "multiple loads soil"
-	QAMosquitoInspectionQASourceReductionNone                  QAMosquitoInspectionQASourceReductionType = "none"
+	QAMosquitoInspectionQAWaterSourceIrrigation         QAMosquitoInspectionQAWaterSourceType = "Irrigation"
+	QAMosquitoInspectionQAWaterSourceManuallyControlled QAMosquitoInspectionQAWaterSourceType = "Manually Controlled"
+	QAMosquitoInspectionQAWaterSourcePercolation        QAMosquitoInspectionQAWaterSourceType = "Percolation"
+	QAMosquitoInspectionQAWaterSourceRainRunoff         QAMosquitoInspectionQAWaterSourceType = "Rain Runoff"
+	QAMosquitoInspectionQAWaterSourceTidal              QAMosquitoInspectionQAWaterSourceType = "Tidal"
+	QAMosquitoInspectionQAWaterSourceWaterTable         QAMosquitoInspectionQAWaterSourceType = "Water Table"
+)
+
+type QAMosquitoInspectionQAWaterConditionsType string
+
+const (
+	QAMosquitoInspectionQAWaterConditionsRustmaterial         QAMosquitoInspectionQAWaterConditionsType = "rust material"
+	QAMosquitoInspectionQAWaterConditionsClear                QAMosquitoInspectionQAWaterConditionsType = "Clear"
+	QAMosquitoInspectionQAWaterConditionsCloudyfines          QAMosquitoInspectionQAWaterConditionsType = "Cloudy/fines"
+	QAMosquitoInspectionQAWaterConditionsFloatingdebris       QAMosquitoInspectionQAWaterConditionsType = "Floating debris"
+	QAMosquitoInspectionQAWaterConditionsSubmergeddecomdebris QAMosquitoInspectionQAWaterConditionsType = "Submerged/decom. debris"
+)
+
+type QAMosquitoInspectionMosquitoActionType string
+
+const (
+	QAMosquitoInspectionMosquitoActionTreatment        QAMosquitoInspectionMosquitoActionType = "Treatment"
+	QAMosquitoInspectionMosquitoActionCoveredcontainer QAMosquitoInspectionMosquitoActionType = "Covered container"
+	QAMosquitoInspectionMosquitoActionCleareddebris    QAMosquitoInspectionMosquitoActionType = "Cleared debris"
+	QAMosquitoInspectionMosquitoActionMaintenance      QAMosquitoInspectionMosquitoActionType = "Maintenance"
 )
 
 type QAMosquitoInspection struct {
-	Objectid                  uint                                        `field:"OBJECTID"`
+	ObjectID                  uint                                        `field:"OBJECTID"`
 	PositiveDips              int16                                       `field:"POSDIPS"`
 	Action                    QAMosquitoInspectionMosquitoActionType      `field:"ACTIONTAKEN"`
 	Comments                  string                                      `field:"COMMENTS"`
@@ -216,9 +216,9 @@ type QAMosquitoInspection struct {
 	WaterSource               QAMosquitoInspectionQAWaterSourceType       `field:"WATERSOURCE"`
 	WaterConditions           QAMosquitoInspectionQAWaterConditionsType   `field:"WATERCONDITIONS"`
 	AdultActivity             QAMosquitoInspectionNotInUITFType           `field:"ADULTACTIVITY"`
-	Linelocid                 uuid.UUID                                   `field:"LINELOCID"`
-	Pointlocid                uuid.UUID                                   `field:"POINTLOCID"`
-	Polygonlocid              uuid.UUID                                   `field:"POLYGONLOCID"`
+	LinelocID                 uuid.UUID                                   `field:"LINELOCID"`
+	PointlocID                uuid.UUID                                   `field:"POINTLOCID"`
+	PolygonlocID              uuid.UUID                                   `field:"POLYGONLOCID"`
 	CreatedUser               string                                      `field:"created_user"`
 	CreatedDate               time.Time                                   `field:"created_date"`
 	LastEditedUser            string                                      `field:"last_edited_user"`

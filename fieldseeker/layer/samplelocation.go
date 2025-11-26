@@ -50,7 +50,7 @@ const (
 )
 
 type SampleLocation struct {
-	Objectid            uint                                    `field:"OBJECTID"`
+	ObjectID            uint                                    `field:"OBJECTID"`
 	Name                string                                  `field:"NAME"`
 	Zone                string                                  `field:"ZONE"`
 	Habitat             SampleLocationLocationHabitatTypeType   `field:"HABITAT"`
@@ -60,7 +60,7 @@ type SampleLocation struct {
 	Description         string                                  `field:"DESCRIPTION"`
 	AccessDescription   string                                  `field:"ACCESSDESC"`
 	Comments            string                                  `field:"COMMENTS"`
-	ExternalId          string                                  `field:"EXTERNALID"`
+	ExternalID          string                                  `field:"EXTERNALID"`
 	NextScheduledAction time.Time                               `field:"NEXTACTIONDATESCHEDULED"`
 	Zone2               string                                  `field:"ZONE2"`
 	Locationnumber      int32                                   `field:"LOCATIONNUMBER"`

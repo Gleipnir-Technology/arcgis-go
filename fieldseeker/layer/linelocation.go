@@ -6,6 +6,26 @@ import (
 	"github.com/google/uuid"
 )
 
+type LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type string
+
+const (
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008FloodIrrigation             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "flood_irrigation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008FurrowIrrigation            LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "furrow_irrigation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008DripIrrigation              LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "drip_irrigation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008SprinklerIrrigation         LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "sprinkler_irrigation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WastewaterIrrigation        LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "wastewater_irrigation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008IrrigationRunoff            LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "irrigation_runoff"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008RainwaterAccumulation       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "rainwater_accumulation"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Leak                        LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "leak"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Seepage                     LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "seepage"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008StoredWater                 LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "stored_water"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WastwaterSystem             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "wastewater_system"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008PermanentNaturalWater       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "permanent_natural_water"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008TemporaryNaturalWater       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "temporary_natural_water"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008RecreationalOrnamentalWater LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "recreational_or_ornamental_water"
+	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WaterConveyance             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "water_conveyance"
+)
+
 type LineLocationLineLocationHABITATfc51bdc4f1954df58206d69ce14182f3Type string
 
 const (
@@ -89,28 +109,8 @@ const (
 	LineLocationLocationSymbologyNoactionrequired LineLocationLocationSymbologyType = "NONE"
 )
 
-type LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type string
-
-const (
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008FloodIrrigation             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "flood_irrigation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008FurrowIrrigation            LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "furrow_irrigation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008DripIrrigation              LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "drip_irrigation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008SprinklerIrrigation         LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "sprinkler_irrigation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WastewaterIrrigation        LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "wastewater_irrigation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008IrrigationRunoff            LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "irrigation_runoff"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008RainwaterAccumulation       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "rainwater_accumulation"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Leak                        LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "leak"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Seepage                     LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "seepage"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008StoredWater                 LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "stored_water"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WastwaterSystem             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "wastewater_system"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008PermanentNaturalWater       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "permanent_natural_water"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008TemporaryNaturalWater       LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "temporary_natural_water"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008RecreationalOrnamentalWater LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "recreational_or_ornamental_water"
-	LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008WaterConveyance             LineLocationLineLocationWATERORIGIN84723d92306a46f48ef169b55a916008Type = "water_conveyance"
-)
-
 type LineLocation struct {
-	Objectid                    uint                                                                    `field:"OBJECTID"`
+	ObjectID                    uint                                                                    `field:"OBJECTID"`
 	Name                        string                                                                  `field:"NAME"`
 	Zone                        string                                                                  `field:"ZONE"`
 	Habitat                     LineLocationLineLocationHABITATfc51bdc4f1954df58206d69ce14182f3Type     `field:"HABITAT"`
@@ -121,7 +121,7 @@ type LineLocation struct {
 	AccessDescription           string                                                                  `field:"ACCESSDESC"`
 	Comments                    string                                                                  `field:"COMMENTS"`
 	Symbology                   LineLocationLocationSymbologyType                                       `field:"SYMBOLOGY"`
-	ExternalId                  string                                                                  `field:"EXTERNALID"`
+	ExternalID                  string                                                                  `field:"EXTERNALID"`
 	Acres                       float64                                                                 `field:"ACRES"`
 	NextScheduledAction         time.Time                                                               `field:"NEXTACTIONDATESCHEDULED"`
 	LarvalInspectionInterval    int16                                                                   `field:"LARVINSPECTINTERVAL"`

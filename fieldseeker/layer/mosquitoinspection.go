@@ -6,26 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type MosquitoInspectionMosquitoAdultActivityType string
+type MosquitoInspectionNotInUITFType int16
 
 const (
-	MosquitoInspectionMosquitoAdultActivityNone     MosquitoInspectionMosquitoAdultActivityType = "None"
-	MosquitoInspectionMosquitoAdultActivityLight    MosquitoInspectionMosquitoAdultActivityType = "Light"
-	MosquitoInspectionMosquitoAdultActivityModerate MosquitoInspectionMosquitoAdultActivityType = "Moderate"
-	MosquitoInspectionMosquitoAdultActivityIntense  MosquitoInspectionMosquitoAdultActivityType = "Intense"
-)
-
-type MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType string
-
-const (
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeOne       MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "1"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeTwo       MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "2"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeThree     MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "3"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeFour      MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "4"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeFive      MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "5"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeOneTwo    MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "1-2"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeTwoThree  MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "2-3"
-	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeThreeFour MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "3-4"
+	MosquitoInspectionNotInUITFTrue  MosquitoInspectionNotInUITFType = 1
+	MosquitoInspectionNotInUITFFalse MosquitoInspectionNotInUITFType = 0
 )
 
 type MosquitoInspectionMosquitoFieldSpeciesType string
@@ -35,11 +20,22 @@ const (
 	MosquitoInspectionMosquitoFieldSpeciesCulex MosquitoInspectionMosquitoFieldSpeciesType = "Culex"
 )
 
-type MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type string
+type MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type string
 
 const (
-	MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Yes MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type = "yes"
-	MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270No  MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type = "no"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Dry                   MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Dry"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Flowing               MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Flowing"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34MaintainedPoolOnly    MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Maintained"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34UnmaintainedPoolOnly  MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Unmaintained"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34HighOrganicDirtyWater MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "High Organic"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Unknown               MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Unknown"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34StagnantWaterBlocked  MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Stagnant"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34NeedsMonitoring       MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Needs Monitoring"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34DryingOut             MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Drying Out"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34AppearsVacant         MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Appears Vacant"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34EntryDenied           MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Entry Denied"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34PoolRemoved           MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Pool Removed"
+	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34FalsePoolNotasource   MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "False Pool"
 )
 
 type MosquitoInspectionMosquitoActivityType string
@@ -75,6 +71,28 @@ const (
 	MosquitoInspectionMosquitoActivityLCLOCATION        MosquitoInspectionMosquitoActivityType = "LCLOCATION"
 )
 
+type MosquitoInspectionMosquitoAdultActivityType string
+
+const (
+	MosquitoInspectionMosquitoAdultActivityNone     MosquitoInspectionMosquitoAdultActivityType = "None"
+	MosquitoInspectionMosquitoAdultActivityLight    MosquitoInspectionMosquitoAdultActivityType = "Light"
+	MosquitoInspectionMosquitoAdultActivityModerate MosquitoInspectionMosquitoAdultActivityType = "Moderate"
+	MosquitoInspectionMosquitoAdultActivityIntense  MosquitoInspectionMosquitoAdultActivityType = "Intense"
+)
+
+type MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType string
+
+const (
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeOne       MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "1"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeTwo       MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "2"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeThree     MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "3"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeFour      MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "4"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeFive      MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "5"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeOneTwo    MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "1-2"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeTwoThree  MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "2-3"
+	MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeThreeFour MosquitoInspectionMosquitoInspectionDOMSTAGEb7a6c36bccde49a292020de4812cf5aeType = "3-4"
+)
+
 type MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5Type string
 
 const (
@@ -82,6 +100,22 @@ const (
 	MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5TreatmentMechanicalorBiological    MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5Type = "Mechanical or Biological Treatment"
 	MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5ResidentScheduleRequest            MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5Type = "Resident Schedule Request"
 	MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5AdministrativeFlyerNoticeorWarrent MosquitoInspectionMosquitoInspectionACTIONTAKEN252243d69b0b44ddbdc229c04ec3a8d5Type = "Administrative"
+)
+
+type MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type string
+
+const (
+	MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Yes MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type = "yes"
+	MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270No  MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type = "no"
+)
+
+type MosquitoInspectionMosquitoBreedingType string
+
+const (
+	MosquitoInspectionMosquitoBreedingNone     MosquitoInspectionMosquitoBreedingType = "None"
+	MosquitoInspectionMosquitoBreedingLight    MosquitoInspectionMosquitoBreedingType = "Light"
+	MosquitoInspectionMosquitoBreedingModerate MosquitoInspectionMosquitoBreedingType = "Moderate"
+	MosquitoInspectionMosquitoBreedingIntense  MosquitoInspectionMosquitoBreedingType = "Intense"
 )
 
 type MosquitoInspectionNotInUIWindDirectionType string
@@ -97,42 +131,8 @@ const (
 	MosquitoInspectionNotInUIWindDirectionNW MosquitoInspectionNotInUIWindDirectionType = "NW"
 )
 
-type MosquitoInspectionNotInUITFType int16
-
-const (
-	MosquitoInspectionNotInUITFTrue  MosquitoInspectionNotInUITFType = 1
-	MosquitoInspectionNotInUITFFalse MosquitoInspectionNotInUITFType = 0
-)
-
-type MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type string
-
-const (
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Dry                   MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Dry"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Flowing               MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Flowing"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34MaintainedPoolOnly    MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Maintained"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34UnmaintainedPoolOnly  MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Unmaintained"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34HighOrganicDirtyWater MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "High Organic"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Unknown               MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Unknown"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34StagnantWaterBlocked  MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Stagnant"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34NeedsMonitoring       MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Needs Monitoring"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34DryingOut             MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Drying Out"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34AppearsVacant         MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Appears Vacant"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34EntryDenied           MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Entry Denied"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34PoolRemoved           MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "Pool Removed"
-	MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34FalsePoolNotasource   MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type = "False Pool"
-)
-
-type MosquitoInspectionMosquitoBreedingType string
-
-const (
-	MosquitoInspectionMosquitoBreedingNone     MosquitoInspectionMosquitoBreedingType = "None"
-	MosquitoInspectionMosquitoBreedingLight    MosquitoInspectionMosquitoBreedingType = "Light"
-	MosquitoInspectionMosquitoBreedingModerate MosquitoInspectionMosquitoBreedingType = "Moderate"
-	MosquitoInspectionMosquitoBreedingIntense  MosquitoInspectionMosquitoBreedingType = "Intense"
-)
-
 type MosquitoInspection struct {
-	Objectid               uint                                                                                `field:"OBJECTID"`
+	ObjectID               uint                                                                                `field:"OBJECTID"`
 	Dips                   int16                                                                               `field:"NUMDIPS"`
 	Activity               MosquitoInspectionMosquitoActivityType                                              `field:"ACTIVITY"`
 	Breeding               MosquitoInspectionMosquitoBreedingType                                              `field:"BREEDING"`
@@ -170,14 +170,14 @@ type MosquitoInspection struct {
 	CreatedDate            time.Time                                                                           `field:"created_date"`
 	LastEditedUser         string                                                                              `field:"last_edited_user"`
 	LastEditedDate         time.Time                                                                           `field:"last_edited_date"`
-	Linelocid              uuid.UUID                                                                           `field:"LINELOCID"`
-	Pointlocid             uuid.UUID                                                                           `field:"POINTLOCID"`
-	Polygonlocid           uuid.UUID                                                                           `field:"POLYGONLOCID"`
-	Srid                   uuid.UUID                                                                           `field:"SRID"`
+	LinelocID              uuid.UUID                                                                           `field:"LINELOCID"`
+	PointlocID             uuid.UUID                                                                           `field:"POINTLOCID"`
+	PolygonlocID           uuid.UUID                                                                           `field:"POLYGONLOCID"`
+	SrID                   uuid.UUID                                                                           `field:"SRID"`
 	FieldTech              string                                                                              `field:"FIELDTECH"`
 	LarvaePresent          MosquitoInspectionNotInUITFType                                                     `field:"LARVAEPRESENT"`
 	PupaePresent           MosquitoInspectionNotInUITFType                                                     `field:"PUPAEPRESENT"`
-	StormDrainId           uuid.UUID                                                                           `field:"SDID"`
+	StormDrainID           uuid.UUID                                                                           `field:"SDID"`
 	Conditions             MosquitoInspectionMosquitoInspectionSITECONDdb7350bc81e5401e858fcd3e5e5d8a34Type    `field:"SITECOND"`
 	PositiveContainerCount int16                                                                               `field:"POSITIVECONTAINERCOUNT"`
 	CreationDate           time.Time                                                                           `field:"CreationDate"`
@@ -188,5 +188,5 @@ type MosquitoInspection struct {
 	VisualMonitoring       MosquitoInspectionNotInUITFType                                                     `field:"VISUALMONITORING"`
 	VmComments             string                                                                              `field:"VMCOMMENTS"`
 	AdminAction            MosquitoInspectionMosquitoInspectionadminActionb74ae1bbc98b40f68cfa40e4fd16c270Type `field:"adminAction"`
-	Ptaid                  uuid.UUID                                                                           `field:"PTAID"`
+	PtaID                  uuid.UUID                                                                           `field:"PTAID"`
 }

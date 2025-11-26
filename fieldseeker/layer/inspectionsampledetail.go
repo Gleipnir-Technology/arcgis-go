@@ -6,13 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type InspectionSampleDetailMosquitoFieldSpeciesType string
-
-const (
-	InspectionSampleDetailMosquitoFieldSpeciesAedes InspectionSampleDetailMosquitoFieldSpeciesType = "Aedes"
-	InspectionSampleDetailMosquitoFieldSpeciesCulex InspectionSampleDetailMosquitoFieldSpeciesType = "Culex"
-)
-
 type InspectionSampleDetailMosquitoDominantStageType string
 
 const (
@@ -33,9 +26,16 @@ const (
 	InspectionSampleDetailMosquitoAdultActivityIntense  InspectionSampleDetailMosquitoAdultActivityType = "Intense"
 )
 
+type InspectionSampleDetailMosquitoFieldSpeciesType string
+
+const (
+	InspectionSampleDetailMosquitoFieldSpeciesAedes InspectionSampleDetailMosquitoFieldSpeciesType = "Aedes"
+	InspectionSampleDetailMosquitoFieldSpeciesCulex InspectionSampleDetailMosquitoFieldSpeciesType = "Culex"
+)
+
 type InspectionSampleDetail struct {
-	Objectid           uint                                            `field:"OBJECTID"`
-	InspsampleId       uuid.UUID                                       `field:"INSPSAMPLE_ID"`
+	ObjectID           uint                                            `field:"OBJECTID"`
+	InspsampleID       uuid.UUID                                       `field:"INSPSAMPLE_ID"`
 	FieldSpecies       InspectionSampleDetailMosquitoFieldSpeciesType  `field:"FIELDSPECIES"`
 	FieldLarvaCount    int16                                           `field:"FLARVCOUNT"`
 	FieldPupaCount     int16                                           `field:"FPUPCOUNT"`

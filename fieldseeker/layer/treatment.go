@@ -6,6 +6,26 @@ import (
 	"github.com/google/uuid"
 )
 
+type TreatmentNotInUIWindDirectionType string
+
+const (
+	TreatmentNotInUIWindDirectionN  TreatmentNotInUIWindDirectionType = "N"
+	TreatmentNotInUIWindDirectionNE TreatmentNotInUIWindDirectionType = "NE"
+	TreatmentNotInUIWindDirectionE  TreatmentNotInUIWindDirectionType = "E"
+	TreatmentNotInUIWindDirectionSE TreatmentNotInUIWindDirectionType = "SE"
+	TreatmentNotInUIWindDirectionS  TreatmentNotInUIWindDirectionType = "S"
+	TreatmentNotInUIWindDirectionSW TreatmentNotInUIWindDirectionType = "SW"
+	TreatmentNotInUIWindDirectionW  TreatmentNotInUIWindDirectionType = "W"
+	TreatmentNotInUIWindDirectionNW TreatmentNotInUIWindDirectionType = "NW"
+)
+
+type TreatmentNotInUITFType int16
+
+const (
+	TreatmentNotInUITFTrue  TreatmentNotInUITFType = 1
+	TreatmentNotInUITFFalse TreatmentNotInUITFType = 0
+)
+
 type TreatmentTreatmentHABITAT0afee7ebf9ea47078483cccfe60f0d16Type string
 
 const (
@@ -62,59 +82,6 @@ const (
 	TreatmentTreatmentSITECONDf812e1f64dcb4dc9a75da9d00abe6169FishPresent  TreatmentTreatmentSITECONDf812e1f64dcb4dc9a75da9d00abe6169Type = "Fish Present"
 )
 
-type TreatmentMosquitoProductAreaUnitType string
-
-const (
-	TreatmentMosquitoProductAreaUnitAcre TreatmentMosquitoProductAreaUnitType = "acre"
-	TreatmentMosquitoProductAreaUnitSqft TreatmentMosquitoProductAreaUnitType = "sq ft"
-)
-
-type TreatmentMosquitoProductMeasureUnitType string
-
-const (
-	TreatmentMosquitoProductMeasureUnitBriquet TreatmentMosquitoProductMeasureUnitType = "briquet"
-	TreatmentMosquitoProductMeasureUnitDryoz   TreatmentMosquitoProductMeasureUnitType = "dry oz"
-	TreatmentMosquitoProductMeasureUnitEach    TreatmentMosquitoProductMeasureUnitType = "each"
-	TreatmentMosquitoProductMeasureUnitFloz    TreatmentMosquitoProductMeasureUnitType = "fl oz"
-	TreatmentMosquitoProductMeasureUnitGal     TreatmentMosquitoProductMeasureUnitType = "gal"
-	TreatmentMosquitoProductMeasureUnitLb      TreatmentMosquitoProductMeasureUnitType = "lb"
-	TreatmentMosquitoProductMeasureUnitPacket  TreatmentMosquitoProductMeasureUnitType = "packet"
-	TreatmentMosquitoProductMeasureUnitPouch   TreatmentMosquitoProductMeasureUnitType = "pouch"
-)
-
-type TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type string
-
-const (
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0BackpackOne         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Backpack #1"
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0A1MistSprayerTThree TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "A1  Mist Sprayer (T-3) "
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0SpreaderTwo         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Spreader #2"
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Guardian73          TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Guardian #73 "
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ULV74Grizzly        TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "ULV #74 (Grizzly)"
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ClarkULVSprayer71   TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Clark ULV Sprayer #71"
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ClarkULVSprayer72   TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Clark ULV Sprayer #72"
-	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Spraybottle         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Spray bottle"
-)
-
-type TreatmentNotInUIWindDirectionType string
-
-const (
-	TreatmentNotInUIWindDirectionN  TreatmentNotInUIWindDirectionType = "N"
-	TreatmentNotInUIWindDirectionNE TreatmentNotInUIWindDirectionType = "NE"
-	TreatmentNotInUIWindDirectionE  TreatmentNotInUIWindDirectionType = "E"
-	TreatmentNotInUIWindDirectionSE TreatmentNotInUIWindDirectionType = "SE"
-	TreatmentNotInUIWindDirectionS  TreatmentNotInUIWindDirectionType = "S"
-	TreatmentNotInUIWindDirectionSW TreatmentNotInUIWindDirectionType = "SW"
-	TreatmentNotInUIWindDirectionW  TreatmentNotInUIWindDirectionType = "W"
-	TreatmentNotInUIWindDirectionNW TreatmentNotInUIWindDirectionType = "NW"
-)
-
-type TreatmentNotInUITFType int16
-
-const (
-	TreatmentNotInUITFTrue  TreatmentNotInUITFType = 1
-	TreatmentNotInUITFFalse TreatmentNotInUITFType = 0
-)
-
 type TreatmentTreatmentSITECOND5a15bf36fa124280b961f31cd1a9b571Type string
 
 const (
@@ -160,6 +127,26 @@ const (
 	TreatmentMosquitoActivityLCLOCATION        TreatmentMosquitoActivityType = "LCLOCATION"
 )
 
+type TreatmentMosquitoProductAreaUnitType string
+
+const (
+	TreatmentMosquitoProductAreaUnitAcre TreatmentMosquitoProductAreaUnitType = "acre"
+	TreatmentMosquitoProductAreaUnitSqft TreatmentMosquitoProductAreaUnitType = "sq ft"
+)
+
+type TreatmentMosquitoProductMeasureUnitType string
+
+const (
+	TreatmentMosquitoProductMeasureUnitBriquet TreatmentMosquitoProductMeasureUnitType = "briquet"
+	TreatmentMosquitoProductMeasureUnitDryoz   TreatmentMosquitoProductMeasureUnitType = "dry oz"
+	TreatmentMosquitoProductMeasureUnitEach    TreatmentMosquitoProductMeasureUnitType = "each"
+	TreatmentMosquitoProductMeasureUnitFloz    TreatmentMosquitoProductMeasureUnitType = "fl oz"
+	TreatmentMosquitoProductMeasureUnitGal     TreatmentMosquitoProductMeasureUnitType = "gal"
+	TreatmentMosquitoProductMeasureUnitLb      TreatmentMosquitoProductMeasureUnitType = "lb"
+	TreatmentMosquitoProductMeasureUnitPacket  TreatmentMosquitoProductMeasureUnitType = "packet"
+	TreatmentMosquitoProductMeasureUnitPouch   TreatmentMosquitoProductMeasureUnitType = "pouch"
+)
+
 type TreatmentTreatmentMETHODd558ca3ccf43440c8160758253967621Type string
 
 const (
@@ -174,8 +161,21 @@ const (
 	TreatmentTreatmentMETHODd558ca3ccf43440c8160758253967621AdministrativeAction TreatmentTreatmentMETHODd558ca3ccf43440c8160758253967621Type = "Administrative Action"
 )
 
+type TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type string
+
+const (
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0BackpackOne         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Backpack #1"
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0A1MistSprayerTThree TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "A1  Mist Sprayer (T-3) "
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0SpreaderTwo         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Spreader #2"
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Guardian73          TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Guardian #73 "
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ULV74Grizzly        TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "ULV #74 (Grizzly)"
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ClarkULVSprayer71   TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Clark ULV Sprayer #71"
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0ClarkULVSprayer72   TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Clark ULV Sprayer #72"
+	TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Spraybottle         TreatmentTreatmentEQUIPTYPE45694d79ff2142ccbe4fa0d1def4fba0Type = "Spray bottle"
+)
+
 type Treatment struct {
-	Objectid             uint                                                            `field:"OBJECTID"`
+	ObjectID             uint                                                            `field:"OBJECTID"`
 	Activity             TreatmentMosquitoActivityType                                   `field:"ACTIVITY"`
 	AreaTreated          float64                                                         `field:"TREATAREA"`
 	AreaUnit             TreatmentMosquitoProductAreaUnitType                            `field:"AREAUNIT"`
@@ -191,7 +191,7 @@ type Treatment struct {
 	RainGauge            float64                                                         `field:"RAINGAUGE"`
 	Start                time.Time                                                       `field:"STARTDATETIME"`
 	Finish               time.Time                                                       `field:"ENDDATETIME"`
-	InspId               uuid.UUID                                                       `field:"INSP_ID"`
+	InspID               uuid.UUID                                                       `field:"INSP_ID"`
 	Reviewed             TreatmentNotInUITFType                                          `field:"REVIEWED"`
 	ReviewedBy           string                                                          `field:"REVIEWEDBY"`
 	ReviewedDate         time.Time                                                       `field:"REVIEWEDDATE"`
@@ -208,15 +208,15 @@ type Treatment struct {
 	TreatmentLength      float64                                                         `field:"TREATMENTLENGTH"`
 	TreatmentHours       float64                                                         `field:"TREATMENTHOURS"`
 	TreatmentLengthUnits string                                                          `field:"TREATMENTLENGTHUNITS"`
-	Linelocid            uuid.UUID                                                       `field:"LINELOCID"`
-	Pointlocid           uuid.UUID                                                       `field:"POINTLOCID"`
-	Polygonlocid         uuid.UUID                                                       `field:"POLYGONLOCID"`
-	Srid                 uuid.UUID                                                       `field:"SRID"`
-	Sdid                 uuid.UUID                                                       `field:"SDID"`
-	Barrierrouteid       uuid.UUID                                                       `field:"BARRIERROUTEID"`
-	Ulvrouteid           uuid.UUID                                                       `field:"ULVROUTEID"`
+	LinelocID            uuid.UUID                                                       `field:"LINELOCID"`
+	PointlocID           uuid.UUID                                                       `field:"POINTLOCID"`
+	PolygonlocID         uuid.UUID                                                       `field:"POLYGONLOCID"`
+	SrID                 uuid.UUID                                                       `field:"SRID"`
+	SdID                 uuid.UUID                                                       `field:"SDID"`
+	BarrierrouteID       uuid.UUID                                                       `field:"BARRIERROUTEID"`
+	UlvrouteID           uuid.UUID                                                       `field:"ULVROUTEID"`
 	FieldTech            string                                                          `field:"FIELDTECH"`
-	Ptaid                uuid.UUID                                                       `field:"PTAID"`
+	PtaID                uuid.UUID                                                       `field:"PTAID"`
 	Flowrate             float64                                                         `field:"FLOWRATE"`
 	Habitat              TreatmentTreatmentHABITAT0afee7ebf9ea47078483cccfe60f0d16Type   `field:"HABITAT"`
 	TreatHectares        float64                                                         `field:"TREATHECTARES"`

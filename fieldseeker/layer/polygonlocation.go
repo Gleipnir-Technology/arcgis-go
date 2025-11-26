@@ -6,6 +6,41 @@ import (
 	"github.com/google/uuid"
 )
 
+type PolygonLocationNotInUITFType int16
+
+const (
+	PolygonLocationNotInUITFTrue  PolygonLocationNotInUITFType = 1
+	PolygonLocationNotInUITFFalse PolygonLocationNotInUITFType = 0
+)
+
+type PolygonLocationLocationSymbologyType string
+
+const (
+	PolygonLocationLocationSymbologyActionrequired   PolygonLocationLocationSymbologyType = "ACTION"
+	PolygonLocationLocationSymbologyInactive         PolygonLocationLocationSymbologyType = "INACTIVE"
+	PolygonLocationLocationSymbologyNoactionrequired PolygonLocationLocationSymbologyType = "NONE"
+)
+
+type PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType string
+
+const (
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aFloodIrrigation             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "flood_irrigation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aFurrowIrrigation            PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "furrow_irrigation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aDripIrrigation              PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "drip_irritation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aSprinklerIrrigation         PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "sprinkler_irrigation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWastewaterIrrigation        PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "wastewater_irrigation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aIrrigationRunoff            PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "irrigation_runoff"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aRainwaterAccumulation       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "rainwater_accumulation"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aLeak                        PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "leak"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aSeepage                     PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "seepage"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aStoredWater                 PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "stored_water"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWastwaterSystem             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "wastewater_system"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aPermanentNaturalWater       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "permanent_natural_water"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aTemporaryNaturalWater       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "temporary_natural_water"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aRecreationalOrnamentalWater PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "recreational_or_ornamental_water"
+	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWaterConveyance             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "water_conveyance"
+)
+
 type PolygonLocationPolygonLocationHABITAT45e9dde79ac84d959df8b65ba7d5dafdType string
 
 const (
@@ -72,43 +107,8 @@ const (
 	PolygonLocationPolygonLocationUSETYPEe546154cb9544b9aa8e7b13e8e258b27Municipal    PolygonLocationPolygonLocationUSETYPEe546154cb9544b9aa8e7b13e8e258b27Type = "municipal"
 )
 
-type PolygonLocationNotInUITFType int16
-
-const (
-	PolygonLocationNotInUITFTrue  PolygonLocationNotInUITFType = 1
-	PolygonLocationNotInUITFFalse PolygonLocationNotInUITFType = 0
-)
-
-type PolygonLocationLocationSymbologyType string
-
-const (
-	PolygonLocationLocationSymbologyActionrequired   PolygonLocationLocationSymbologyType = "ACTION"
-	PolygonLocationLocationSymbologyInactive         PolygonLocationLocationSymbologyType = "INACTIVE"
-	PolygonLocationLocationSymbologyNoactionrequired PolygonLocationLocationSymbologyType = "NONE"
-)
-
-type PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType string
-
-const (
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aFloodIrrigation             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "flood_irrigation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aFurrowIrrigation            PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "furrow_irrigation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aDripIrrigation              PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "drip_irritation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aSprinklerIrrigation         PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "sprinkler_irrigation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWastewaterIrrigation        PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "wastewater_irrigation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aIrrigationRunoff            PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "irrigation_runoff"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aRainwaterAccumulation       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "rainwater_accumulation"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aLeak                        PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "leak"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aSeepage                     PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "seepage"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aStoredWater                 PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "stored_water"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWastwaterSystem             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "wastewater_system"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aPermanentNaturalWater       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "permanent_natural_water"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aTemporaryNaturalWater       PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "temporary_natural_water"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aRecreationalOrnamentalWater PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "recreational_or_ornamental_water"
-	PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aWaterConveyance             PolygonLocationPolygonLocationWATERORIGINe9018e925f474ff98a7cb818d848dc7aType = "water_conveyance"
-)
-
 type PolygonLocation struct {
-	Objectid                    uint                                                                          `field:"OBJECTID"`
+	ObjectID                    uint                                                                          `field:"OBJECTID"`
 	Name                        string                                                                        `field:"NAME"`
 	Zone                        string                                                                        `field:"ZONE"`
 	Habitat                     PolygonLocationPolygonLocationHABITAT45e9dde79ac84d959df8b65ba7d5dafdType     `field:"HABITAT"`
@@ -119,7 +119,7 @@ type PolygonLocation struct {
 	AccessDescription           string                                                                        `field:"ACCESSDESC"`
 	Comments                    string                                                                        `field:"COMMENTS"`
 	Symbology                   PolygonLocationLocationSymbologyType                                          `field:"SYMBOLOGY"`
-	ExternalId                  string                                                                        `field:"EXTERNALID"`
+	ExternalID                  string                                                                        `field:"EXTERNALID"`
 	Acres                       float64                                                                       `field:"ACRES"`
 	NextScheduledAction         time.Time                                                                     `field:"NEXTACTIONDATESCHEDULED"`
 	LarvalInspectionInterval    int16                                                                         `field:"LARVINSPECTINTERVAL"`

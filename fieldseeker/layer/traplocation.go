@@ -48,7 +48,7 @@ const (
 )
 
 type TrapLocation struct {
-	Objectid            uint                                                                   `field:"OBJECTID"`
+	ObjectID            uint                                                                   `field:"OBJECTID"`
 	Name                string                                                                 `field:"NAME"`
 	Zone                string                                                                 `field:"ZONE"`
 	Habitat             TrapLocationTrapLocationHABITAT5c349680f5ff40b1aeca88c17993e8f3Type    `field:"HABITAT"`
@@ -58,7 +58,7 @@ type TrapLocation struct {
 	Description         string                                                                 `field:"DESCRIPTION"`
 	AccessDescription   TrapLocationTrapLocationACCESSDESC154cbd1045244e3a8ca0f099ec86556aType `field:"ACCESSDESC"`
 	Comments            string                                                                 `field:"COMMENTS"`
-	ExternalId          string                                                                 `field:"EXTERNALID"`
+	ExternalID          string                                                                 `field:"EXTERNALID"`
 	NextScheduledAction time.Time                                                              `field:"NEXTACTIONDATESCHEDULED"`
 	Zone2               string                                                                 `field:"ZONE2"`
 	Locationnumber      int32                                                                  `field:"LOCATIONNUMBER"`
@@ -71,7 +71,7 @@ type TrapLocation struct {
 	Route               int32                                                                  `field:"route"`
 	SetDayOfWeek        int32                                                                  `field:"set_dow"`
 	RouteOrder          int32                                                                  `field:"route_order"`
-	Vectorsurvsiteid    string                                                                 `field:"VECTORSURVSITEID"`
+	VectorsurvsiteID    string                                                                 `field:"VECTORSURVSITEID"`
 	CreationDate        time.Time                                                              `field:"CreationDate"`
 	Creator             string                                                                 `field:"Creator"`
 	EditDate            time.Time                                                              `field:"EditDate"`

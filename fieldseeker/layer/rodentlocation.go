@@ -6,6 +6,23 @@ import (
 	"github.com/google/uuid"
 )
 
+type RodentLocationRodentLocationSymbologyType string
+
+const (
+	RodentLocationRodentLocationSymbologyActionrequired   RodentLocationRodentLocationSymbologyType = "ACTION"
+	RodentLocationRodentLocationSymbologyInactive         RodentLocationRodentLocationSymbologyType = "INACTIVE"
+	RodentLocationRodentLocationSymbologyNoactionrequired RodentLocationRodentLocationSymbologyType = "NONE"
+)
+
+type RodentLocationRodentLocationHabitatType string
+
+const (
+	RodentLocationRodentLocationHabitatCommercial  RodentLocationRodentLocationHabitatType = "Commercial"
+	RodentLocationRodentLocationHabitatIndustrial  RodentLocationRodentLocationHabitatType = "Industrial"
+	RodentLocationRodentLocationHabitatResidential RodentLocationRodentLocationHabitatType = "Residential"
+	RodentLocationRodentLocationHabitatWoodPile    RodentLocationRodentLocationHabitatType = "Wood Pile"
+)
+
 type RodentLocationLocationPriority1Type string
 
 const (
@@ -32,25 +49,8 @@ const (
 	RodentLocationNotInUITF1False RodentLocationNotInUITF1Type = 0
 )
 
-type RodentLocationRodentLocationSymbologyType string
-
-const (
-	RodentLocationRodentLocationSymbologyActionrequired   RodentLocationRodentLocationSymbologyType = "ACTION"
-	RodentLocationRodentLocationSymbologyInactive         RodentLocationRodentLocationSymbologyType = "INACTIVE"
-	RodentLocationRodentLocationSymbologyNoactionrequired RodentLocationRodentLocationSymbologyType = "NONE"
-)
-
-type RodentLocationRodentLocationHabitatType string
-
-const (
-	RodentLocationRodentLocationHabitatCommercial  RodentLocationRodentLocationHabitatType = "Commercial"
-	RodentLocationRodentLocationHabitatIndustrial  RodentLocationRodentLocationHabitatType = "Industrial"
-	RodentLocationRodentLocationHabitatResidential RodentLocationRodentLocationHabitatType = "Residential"
-	RodentLocationRodentLocationHabitatWoodPile    RodentLocationRodentLocationHabitatType = "Wood Pile"
-)
-
 type RodentLocation struct {
-	Objectid                     uint                                      `field:"OBJECTID"`
+	ObjectID                     uint                                      `field:"OBJECTID"`
 	LocationName                 string                                    `field:"LOCATIONNAME"`
 	Zone                         string                                    `field:"ZONE"`
 	Zone2                        string                                    `field:"ZONE2"`
@@ -62,7 +62,7 @@ type RodentLocation struct {
 	Accessdesc                   string                                    `field:"ACCESSDESC"`
 	Comments                     string                                    `field:"COMMENTS"`
 	Symbology                    RodentLocationRodentLocationSymbologyType `field:"SYMBOLOGY"`
-	ExternalId                   string                                    `field:"EXTERNALID"`
+	ExternalID                   string                                    `field:"EXTERNALID"`
 	Nextactiondatescheduled      time.Time                                 `field:"NEXTACTIONDATESCHEDULED"`
 	Locationnumber               int32                                     `field:"LOCATIONNUMBER"`
 	LastInspectionDate           time.Time                                 `field:"LASTINSPECTDATE"`

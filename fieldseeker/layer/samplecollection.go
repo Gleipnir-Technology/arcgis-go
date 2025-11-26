@@ -6,67 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type SampleCollectionMosquitoLabNameType string
-
-const (
-	SampleCollectionMosquitoLabNameInternalLab SampleCollectionMosquitoLabNameType = "Internal Lab"
-	SampleCollectionMosquitoLabNameStateLab    SampleCollectionMosquitoLabNameType = "State Lab"
-)
-
-type SampleCollectionNotInUITFType int16
-
-const (
-	SampleCollectionNotInUITFTrue  SampleCollectionNotInUITFType = 1
-	SampleCollectionNotInUITFFalse SampleCollectionNotInUITFType = 0
-)
-
-type SampleCollectionMosquitoSampleTypeType string
-
-const (
-	SampleCollectionMosquitoSampleTypeBlood    SampleCollectionMosquitoSampleTypeType = "Blood"
-	SampleCollectionMosquitoSampleTypeTissue   SampleCollectionMosquitoSampleTypeType = "Tissue"
-	SampleCollectionMosquitoSampleTypeSpecimen SampleCollectionMosquitoSampleTypeType = "Specimen"
-	SampleCollectionMosquitoSampleTypeCarcass  SampleCollectionMosquitoSampleTypeType = "Carcass"
-)
-
-type SampleCollectionMosquitoSampleConditionType string
-
-const (
-	SampleCollectionMosquitoSampleConditionUsable   SampleCollectionMosquitoSampleConditionType = "Usable"
-	SampleCollectionMosquitoSampleConditionUnusable SampleCollectionMosquitoSampleConditionType = "Unusable"
-)
-
-type SampleCollectionNotInUIWindDirectionType string
-
-const (
-	SampleCollectionNotInUIWindDirectionN  SampleCollectionNotInUIWindDirectionType = "N"
-	SampleCollectionNotInUIWindDirectionNE SampleCollectionNotInUIWindDirectionType = "NE"
-	SampleCollectionNotInUIWindDirectionE  SampleCollectionNotInUIWindDirectionType = "E"
-	SampleCollectionNotInUIWindDirectionSE SampleCollectionNotInUIWindDirectionType = "SE"
-	SampleCollectionNotInUIWindDirectionS  SampleCollectionNotInUIWindDirectionType = "S"
-	SampleCollectionNotInUIWindDirectionSW SampleCollectionNotInUIWindDirectionType = "SW"
-	SampleCollectionNotInUIWindDirectionW  SampleCollectionNotInUIWindDirectionType = "W"
-	SampleCollectionNotInUIWindDirectionNW SampleCollectionNotInUIWindDirectionType = "NW"
-)
-
-type SampleCollectionMosquitoTestMethodType string
-
-const (
-	SampleCollectionMosquitoTestMethodRAMP    SampleCollectionMosquitoTestMethodType = "RAMP"
-	SampleCollectionMosquitoTestMethodVecTest SampleCollectionMosquitoTestMethodType = "VecTest"
-	SampleCollectionMosquitoTestMethodELISA   SampleCollectionMosquitoTestMethodType = "ELISA"
-	SampleCollectionMosquitoTestMethodRTPCR   SampleCollectionMosquitoTestMethodType = "RT-PCR"
-)
-
-type SampleCollectionMosquitoDiseaseType string
-
-const (
-	SampleCollectionMosquitoDiseaseEEE    SampleCollectionMosquitoDiseaseType = "EEE"
-	SampleCollectionMosquitoDiseaseWNV    SampleCollectionMosquitoDiseaseType = "WNV"
-	SampleCollectionMosquitoDiseaseDengue SampleCollectionMosquitoDiseaseType = "Dengue"
-	SampleCollectionMosquitoDiseaseZika   SampleCollectionMosquitoDiseaseType = "Zika"
-)
-
 type SampleCollectionMosquitoSiteConditionType string
 
 const (
@@ -76,21 +15,13 @@ const (
 	SampleCollectionMosquitoSiteConditionLow   SampleCollectionMosquitoSiteConditionType = "Low"
 )
 
-type SampleCollectionMosquitoSampleSpeciesType string
+type SampleCollectionMosquitoSampleTypeType string
 
 const (
-	SampleCollectionMosquitoSampleSpeciesChicken  SampleCollectionMosquitoSampleSpeciesType = "Chicken"
-	SampleCollectionMosquitoSampleSpeciesWildbird SampleCollectionMosquitoSampleSpeciesType = "Wild bird"
-	SampleCollectionMosquitoSampleSpeciesHorse    SampleCollectionMosquitoSampleSpeciesType = "Horse"
-	SampleCollectionMosquitoSampleSpeciesHuman    SampleCollectionMosquitoSampleSpeciesType = "Human"
-)
-
-type SampleCollectionNotInUISexType string
-
-const (
-	SampleCollectionNotInUISexMale    SampleCollectionNotInUISexType = "M"
-	SampleCollectionNotInUISexFemale  SampleCollectionNotInUISexType = "F"
-	SampleCollectionNotInUISexUnknown SampleCollectionNotInUISexType = "U"
+	SampleCollectionMosquitoSampleTypeBlood    SampleCollectionMosquitoSampleTypeType = "Blood"
+	SampleCollectionMosquitoSampleTypeTissue   SampleCollectionMosquitoSampleTypeType = "Tissue"
+	SampleCollectionMosquitoSampleTypeSpecimen SampleCollectionMosquitoSampleTypeType = "Specimen"
+	SampleCollectionMosquitoSampleTypeCarcass  SampleCollectionMosquitoSampleTypeType = "Carcass"
 )
 
 type SampleCollectionMosquitoActivityType string
@@ -126,13 +57,82 @@ const (
 	SampleCollectionMosquitoActivityLCLOCATION        SampleCollectionMosquitoActivityType = "LCLOCATION"
 )
 
+type SampleCollectionMosquitoDiseaseType string
+
+const (
+	SampleCollectionMosquitoDiseaseEEE    SampleCollectionMosquitoDiseaseType = "EEE"
+	SampleCollectionMosquitoDiseaseWNV    SampleCollectionMosquitoDiseaseType = "WNV"
+	SampleCollectionMosquitoDiseaseDengue SampleCollectionMosquitoDiseaseType = "Dengue"
+	SampleCollectionMosquitoDiseaseZika   SampleCollectionMosquitoDiseaseType = "Zika"
+)
+
+type SampleCollectionNotInUITFType int16
+
+const (
+	SampleCollectionNotInUITFTrue  SampleCollectionNotInUITFType = 1
+	SampleCollectionNotInUITFFalse SampleCollectionNotInUITFType = 0
+)
+
+type SampleCollectionMosquitoSampleConditionType string
+
+const (
+	SampleCollectionMosquitoSampleConditionUsable   SampleCollectionMosquitoSampleConditionType = "Usable"
+	SampleCollectionMosquitoSampleConditionUnusable SampleCollectionMosquitoSampleConditionType = "Unusable"
+)
+
+type SampleCollectionMosquitoSampleSpeciesType string
+
+const (
+	SampleCollectionMosquitoSampleSpeciesChicken  SampleCollectionMosquitoSampleSpeciesType = "Chicken"
+	SampleCollectionMosquitoSampleSpeciesWildbird SampleCollectionMosquitoSampleSpeciesType = "Wild bird"
+	SampleCollectionMosquitoSampleSpeciesHorse    SampleCollectionMosquitoSampleSpeciesType = "Horse"
+	SampleCollectionMosquitoSampleSpeciesHuman    SampleCollectionMosquitoSampleSpeciesType = "Human"
+)
+
+type SampleCollectionNotInUISexType string
+
+const (
+	SampleCollectionNotInUISexMale    SampleCollectionNotInUISexType = "M"
+	SampleCollectionNotInUISexFemale  SampleCollectionNotInUISexType = "F"
+	SampleCollectionNotInUISexUnknown SampleCollectionNotInUISexType = "U"
+)
+
+type SampleCollectionNotInUIWindDirectionType string
+
+const (
+	SampleCollectionNotInUIWindDirectionN  SampleCollectionNotInUIWindDirectionType = "N"
+	SampleCollectionNotInUIWindDirectionNE SampleCollectionNotInUIWindDirectionType = "NE"
+	SampleCollectionNotInUIWindDirectionE  SampleCollectionNotInUIWindDirectionType = "E"
+	SampleCollectionNotInUIWindDirectionSE SampleCollectionNotInUIWindDirectionType = "SE"
+	SampleCollectionNotInUIWindDirectionS  SampleCollectionNotInUIWindDirectionType = "S"
+	SampleCollectionNotInUIWindDirectionSW SampleCollectionNotInUIWindDirectionType = "SW"
+	SampleCollectionNotInUIWindDirectionW  SampleCollectionNotInUIWindDirectionType = "W"
+	SampleCollectionNotInUIWindDirectionNW SampleCollectionNotInUIWindDirectionType = "NW"
+)
+
+type SampleCollectionMosquitoTestMethodType string
+
+const (
+	SampleCollectionMosquitoTestMethodRAMP    SampleCollectionMosquitoTestMethodType = "RAMP"
+	SampleCollectionMosquitoTestMethodVecTest SampleCollectionMosquitoTestMethodType = "VecTest"
+	SampleCollectionMosquitoTestMethodELISA   SampleCollectionMosquitoTestMethodType = "ELISA"
+	SampleCollectionMosquitoTestMethodRTPCR   SampleCollectionMosquitoTestMethodType = "RT-PCR"
+)
+
+type SampleCollectionMosquitoLabNameType string
+
+const (
+	SampleCollectionMosquitoLabNameInternalLab SampleCollectionMosquitoLabNameType = "Internal Lab"
+	SampleCollectionMosquitoLabNameStateLab    SampleCollectionMosquitoLabNameType = "State Lab"
+)
+
 type SampleCollection struct {
-	Objectid               uint                                        `field:"OBJECTID"`
-	LocId                  uuid.UUID                                   `field:"LOC_ID"`
+	ObjectID               uint                                        `field:"OBJECTID"`
+	LocID                  uuid.UUID                                   `field:"LOC_ID"`
 	Start                  time.Time                                   `field:"STARTDATETIME"`
 	Finish                 time.Time                                   `field:"ENDDATETIME"`
 	Conditions             SampleCollectionMosquitoSiteConditionType   `field:"SITECOND"`
-	SampleId               string                                      `field:"SAMPLEID"`
+	SampleID               string                                      `field:"SAMPLEID"`
 	SurveillanceTechnician string                                      `field:"SURVTECH"`
 	Sent                   time.Time                                   `field:"DATESENT"`
 	Tested                 time.Time                                   `field:"DATETESTED"`
@@ -165,7 +165,7 @@ type SampleCollection struct {
 	LastEditedDate         time.Time                                   `field:"last_edited_date"`
 	Lab                    SampleCollectionMosquitoLabNameType         `field:"LAB"`
 	FieldTech              string                                      `field:"FIELDTECH"`
-	Flockid                uuid.UUID                                   `field:"FLOCKID"`
+	FlockID                uuid.UUID                                   `field:"FLOCKID"`
 	SampleCount            int16                                       `field:"SAMPLECOUNT"`
 	ChickenID              uuid.UUID                                   `field:"CHICKENID"`
 	GatewaySync            int16                                       `field:"GATEWAYSYNC"`

@@ -17,15 +17,15 @@ const (
 )
 
 type ContainerRelate struct {
-	Objectid       uint                                     `field:"OBJECTID"`
+	ObjectID       uint                                     `field:"OBJECTID"`
 	GlobalID       uuid.UUID                                `field:"GlobalID"`
 	CreatedUser    string                                   `field:"created_user"`
 	CreatedDate    time.Time                                `field:"created_date"`
 	LastEditedUser string                                   `field:"last_edited_user"`
 	LastEditedDate time.Time                                `field:"last_edited_date"`
-	Inspsampleid   uuid.UUID                                `field:"INSPSAMPLEID"`
-	Mosquitoinspid uuid.UUID                                `field:"MOSQUITOINSPID"`
-	Treatmentid    uuid.UUID                                `field:"TREATMENTID"`
+	InspsampleID   uuid.UUID                                `field:"INSPSAMPLEID"`
+	MosquitoinspID uuid.UUID                                `field:"MOSQUITOINSPID"`
+	TreatmentID    uuid.UUID                                `field:"TREATMENTID"`
 	ContainerType  ContainerRelateMosquitoContainerTypeType `field:"CONTAINERTYPE"`
 	CreationDate   time.Time                                `field:"CreationDate"`
 	Creator        string                                   `field:"Creator"`

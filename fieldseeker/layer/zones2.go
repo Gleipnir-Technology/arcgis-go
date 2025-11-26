@@ -7,7 +7,7 @@ import (
 )
 
 type Zones2 struct {
-	Objectid       uint      `field:"OBJECTID"`
+	ObjectID       uint      `field:"OBJECTID"`
 	Name           string    `field:"NAME"`
 	GlobalID       uuid.UUID `field:"GlobalID"`
 	CreatedUser    string    `field:"created_user"`

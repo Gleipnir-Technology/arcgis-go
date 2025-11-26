@@ -7,9 +7,9 @@ import (
 )
 
 type TreatmentArea struct {
-	Objectid       uint      `field:"OBJECTID"`
-	TreatId        uuid.UUID `field:"TREAT_ID"`
-	SessionId      uuid.UUID `field:"SESSION_ID"`
+	ObjectID       uint      `field:"OBJECTID"`
+	TreatID        uuid.UUID `field:"TREAT_ID"`
+	SessionID      uuid.UUID `field:"SESSION_ID"`
 	TreatmentDate  time.Time `field:"TREATDATE"`
 	Comments       string    `field:"COMMENTS"`
 	GlobalID       uuid.UUID `field:"GlobalID"`

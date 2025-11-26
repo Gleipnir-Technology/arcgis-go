@@ -14,8 +14,8 @@ const (
 )
 
 type SpeciesAbundance struct {
-	Objectid        uint                          `field:"OBJECTID"`
-	TrapDataId      uuid.UUID                     `field:"TRAPDATA_ID"`
+	ObjectID        uint                          `field:"OBJECTID"`
+	TrapDataID      uuid.UUID                     `field:"TRAPDATA_ID"`
 	Species         string                        `field:"SPECIES"`
 	Males           int16                         `field:"MALES"`
 	Unknown         int16                         `field:"UNKNOWN"`

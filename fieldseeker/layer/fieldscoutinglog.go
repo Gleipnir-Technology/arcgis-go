@@ -16,7 +16,7 @@ const (
 )
 
 type FieldScoutingLog struct {
-	Objectid       uint                                       `field:"OBJECTID"`
+	ObjectID       uint                                       `field:"OBJECTID"`
 	Status         FieldScoutingLogFieldScoutingSymbologyType `field:"STATUS"`
 	GlobalID       uuid.UUID                                  `field:"GlobalID"`
 	CreatedUser    string                                     `field:"created_user"`

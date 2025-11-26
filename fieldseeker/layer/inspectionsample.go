@@ -14,9 +14,9 @@ const (
 )
 
 type InspectionSample struct {
-	Objectid                    uint                          `field:"OBJECTID"`
-	InspId                      uuid.UUID                     `field:"INSP_ID"`
-	SampleId                    string                        `field:"SAMPLEID"`
+	ObjectID                    uint                          `field:"OBJECTID"`
+	InspID                      uuid.UUID                     `field:"INSP_ID"`
+	SampleID                    string                        `field:"SAMPLEID"`
 	Processed                   InspectionSampleNotInUITFType `field:"PROCESSED"`
 	TechIdentifyingSpeciesInLab string                        `field:"IDBYTECH"`
 	GlobalID                    uuid.UUID                     `field:"GlobalID"`

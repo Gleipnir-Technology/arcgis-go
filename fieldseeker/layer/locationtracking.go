@@ -7,7 +7,7 @@ import (
 )
 
 type LocationTracking struct {
-	Objectid       uint      `field:"OBJECTID"`
+	ObjectID       uint      `field:"OBJECTID"`
 	Accuracym      float64   `field:"Accuracy"`
 	CreatedUser    string    `field:"created_user"`
 	CreatedDate    time.Time `field:"created_date"`

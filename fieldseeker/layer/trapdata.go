@@ -69,7 +69,7 @@ const (
 )
 
 type TrapData struct {
-	Objectid                    uint                                                        `field:"OBJECTID"`
+	ObjectID                    uint                                                        `field:"OBJECTID"`
 	TrapType                    TrapDataMosquitoTrapTypeType                                `field:"TRAPTYPE"`
 	TrapActivityType            TrapDataNotInUITrapActivityTypeType                         `field:"TRAPACTIVITYTYPE"`
 	Start                       time.Time                                                   `field:"STARTDATETIME"`
@@ -93,10 +93,10 @@ type TrapData struct {
 	CreatedDate                 time.Time                                                   `field:"created_date"`
 	LastEditedUser              string                                                      `field:"last_edited_user"`
 	LastEditedDate              time.Time                                                   `field:"last_edited_date"`
-	Srid                        uuid.UUID                                                   `field:"SRID"`
+	SrID                        uuid.UUID                                                   `field:"SRID"`
 	FieldTech                   string                                                      `field:"FIELDTECH"`
 	GatewaySync                 int16                                                       `field:"GATEWAYSYNC"`
-	LocId                       uuid.UUID                                                   `field:"LOC_ID"`
+	LocID                       uuid.UUID                                                   `field:"LOC_ID"`
 	Voltage                     float64                                                     `field:"VOLTAGE"`
 	Winddir                     TrapDataTrapDataWINDDIRc1a31e05d0b94b228800be127bb3f166Type `field:"WINDDIR"`
 	Windspeed                   float64                                                     `field:"WINDSPEED"`
@@ -104,8 +104,8 @@ type TrapData struct {
 	Raingauge                   float64                                                     `field:"RAINGAUGE"`
 	LandingRate                 int16                                                       `field:"LR"`
 	Field                       int32                                                       `field:"Field"`
-	Vectorsurvtrapdataid        string                                                      `field:"VECTORSURVTRAPDATAID"`
-	Vectorsurvtraplocationid    string                                                      `field:"VECTORSURVTRAPLOCATIONID"`
+	VectorsurvtrapdataID        string                                                      `field:"VECTORSURVTRAPDATAID"`
+	VectorsurvtraplocationID    string                                                      `field:"VECTORSURVTRAPLOCATIONID"`
 	CreationDate                time.Time                                                   `field:"CreationDate"`
 	Creator                     string                                                      `field:"Creator"`
 	EditDate                    time.Time                                                   `field:"EditDate"`

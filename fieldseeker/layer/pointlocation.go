@@ -6,6 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type PointLocationNotInUITFType int16
+
+const (
+	PointLocationNotInUITFTrue  PointLocationNotInUITFType = 1
+	PointLocationNotInUITFFalse PointLocationNotInUITFType = 0
+)
+
 type PointLocationLocationSymbologyType string
 
 const (
@@ -151,15 +158,8 @@ const (
 	PointLocationPointLocationUSETYPE58d62d18ef4f47fc8cb9874df867f89eMunicipal    PointLocationPointLocationUSETYPE58d62d18ef4f47fc8cb9874df867f89eType = "municipal"
 )
 
-type PointLocationNotInUITFType int16
-
-const (
-	PointLocationNotInUITFTrue  PointLocationNotInUITFType = 1
-	PointLocationNotInUITFFalse PointLocationNotInUITFType = 0
-)
-
 type PointLocation struct {
-	Objectid                    uint                                                                           `field:"OBJECTID"`
+	ObjectID                    uint                                                                           `field:"OBJECTID"`
 	Name                        string                                                                         `field:"NAME"`
 	Zone                        string                                                                         `field:"ZONE"`
 	Habitat                     PointLocationPointLocationHABITATb4d8135a497949c88bb367ec7230e661Type          `field:"HABITAT"`
@@ -170,7 +170,7 @@ type PointLocation struct {
 	AccessDescription           string                                                                         `field:"ACCESSDESC"`
 	Comments                    string                                                                         `field:"COMMENTS"`
 	Symbology                   PointLocationLocationSymbologyType                                             `field:"SYMBOLOGY"`
-	ExternalId                  string                                                                         `field:"EXTERNALID"`
+	ExternalID                  string                                                                         `field:"EXTERNALID"`
 	NextScheduledAction         time.Time                                                                      `field:"NEXTACTIONDATESCHEDULED"`
 	LarvalInspectionInterval    int16                                                                          `field:"LARVINSPECTINTERVAL"`
 	Zone2                       string                                                                         `field:"ZONE2"`

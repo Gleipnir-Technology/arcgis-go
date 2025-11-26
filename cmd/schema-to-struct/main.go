@@ -248,6 +248,7 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		}
 
 		fieldName := toPascalCasePreserveNumbers(displayName)
+		fieldName = fixIDSuffix(fieldName)
 
 		// Ensure field name uniqueness
 		originalFieldName := fieldName
@@ -445,6 +446,14 @@ func toPascalCasePreserveNumbers(s string) string {
 	}
 
 	return result
+}
+
+func fixIDSuffix(n string) string {
+	lowered := strings.ToLower(n)
+	if strings.HasSuffix(lowered, "id") {
+		return n[:len(n)-2] + "ID"
+	}
+	return n
 }
 
 func mapFieldType(fieldType string) string {

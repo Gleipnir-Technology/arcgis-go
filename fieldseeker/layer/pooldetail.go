@@ -7,9 +7,9 @@ import (
 )
 
 type PoolDetail struct {
-	Objectid       uint      `field:"OBJECTID"`
-	TrapDataId     uuid.UUID `field:"TRAPDATA_ID"`
-	PoolId         uuid.UUID `field:"POOL_ID"`
+	ObjectID       uint      `field:"OBJECTID"`
+	TrapDataID     uuid.UUID `field:"TRAPDATA_ID"`
+	PoolID         uuid.UUID `field:"POOL_ID"`
 	Species        string    `field:"SPECIES"`
 	Females        int16     `field:"FEMALES"`
 	GlobalID       uuid.UUID `field:"GlobalID"`

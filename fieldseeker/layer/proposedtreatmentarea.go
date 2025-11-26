@@ -36,7 +36,7 @@ const (
 )
 
 type ProposedTreatmentArea struct {
-	Objectid                  uint                                             `field:"OBJECTID"`
+	ObjectID                  uint                                             `field:"OBJECTID"`
 	Method                    ProposedTreatmentAreaMosquitoTreatmentMethodType `field:"METHOD"`
 	Comments                  string                                           `field:"COMMENTS"`
 	Zone                      string                                           `field:"ZONE"`

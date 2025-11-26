@@ -6,92 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type ServiceRequestServiceRequestPriorityType string
-
-const (
-	ServiceRequestServiceRequestPriorityLow                     ServiceRequestServiceRequestPriorityType = "Low"
-	ServiceRequestServiceRequestPriorityMedium                  ServiceRequestServiceRequestPriorityType = "Medium"
-	ServiceRequestServiceRequestPriorityHigh                    ServiceRequestServiceRequestPriorityType = "High"
-	ServiceRequestServiceRequestPriorityFollowupVisit           ServiceRequestServiceRequestPriorityType = "Follow up Visit"
-	ServiceRequestServiceRequestPriorityHTCResponse             ServiceRequestServiceRequestPriorityType = "HTC Response"
-	ServiceRequestServiceRequestPriorityDiseaseAcitivtyResponse ServiceRequestServiceRequestPriorityType = "Disease Activity Response"
-)
-
-type ServiceRequestNotInUITFType int16
-
-const (
-	ServiceRequestNotInUITFTrue  ServiceRequestNotInUITFType = 1
-	ServiceRequestNotInUITFFalse ServiceRequestNotInUITFType = 0
-)
-
-type ServiceRequestServiceRequestRegionType string
-
-const (
-	ServiceRequestServiceRequestRegionFlorida ServiceRequestServiceRequestRegionType = "FL"
-	ServiceRequestServiceRequestRegionIdaho   ServiceRequestServiceRequestRegionType = "ID"
-)
-
-type ServiceRequestServiceRequestRejectedReasonType string
-
-const (
-	ServiceRequestServiceRequestRejectedReasonDistance ServiceRequestServiceRequestRejectedReasonType = "Distance"
-	ServiceRequestServiceRequestRejectedReasonWorkload ServiceRequestServiceRequestRejectedReasonType = "Workload"
-)
-
-type ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType string
-
-const (
-	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aRickAlverez   ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Rick Alverez"
-	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aBryanFerguson ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Bryan Ferguson"
-	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aBryanRuiz     ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Bryan Ruiz"
-	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aAndreaTroupin ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Andrea Troupin"
-	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aConlinReis    ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Conlin Reis"
-)
-
-type ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type int32
-
-const (
-	ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879NoUknown ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type = 0
-	ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Yes      ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type = 1
-)
-
-type ServiceRequestServiceRequestIssuesType string
-
-const (
-	ServiceRequestServiceRequestIssuesBeehiveRelated           ServiceRequestServiceRequestIssuesType = "Beehive Related"
-	ServiceRequestServiceRequestIssuesUnsanitaryAccumulations  ServiceRequestServiceRequestIssuesType = "Unsanitary Accumulations"
-	ServiceRequestServiceRequestIssuesRoosterorNoise           ServiceRequestServiceRequestIssuesType = "Rooster or Noise"
-	ServiceRequestServiceRequestIssuesRatsAttracted            ServiceRequestServiceRequestIssuesType = "Rats Attracted"
-	ServiceRequestServiceRequestIssuesOdor                     ServiceRequestServiceRequestIssuesType = "Odor"
-	ServiceRequestServiceRequestIssuesNumberofAnimalsOverLimit ServiceRequestServiceRequestIssuesType = "Number of Animals Over Limit"
-	ServiceRequestServiceRequestIssuesLocation                 ServiceRequestServiceRequestIssuesType = "Location"
-	ServiceRequestServiceRequestIssuesViolation                ServiceRequestServiceRequestIssuesType = "Violation"
-	ServiceRequestServiceRequestIssuesInadequateEnclosure      ServiceRequestServiceRequestIssuesType = "Inadequate Enclosure"
-	ServiceRequestServiceRequestIssuesEscapedAnimal            ServiceRequestServiceRequestIssuesType = "Escaped Animal"
-	ServiceRequestServiceRequestIssuesIllegalAnimal            ServiceRequestServiceRequestIssuesType = "Illegal Animal"
-)
-
-type ServiceRequestServiceRequestStatusType string
-
-const (
-	ServiceRequestServiceRequestStatusAssigned       ServiceRequestServiceRequestStatusType = "Assigned"
-	ServiceRequestServiceRequestStatusClosed         ServiceRequestServiceRequestStatusType = "Closed"
-	ServiceRequestServiceRequestStatusFieldRectified ServiceRequestServiceRequestStatusType = "FieldRectified"
-	ServiceRequestServiceRequestStatusOpen           ServiceRequestServiceRequestStatusType = "Open"
-	ServiceRequestServiceRequestStatusRejected       ServiceRequestServiceRequestStatusType = "Rejected"
-	ServiceRequestServiceRequestStatusUnverified     ServiceRequestServiceRequestStatusType = "Unverified"
-	ServiceRequestServiceRequestStatusAccepted       ServiceRequestServiceRequestStatusType = "Accepted"
-)
-
-type ServiceRequestServiceRequestContactPreferencesType string
-
-const (
-	ServiceRequestServiceRequestContactPreferencesNone  ServiceRequestServiceRequestContactPreferencesType = "None"
-	ServiceRequestServiceRequestContactPreferencesCall  ServiceRequestServiceRequestContactPreferencesType = "Call"
-	ServiceRequestServiceRequestContactPreferencesEmail ServiceRequestServiceRequestContactPreferencesType = "Email"
-	ServiceRequestServiceRequestContactPreferencesText  ServiceRequestServiceRequestContactPreferencesType = "Text"
-)
-
 type ServiceRequestServiceRequestTargetType string
 
 const (
@@ -105,32 +19,6 @@ const (
 	ServiceRequestServiceRequestTargetWebReportofMosquitoes                                ServiceRequestServiceRequestTargetType = "mosquito"
 	ServiceRequestServiceRequestTargetWebReportofMosquitoSource                            ServiceRequestServiceRequestTargetType = "source"
 	ServiceRequestServiceRequestTargetWebReportofDeadBird                                  ServiceRequestServiceRequestTargetType = "bird"
-)
-
-type ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type int32
-
-const (
-	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Unknown   ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 0
-	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Yes       ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 1
-	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696No        ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 2
-	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Agressive ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 3
-)
-
-type ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type string
-
-const (
-	ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49AM ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type = "AM"
-	ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49PM ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type = "PM"
-)
-
-type ServiceRequestServiceRequestSourceType string
-
-const (
-	ServiceRequestServiceRequestSourcePhone         ServiceRequestServiceRequestSourceType = "Phone"
-	ServiceRequestServiceRequestSourceEmail         ServiceRequestServiceRequestSourceType = "Email"
-	ServiceRequestServiceRequestSourceWebsite       ServiceRequestServiceRequestSourceType = "Website"
-	ServiceRequestServiceRequestSourceDropin        ServiceRequestServiceRequestSourceType = "Drop-in"
-	ServiceRequestServiceRequestSource2025PoolsList ServiceRequestServiceRequestSourceType = "2025_pools"
 )
 
 type ServiceRequestServiceRequestASSIGNEDTECH71d0d685868f4b7a87e23661a3ee67c5Type string
@@ -169,6 +57,13 @@ const (
 	ServiceRequestServiceRequestASSIGNEDTECH71d0d685868f4b7a87e23661a3ee67c5LauraRomos        ServiceRequestServiceRequestASSIGNEDTECH71d0d685868f4b7a87e23661a3ee67c5Type = "Laura Romos"
 )
 
+type ServiceRequestNotInUITFType int16
+
+const (
+	ServiceRequestNotInUITFTrue  ServiceRequestNotInUITFType = 1
+	ServiceRequestNotInUITFFalse ServiceRequestNotInUITFType = 0
+)
+
 type ServiceRequestServiceRequestNextActionType string
 
 const (
@@ -176,8 +71,113 @@ const (
 	ServiceRequestServiceRequestNextActionSitevisit  ServiceRequestServiceRequestNextActionType = "Site visit"
 )
 
+type ServiceRequestServiceRequestIssuesType string
+
+const (
+	ServiceRequestServiceRequestIssuesBeehiveRelated           ServiceRequestServiceRequestIssuesType = "Beehive Related"
+	ServiceRequestServiceRequestIssuesUnsanitaryAccumulations  ServiceRequestServiceRequestIssuesType = "Unsanitary Accumulations"
+	ServiceRequestServiceRequestIssuesRoosterorNoise           ServiceRequestServiceRequestIssuesType = "Rooster or Noise"
+	ServiceRequestServiceRequestIssuesRatsAttracted            ServiceRequestServiceRequestIssuesType = "Rats Attracted"
+	ServiceRequestServiceRequestIssuesOdor                     ServiceRequestServiceRequestIssuesType = "Odor"
+	ServiceRequestServiceRequestIssuesNumberofAnimalsOverLimit ServiceRequestServiceRequestIssuesType = "Number of Animals Over Limit"
+	ServiceRequestServiceRequestIssuesLocation                 ServiceRequestServiceRequestIssuesType = "Location"
+	ServiceRequestServiceRequestIssuesViolation                ServiceRequestServiceRequestIssuesType = "Violation"
+	ServiceRequestServiceRequestIssuesInadequateEnclosure      ServiceRequestServiceRequestIssuesType = "Inadequate Enclosure"
+	ServiceRequestServiceRequestIssuesEscapedAnimal            ServiceRequestServiceRequestIssuesType = "Escaped Animal"
+	ServiceRequestServiceRequestIssuesIllegalAnimal            ServiceRequestServiceRequestIssuesType = "Illegal Animal"
+)
+
+type ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type string
+
+const (
+	ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49AM ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type = "AM"
+	ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49PM ServiceRequestServiceRequestscheduleperiod3f40c046afd14abd8bf4389650d29a49Type = "PM"
+)
+
+type ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type int32
+
+const (
+	ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879NoUknown ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type = 0
+	ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Yes      ServiceRequestServiceRequestSpanishaaa3dc669f9a45278ecdc9f76db33879Type = 1
+)
+
+type ServiceRequestServiceRequestPriorityType string
+
+const (
+	ServiceRequestServiceRequestPriorityLow                     ServiceRequestServiceRequestPriorityType = "Low"
+	ServiceRequestServiceRequestPriorityMedium                  ServiceRequestServiceRequestPriorityType = "Medium"
+	ServiceRequestServiceRequestPriorityHigh                    ServiceRequestServiceRequestPriorityType = "High"
+	ServiceRequestServiceRequestPriorityFollowupVisit           ServiceRequestServiceRequestPriorityType = "Follow up Visit"
+	ServiceRequestServiceRequestPriorityHTCResponse             ServiceRequestServiceRequestPriorityType = "HTC Response"
+	ServiceRequestServiceRequestPriorityDiseaseAcitivtyResponse ServiceRequestServiceRequestPriorityType = "Disease Activity Response"
+)
+
+type ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType string
+
+const (
+	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aRickAlverez   ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Rick Alverez"
+	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aBryanFerguson ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Bryan Ferguson"
+	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aBryanRuiz     ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Bryan Ruiz"
+	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aAndreaTroupin ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Andrea Troupin"
+	ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aConlinReis    ServiceRequestServiceRequestSUPERVISOReba07b90c8854fe680807aa775403b9aType = "Conlin Reis"
+)
+
+type ServiceRequestServiceRequestRegionType string
+
+const (
+	ServiceRequestServiceRequestRegionFlorida ServiceRequestServiceRequestRegionType = "FL"
+	ServiceRequestServiceRequestRegionIdaho   ServiceRequestServiceRequestRegionType = "ID"
+)
+
+type ServiceRequestServiceRequestRejectedReasonType string
+
+const (
+	ServiceRequestServiceRequestRejectedReasonDistance ServiceRequestServiceRequestRejectedReasonType = "Distance"
+	ServiceRequestServiceRequestRejectedReasonWorkload ServiceRequestServiceRequestRejectedReasonType = "Workload"
+)
+
+type ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type int32
+
+const (
+	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Unknown   ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 0
+	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Yes       ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 1
+	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696No        ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 2
+	ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Agressive ServiceRequestServiceRequestDOG2b95ec9712864fcd88f4f0e31113f696Type = 3
+)
+
+type ServiceRequestServiceRequestSourceType string
+
+const (
+	ServiceRequestServiceRequestSourcePhone         ServiceRequestServiceRequestSourceType = "Phone"
+	ServiceRequestServiceRequestSourceEmail         ServiceRequestServiceRequestSourceType = "Email"
+	ServiceRequestServiceRequestSourceWebsite       ServiceRequestServiceRequestSourceType = "Website"
+	ServiceRequestServiceRequestSourceDropin        ServiceRequestServiceRequestSourceType = "Drop-in"
+	ServiceRequestServiceRequestSource2025PoolsList ServiceRequestServiceRequestSourceType = "2025_pools"
+)
+
+type ServiceRequestServiceRequestStatusType string
+
+const (
+	ServiceRequestServiceRequestStatusAssigned       ServiceRequestServiceRequestStatusType = "Assigned"
+	ServiceRequestServiceRequestStatusClosed         ServiceRequestServiceRequestStatusType = "Closed"
+	ServiceRequestServiceRequestStatusFieldRectified ServiceRequestServiceRequestStatusType = "FieldRectified"
+	ServiceRequestServiceRequestStatusOpen           ServiceRequestServiceRequestStatusType = "Open"
+	ServiceRequestServiceRequestStatusRejected       ServiceRequestServiceRequestStatusType = "Rejected"
+	ServiceRequestServiceRequestStatusUnverified     ServiceRequestServiceRequestStatusType = "Unverified"
+	ServiceRequestServiceRequestStatusAccepted       ServiceRequestServiceRequestStatusType = "Accepted"
+)
+
+type ServiceRequestServiceRequestContactPreferencesType string
+
+const (
+	ServiceRequestServiceRequestContactPreferencesNone  ServiceRequestServiceRequestContactPreferencesType = "None"
+	ServiceRequestServiceRequestContactPreferencesCall  ServiceRequestServiceRequestContactPreferencesType = "Call"
+	ServiceRequestServiceRequestContactPreferencesEmail ServiceRequestServiceRequestContactPreferencesType = "Email"
+	ServiceRequestServiceRequestContactPreferencesText  ServiceRequestServiceRequestContactPreferencesType = "Text"
+)
+
 type ServiceRequest struct {
-	Objectid                uint                                                                           `field:"OBJECTID"`
+	ObjectID                uint                                                                           `field:"OBJECTID"`
 	Received                time.Time                                                                      `field:"RECDATETIME"`
 	Source                  ServiceRequestServiceRequestSourceType                                         `field:"SOURCE"`
 	EnteredBy               string                                                                         `field:"ENTRYTECH"`
@@ -206,7 +206,7 @@ type ServiceRequest struct {
 	RequestZip              string                                                                         `field:"REQZIP"`
 	RequestCrossStreet      string                                                                         `field:"REQCROSSST"`
 	RequestSubdivision      string                                                                         `field:"REQSUBDIV"`
-	RequestMapGrid          string                                                                         `field:"REQMAPGRID"`
+	RequestMapGrID          string                                                                         `field:"REQMAPGRID"`
 	PermissionToEnter       ServiceRequestNotInUITFType                                                    `field:"REQPERMISSION"`
 	RequestTarget           ServiceRequestServiceRequestTargetType                                         `field:"REQTARGET"`
 	RequestDescription      string                                                                         `field:"REQDESCR"`
@@ -243,9 +243,9 @@ type ServiceRequest struct {
 	Yvalue                  string                                                                         `field:"YVALUE"`
 	ValidX                  string                                                                         `field:"VALIDX"`
 	ValidY                  string                                                                         `field:"VALIDY"`
-	ExternalId              string                                                                         `field:"EXTERNALID"`
+	ExternalID              string                                                                         `field:"EXTERNALID"`
 	ExternalError           string                                                                         `field:"EXTERNALERROR"`
-	Pointlocid              uuid.UUID                                                                      `field:"POINTLOCID"`
+	PointlocID              uuid.UUID                                                                      `field:"POINTLOCID"`
 	Notified                int16                                                                          `field:"NOTIFIED"`
 	NotifiedDate            time.Time                                                                      `field:"NOTIFIEDDATE"`
 	Scheduled               int16                                                                          `field:"SCHEDULED"`
