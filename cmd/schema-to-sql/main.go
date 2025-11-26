@@ -48,6 +48,7 @@ func main() {
 	// Parse command line arguments
 	inputDir := flag.String("input", "", "Directory containing JSON schema files")
 	outputDir := flag.String("output", "", "Directory where SQL files will be written")
+	dbSchema := flag.String("schema", "public", "PostgreSQL schema name for the tables")
 	flag.Parse()
 
 	// Validate input
@@ -71,13 +72,13 @@ func main() {
 	}
 
 	for _, file := range files {
-		processFile(file, *outputDir)
+		processFile(file, *outputDir, *dbSchema)
 	}
 
 	fmt.Printf("Successfully processed %d schema files\n", len(files))
 }
 
-func processFile(filePath, outputDir string) {
+func processFile(filePath, outputDir, dbSchema string) {
 	// Read and parse the JSON file
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -96,7 +97,7 @@ func processFile(filePath, outputDir string) {
 	tableName := strings.TrimSuffix(baseName, ".json")
 
 	// Generate the SQL code
-	sqlCode := generateSQLCode(tableName, schema)
+	sqlCode := generateSQLCode(tableName, schema, dbSchema)
 
 	// Write the SQL code to a file
 	outputFileName := strings.ToLower(tableName) + ".sql"
@@ -110,9 +111,10 @@ func processFile(filePath, outputDir string) {
 	fmt.Printf("Generated %s from %s\n", outputPath, filePath)
 }
 
-func generateSQLCode(tableName string, schema Schema) string {
+func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	var code strings.Builder
 	domainTypes := make(map[string][]CodedValue)
+	schemaName := sanitizeSQLName(dbSchema)
 
 	// Collect all domains for potential enum types
 	for _, field := range schema.Fields {
@@ -122,11 +124,14 @@ func generateSQLCode(tableName string, schema Schema) string {
 	}
 
 	// Add header comment
-	code.WriteString(fmt.Sprintf("-- Table definition for %s\n\n", tableName))
+	code.WriteString(fmt.Sprintf("-- Table definition for %s.%s\n\n", schemaName, tableName))
+
+	// Create schema if not exists
+	code.WriteString(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;\n\n", schemaName))
 
 	// Create enum types for domains
 	for domainName, codedValues := range domainTypes {
-		enumTypeName := fmt.Sprintf("%s_%s_enum", tableName, sanitizeSQLName(domainName))
+		enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizeSQLName(tableName), sanitizeSQLName(domainName))
 		code.WriteString(fmt.Sprintf("CREATE TYPE %s AS ENUM (\n", enumTypeName))
 
 		for i, value := range codedValues {
@@ -155,8 +160,8 @@ func generateSQLCode(tableName string, schema Schema) string {
 		code.WriteString(");\n\n")
 	}
 
-	// Begin table definition
-	code.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", sanitizeSQLName(tableName)))
+	// Begin table definition with schema qualification
+	code.WriteString(fmt.Sprintf("CREATE TABLE %s.%s (\n", schemaName, sanitizeSQLName(tableName)))
 
 	// Process fields
 	var primaryKeyField string
@@ -175,9 +180,9 @@ func generateSQLCode(tableName string, schema Schema) string {
 			}
 		}
 
-		// Handle domains (enum types)
+		// Handle domains (enum types) - use schema qualified type name
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			enumTypeName := fmt.Sprintf("%s_%s_enum", tableName, sanitizeSQLName(field.Domain.Name))
+			enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizeSQLName(tableName), sanitizeSQLName(field.Domain.Name))
 			fieldType = enumTypeName
 		}
 
@@ -218,10 +223,11 @@ func generateSQLCode(tableName string, schema Schema) string {
 	// Close table definition
 	code.WriteString(");\n\n")
 
-	// Add comments for fields with aliases
+	// Add comments for fields with aliases - use schema qualified table name
 	for _, field := range schema.Fields {
 		if field.Alias != "" && field.Alias != field.Name {
-			code.WriteString(fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s';\n",
+			code.WriteString(fmt.Sprintf("COMMENT ON COLUMN %s.%s.%s IS '%s';\n",
+				schemaName,
 				sanitizeSQLName(tableName),
 				sanitizeSQLName(field.Name),
 				escapeSQLString(field.Alias)))
