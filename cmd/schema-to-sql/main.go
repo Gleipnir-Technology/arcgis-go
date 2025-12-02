@@ -39,9 +39,10 @@ type Field struct {
 
 // Schema represents the schema definition from the JSON file
 type Schema struct {
-	ObjectIDFieldName string  `json:"objectIdFieldName"`
-	GeometryType      string  `json:"geometryType"`
-	Fields            []Field `json:"fields"`
+	ObjectIDFieldName string            `json:"objectIdFieldName"`
+	GeometryType      string            `json:"geometryType"`
+	Fields            []Field           `json:"fields"`
+	Features          []json.RawMessage `json:"features"` // Added to detect empty files
 }
 
 func main() {
@@ -71,30 +72,48 @@ func main() {
 		os.Exit(1)
 	}
 
+	processed := 0
+	skipped := 0
+
 	for _, file := range files {
-		processFile(file, *outputDir, *dbSchema)
+		if processFile(file, *outputDir, *dbSchema) {
+			processed++
+		} else {
+			skipped++
+		}
 	}
 
-	fmt.Printf("Successfully processed %d schema files\n", len(files))
+	fmt.Printf("Successfully processed %d schema files, skipped %d empty files\n", processed, skipped)
 }
 
-func processFile(filePath, outputDir, dbSchema string) {
+func processFile(filePath, outputDir, dbSchema string) bool {
 	// Read and parse the JSON file
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading file %s: %v\n", filePath, err)
-		return
+		return false
 	}
 
 	var schema Schema
 	if err := json.Unmarshal(data, &schema); err != nil {
 		fmt.Printf("Error parsing JSON in file %s: %v\n", filePath, err)
-		return
+		return false
 	}
 
 	// Generate table name from the filename
 	baseName := filepath.Base(filePath)
 	tableName := strings.TrimSuffix(baseName, ".json")
+
+	// Check if the file is effectively empty (no fields or only has features array that's empty)
+	if len(schema.Fields) == 0 {
+		// This is an empty schema or a features file with no schema
+		if len(schema.Features) == 0 {
+			fmt.Printf("Warning: Skipping %s - file appears to be empty (no fields and empty or missing features array)\n", filePath)
+		} else {
+			fmt.Printf("Warning: Skipping %s - file contains features but no schema fields\n", filePath)
+		}
+		return false
+	}
 
 	// Generate the SQL code
 	sqlCode := generateSQLCode(tableName, schema, dbSchema)
@@ -105,16 +124,18 @@ func processFile(filePath, outputDir, dbSchema string) {
 
 	if err := ioutil.WriteFile(outputPath, []byte(sqlCode), 0644); err != nil {
 		fmt.Printf("Error writing SQL file %s: %v\n", outputPath, err)
-		return
+		return false
 	}
 
 	fmt.Printf("Generated %s from %s\n", outputPath, filePath)
+	return true
 }
 
 func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	var code strings.Builder
 	domainTypes := make(map[string][]CodedValue)
 	schemaName := sanitizeSQLName(dbSchema)
+	sanitizedTableName := sanitizeSQLName(tableName)
 
 	// Store fields with enum defaults for later comment generation
 	enumDefaultComments := make(map[string]string)
@@ -135,7 +156,7 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 
 	// Create enum types for domains
 	for domainName, codedValues := range domainTypes {
-		enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizeSQLName(tableName), sanitizeSQLName(domainName))
+		enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizedTableName, sanitizeSQLName(domainName))
 		code.WriteString(fmt.Sprintf("CREATE TYPE %s AS ENUM (\n", enumTypeName))
 
 		for i, value := range codedValues {
@@ -165,7 +186,7 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	}
 
 	// Begin table definition with schema qualification
-	code.WriteString(fmt.Sprintf("CREATE TABLE %s.%s (\n", schemaName, sanitizeSQLName(tableName)))
+	code.WriteString(fmt.Sprintf("CREATE TABLE %s.%s (\n", schemaName, sanitizedTableName))
 
 	// Process fields
 	var primaryKeyField string
@@ -189,7 +210,7 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 
 		// Handle domains (enum types) - use schema qualified type name
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizeSQLName(tableName), sanitizeSQLName(field.Domain.Name))
+			enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizedTableName, sanitizeSQLName(field.Domain.Name))
 			fieldType = enumTypeName
 			isEnumField = true
 		}
@@ -249,14 +270,14 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 
 	// Add comment for VERSION column
 	code.WriteString(fmt.Sprintf("COMMENT ON COLUMN %s.%s.VERSION IS 'Tracks version changes to the row. Increases when data is modified.';\n\n",
-		schemaName, sanitizeSQLName(tableName)))
+		schemaName, sanitizedTableName))
 
 	// Add comments for fields with aliases - use schema qualified table name
 	for _, field := range schema.Fields {
 		if field.Alias != "" && field.Alias != field.Name {
 			code.WriteString(fmt.Sprintf("COMMENT ON COLUMN %s.%s.%s IS '%s';\n",
 				schemaName,
-				sanitizeSQLName(tableName),
+				sanitizedTableName,
 				sanitizeSQLName(field.Name),
 				escapeSQLString(field.Alias)))
 		}
@@ -267,13 +288,103 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 		code.WriteString(fmt.Sprintf("\n-- Field %s has default value: %s\n", fieldName, defaultValue))
 	}
 
-	// Add usage instructions for versioning
-	code.WriteString("\n-- Usage notes for versioning:\n")
-	code.WriteString("-- When inserting a new row, VERSION defaults to 1\n")
-	code.WriteString("-- When updating a row, insert a new row with the same ID but incremented VERSION\n")
-	code.WriteString("-- The most recent version of a row has the highest VERSION value\n")
+	// Generate PREPARE statement for conditional insert with versioning
+	generatePreparedStatement(&code, schema, tableName, schemaName, domainTypes)
 
 	return code.String()
+}
+
+func generatePreparedStatement(code *strings.Builder, schema Schema, tableName, schemaName string, domainTypes map[string][]CodedValue) {
+	sanitizedTableName := sanitizeSQLName(tableName)
+
+	// Generate unique prepared statement name based on table name
+	preparedStatementName := fmt.Sprintf("insert_%s_versioned", sanitizedTableName)
+
+	// Add header comment
+	code.WriteString(fmt.Sprintf("\n-- Prepared statement for conditional insert with versioning\n"))
+	code.WriteString(fmt.Sprintf("-- Only inserts a new version if data has changed\n"))
+
+	// Start preparing parameter type list
+	var paramTypes []string
+	var columnNames []string
+	var paramPlaceholders []string
+	var conditionClauses []string
+
+	paramCounter := 1
+
+	// Process all fields to build parameter lists
+	for _, field := range schema.Fields {
+		fieldName := sanitizeSQLName(field.Name)
+		columnNames = append(columnNames, fieldName)
+
+		// Get PostgreSQL type for this field
+		var pgType string
+
+		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
+			// For enum fields, use the fully qualified enum type
+			pgType = fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizedTableName, sanitizeSQLName(field.Domain.Name))
+		} else {
+			// Map field type to PostgreSQL parameter type
+			pgType = mapFieldTypeToPgParamType(field.Type, field.Length)
+		}
+
+		// Add to parameter types list
+		paramTypes = append(paramTypes, pgType)
+
+		// Add placeholder for parameter in INSERT
+		paramPlaceholders = append(paramPlaceholders, fmt.Sprintf("$%d", paramCounter))
+
+		// Add condition for checking if data has changed
+		conditionClauses = append(conditionClauses, fmt.Sprintf("    lv.%s IS NOT DISTINCT FROM $%d", fieldName, paramCounter))
+
+		paramCounter++
+	}
+
+	// Generate the PREPARE statement with type declarations
+	code.WriteString(fmt.Sprintf("PREPARE %s(%s) AS\n",
+		preparedStatementName, strings.Join(paramTypes, ", ")))
+
+	// Add the conditional insert query with CTEs
+	code.WriteString("WITH\n")
+	code.WriteString("-- Get the current latest version of this record\n")
+	code.WriteString(fmt.Sprintf("latest_version AS (\n  SELECT * FROM %s.%s\n", schemaName, sanitizedTableName))
+	code.WriteString(fmt.Sprintf("  WHERE %s = $1\n", sanitizeSQLName(schema.ObjectIDFieldName)))
+	code.WriteString("  ORDER BY VERSION DESC\n")
+	code.WriteString("  LIMIT 1\n")
+	code.WriteString("),\n")
+
+	code.WriteString("-- Calculate the next version number\n")
+	code.WriteString("next_version AS (\n")
+	code.WriteString("  SELECT COALESCE(MAX(VERSION) + 1, 1) as version_num\n")
+	code.WriteString(fmt.Sprintf("  FROM %s.%s\n", schemaName, sanitizedTableName))
+	code.WriteString(fmt.Sprintf("  WHERE %s = $1\n", sanitizeSQLName(schema.ObjectIDFieldName)))
+	code.WriteString(")\n")
+
+	// Start INSERT statement
+	code.WriteString("-- Perform conditional insert\n")
+	code.WriteString(fmt.Sprintf("INSERT INTO %s.%s (\n", schemaName, sanitizedTableName))
+	code.WriteString(fmt.Sprintf("  %s,\n", strings.Join(columnNames, ", ")))
+	code.WriteString("  VERSION\n")
+	code.WriteString(")\n")
+
+	// Select clause
+	code.WriteString("SELECT\n")
+	code.WriteString(fmt.Sprintf("  %s,\n", strings.Join(paramPlaceholders, ", ")))
+	code.WriteString("  v.version_num\n")
+	code.WriteString("FROM next_version v\n")
+
+	// Where clause for conditional insert
+	code.WriteString("WHERE\n")
+	code.WriteString("  -- Only insert if no record exists yet OR data has changed\n")
+	code.WriteString("  NOT EXISTS (SELECT 1 FROM latest_version lv WHERE\n")
+	code.WriteString(strings.Join(conditionClauses, " AND\n"))
+	code.WriteString("\n  )\n")
+
+	// Return the inserted row
+	code.WriteString("RETURNING *;\n")
+
+	// Add execution example
+	code.WriteString(fmt.Sprintf("\n-- Example usage: EXECUTE %s(id, value1, value2, ...);\n", preparedStatementName))
 }
 
 func mapFieldTypeToSQL(fieldType string, length int) string {
@@ -300,6 +411,33 @@ func mapFieldTypeToSQL(fieldType string, length int) string {
 	default:
 		fmt.Printf("Warning: No mapping exists for field type %s, using TEXT\n", fieldType)
 		return "TEXT"
+	}
+}
+
+// Map field type to PostgreSQL parameter type for PREPARE statements
+func mapFieldTypeToPgParamType(fieldType string, length int) string {
+	switch fieldType {
+	case "esriFieldTypeOID":
+		return "bigint"
+	case "esriFieldTypeSmallInteger":
+		return "smallint"
+	case "esriFieldTypeInteger":
+		return "integer"
+	case "esriFieldTypeSingle":
+		return "real"
+	case "esriFieldTypeDouble":
+		return "double precision"
+	case "esriFieldTypeString":
+		if length > 0 {
+			return "varchar"
+		}
+		return "text"
+	case "esriFieldTypeDate":
+		return "timestamp"
+	case "esriFieldTypeGlobalID", "esriFieldTypeGUID":
+		return "uuid"
+	default:
+		return "text"
 	}
 }
 
