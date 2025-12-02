@@ -116,6 +116,9 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	domainTypes := make(map[string][]CodedValue)
 	schemaName := sanitizeSQLName(dbSchema)
 
+	// Store fields with enum defaults for later comment generation
+	enumDefaultComments := make(map[string]string)
+
 	// Collect all domains for potential enum types
 	for _, field := range schema.Fields {
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
@@ -180,10 +183,14 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 			}
 		}
 
+		// Flag to track if this field uses an enum type
+		isEnumField := false
+
 		// Handle domains (enum types) - use schema qualified type name
 		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
 			enumTypeName := fmt.Sprintf("%s.%s_%s_enum", schemaName, sanitizeSQLName(tableName), sanitizeSQLName(field.Domain.Name))
 			fieldType = enumTypeName
+			isEnumField = true
 		}
 
 		// Build column definition
@@ -194,16 +201,28 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 			columnDef += " NOT NULL"
 		}
 
-		// Handle default values
+		// Handle default values - only add DEFAULT clause for non-enum fields
 		if field.Default != nil {
-			// Format default value based on its type
-			switch v := field.Default.(type) {
-			case string:
-				columnDef += fmt.Sprintf(" DEFAULT '%s'", escapeSQLString(v))
-			case float64, int, int64:
-				columnDef += fmt.Sprintf(" DEFAULT %v", v)
-			case bool:
-				columnDef += fmt.Sprintf(" DEFAULT %t", v)
+			if isEnumField {
+				// For enum fields, store the default value as a comment for later
+				var defaultComment string
+				switch v := field.Default.(type) {
+				case string:
+					defaultComment = fmt.Sprintf("'%s'", escapeSQLString(v))
+				default:
+					defaultComment = fmt.Sprintf("%v", v)
+				}
+				enumDefaultComments[fieldName] = defaultComment
+			} else {
+				// For non-enum fields, add the DEFAULT clause
+				switch v := field.Default.(type) {
+				case string:
+					columnDef += fmt.Sprintf(" DEFAULT '%s'", escapeSQLString(v))
+				case float64, int, int64:
+					columnDef += fmt.Sprintf(" DEFAULT %v", v)
+				case bool:
+					columnDef += fmt.Sprintf(" DEFAULT %t", v)
+				}
 			}
 		}
 
@@ -232,6 +251,11 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 				sanitizeSQLName(field.Name),
 				escapeSQLString(field.Alias)))
 		}
+	}
+
+	// Add comments for enum fields with default values
+	for fieldName, defaultValue := range enumDefaultComments {
+		code.WriteString(fmt.Sprintf("\n-- Field %s has default value: %s\n", fieldName, defaultValue))
 	}
 
 	return code.String()
