@@ -65,6 +65,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create insert subdirectory for prepared statements
+	insertDir := filepath.Join(*outputDir, "insert")
+	if err := os.MkdirAll(insertDir, 0755); err != nil {
+		fmt.Printf("Error creating insert subdirectory: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Process all JSON files in the input directory
 	files, err := filepath.Glob(filepath.Join(*inputDir, "*.json"))
 	if err != nil {
@@ -76,7 +83,7 @@ func main() {
 	skipped := 0
 
 	for _, file := range files {
-		if processFile(file, *outputDir, *dbSchema) {
+		if processFile(file, *outputDir, insertDir, *dbSchema) {
 			processed++
 		} else {
 			skipped++
@@ -86,7 +93,7 @@ func main() {
 	fmt.Printf("Successfully processed %d schema files, skipped %d empty files\n", processed, skipped)
 }
 
-func processFile(filePath, outputDir, dbSchema string) bool {
+func processFile(filePath, outputDir, insertDir, dbSchema string) bool {
 	// Read and parse the JSON file
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -115,23 +122,35 @@ func processFile(filePath, outputDir, dbSchema string) bool {
 		return false
 	}
 
-	// Generate the SQL code
-	sqlCode := generateSQLCode(tableName, schema, dbSchema)
+	// Generate the SQL code for table definition
+	tableSqlCode := generateTableSQL(tableName, schema, dbSchema)
 
-	// Write the SQL code to a file
+	// Write the table SQL code to a file
 	outputFileName := strings.ToLower(tableName) + ".sql"
 	outputPath := filepath.Join(outputDir, outputFileName)
 
-	if err := ioutil.WriteFile(outputPath, []byte(sqlCode), 0644); err != nil {
+	if err := ioutil.WriteFile(outputPath, []byte(tableSqlCode), 0644); err != nil {
 		fmt.Printf("Error writing SQL file %s: %v\n", outputPath, err)
 		return false
 	}
 
-	fmt.Printf("Generated %s from %s\n", outputPath, filePath)
+	// Generate the SQL code for prepared insert statement
+	insertSqlCode := generatePreparedInsertSQL(tableName, schema, dbSchema)
+
+	// Write the insert SQL code to a file in the insert subdirectory
+	insertFileName := strings.ToLower(fmt.Sprintf("insert_%s_versioned.sql", sanitizeSQLName(tableName)))
+	insertPath := filepath.Join(insertDir, insertFileName)
+
+	if err := ioutil.WriteFile(insertPath, []byte(insertSqlCode), 0644); err != nil {
+		fmt.Printf("Error writing SQL file %s: %v\n", insertPath, err)
+		return false
+	}
+
+	fmt.Printf("Generated %s and %s from %s\n", outputPath, insertPath, filePath)
 	return true
 }
 
-func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
+func generateTableSQL(tableName string, schema Schema, dbSchema string) string {
 	var code strings.Builder
 	domainTypes := make(map[string][]CodedValue)
 	schemaName := sanitizeSQLName(dbSchema)
@@ -288,21 +307,37 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 		code.WriteString(fmt.Sprintf("\n-- Field %s has default value: %s\n", fieldName, defaultValue))
 	}
 
-	// Generate PREPARE statement for conditional insert with versioning
-	generatePreparedStatement(&code, schema, tableName, schemaName, domainTypes)
+	// Add reference to the separate insert statement file
+	code.WriteString(fmt.Sprintf("\n-- See insert/insert_%s_versioned.sql for prepared insert statement\n", sanitizedTableName))
+
+	// Add usage instructions for versioning
+	code.WriteString("\n-- Usage notes for versioning:\n")
+	code.WriteString("-- When inserting a new row, VERSION defaults to 1\n")
+	code.WriteString("-- When updating a row, insert a new row with the same ID but incremented VERSION\n")
+	code.WriteString("-- The most recent version of a row has the highest VERSION value\n")
 
 	return code.String()
 }
 
-func generatePreparedStatement(code *strings.Builder, schema Schema, tableName, schemaName string, domainTypes map[string][]CodedValue) {
+func generatePreparedInsertSQL(tableName string, schema Schema, dbSchema string) string {
+	var code strings.Builder
+	schemaName := sanitizeSQLName(dbSchema)
 	sanitizedTableName := sanitizeSQLName(tableName)
 
 	// Generate unique prepared statement name based on table name
 	preparedStatementName := fmt.Sprintf("insert_%s_versioned", sanitizedTableName)
 
-	// Add header comment
-	code.WriteString(fmt.Sprintf("\n-- Prepared statement for conditional insert with versioning\n"))
-	code.WriteString(fmt.Sprintf("-- Only inserts a new version if data has changed\n"))
+	// Add header comment for the prepared statement file
+	code.WriteString(fmt.Sprintf("-- Prepared statement for conditional insert with versioning for %s.%s\n", schemaName, sanitizedTableName))
+	code.WriteString("-- Only inserts a new version if data has changed\n\n")
+
+	// Get domain information for type references
+	domainTypes := make(map[string][]CodedValue)
+	for _, field := range schema.Fields {
+		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
+			domainTypes[field.Domain.Name] = field.Domain.CodedValues
+		}
+	}
 
 	// Start preparing parameter type list
 	var paramTypes []string
@@ -385,6 +420,14 @@ func generatePreparedStatement(code *strings.Builder, schema Schema, tableName, 
 
 	// Add execution example
 	code.WriteString(fmt.Sprintf("\n-- Example usage: EXECUTE %s(id, value1, value2, ...);\n", preparedStatementName))
+
+	// Add parameter documentation
+	code.WriteString("\n-- Parameters in order:\n")
+	for i, field := range schema.Fields {
+		code.WriteString(fmt.Sprintf("-- $%d: %s (%s)\n", i+1, field.Name, paramTypes[i]))
+	}
+
+	return code.String()
 }
 
 func mapFieldTypeToSQL(fieldType string, length int) string {
