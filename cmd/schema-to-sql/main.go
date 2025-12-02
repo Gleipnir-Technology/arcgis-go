@@ -127,7 +127,8 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	}
 
 	// Add header comment
-	code.WriteString(fmt.Sprintf("-- Table definition for %s.%s\n\n", schemaName, tableName))
+	code.WriteString(fmt.Sprintf("-- Table definition for %s.%s\n", schemaName, tableName))
+	code.WriteString("-- Includes versioning for tracking changes\n\n")
 
 	// Create schema if not exists
 	code.WriteString(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;\n\n", schemaName))
@@ -168,7 +169,7 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 
 	// Process fields
 	var primaryKeyField string
-	for i, field := range schema.Fields {
+	for _, field := range schema.Fields {
 		fieldName := sanitizeSQLName(field.Name)
 		fieldType := mapFieldTypeToSQL(field.Type, field.Length)
 
@@ -226,21 +227,29 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 			}
 		}
 
-		// Add comma if not the last field
-		if i < len(schema.Fields)-1 {
-			columnDef += ","
-		}
-
+		// Always add a comma since we'll add VERSION column later
+		columnDef += ","
 		code.WriteString(columnDef + "\n")
 	}
 
-	// Add primary key constraint if we have an ObjectID field
+	// Add VERSION column for tracking changes
+	code.WriteString("  VERSION INTEGER NOT NULL DEFAULT 1,\n")
+
+	// Add primary key constraint including VERSION
 	if primaryKeyField != "" {
-		code.WriteString(fmt.Sprintf("  , PRIMARY KEY (%s)\n", primaryKeyField))
+		code.WriteString(fmt.Sprintf("  PRIMARY KEY (%s, VERSION)\n", primaryKeyField))
+	} else {
+		// If no ObjectID field exists, warn but still create the VERSION column
+		code.WriteString("  -- Warning: No ObjectID field found, VERSION column added but not in primary key\n")
+		code.WriteString("  PRIMARY KEY (VERSION)\n")
 	}
 
 	// Close table definition
 	code.WriteString(");\n\n")
+
+	// Add comment for VERSION column
+	code.WriteString(fmt.Sprintf("COMMENT ON COLUMN %s.%s.VERSION IS 'Tracks version changes to the row. Increases when data is modified.';\n\n",
+		schemaName, sanitizeSQLName(tableName)))
 
 	// Add comments for fields with aliases - use schema qualified table name
 	for _, field := range schema.Fields {
@@ -257,6 +266,12 @@ func generateSQLCode(tableName string, schema Schema, dbSchema string) string {
 	for fieldName, defaultValue := range enumDefaultComments {
 		code.WriteString(fmt.Sprintf("\n-- Field %s has default value: %s\n", fieldName, defaultValue))
 	}
+
+	// Add usage instructions for versioning
+	code.WriteString("\n-- Usage notes for versioning:\n")
+	code.WriteString("-- When inserting a new row, VERSION defaults to 1\n")
+	code.WriteString("-- When updating a row, insert a new row with the same ID but incremented VERSION\n")
+	code.WriteString("-- The most recent version of a row has the highest VERSION value\n")
 
 	return code.String()
 }
