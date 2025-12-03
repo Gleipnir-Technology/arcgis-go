@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -9,43 +10,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-// CodedValue represents a value in a coded domain
-type CodedValue struct {
-	Name string          `json:"name"`
-	Code json.RawMessage `json:"code"`
-}
-
-// Domain represents a domain definition
-type Domain struct {
-	Type        string       `json:"type"`
-	Name        string       `json:"name"`
-	MergePolicy string       `json:"mergePolicy"`
-	SplitPolicy string       `json:"splitPolicy"`
-	CodedValues []CodedValue `json:"codedValues"`
-}
-
-// Field represents a field in the schema
-type Field struct {
-	Name    string      `json:"name"`
-	Type    string      `json:"type"`
-	Alias   string      `json:"alias"`
-	SQLType string      `json:"sqlType"`
-	Length  int         `json:"length,omitempty"`
-	Domain  *Domain     `json:"domain"`
-	Default interface{} `json:"defaultValue"`
-}
-
-// Schema represents the schema definition from the JSON file
-type Schema struct {
-	ObjectIDFieldName string            `json:"objectIdFieldName"`
-	GeometryType      string            `json:"geometryType"`
-	Fields            []Field           `json:"fields"`
-	Features          []json.RawMessage `json:"features"` // Added to detect empty files
-}
-
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	// Parse command line arguments
 	inputDir := flag.String("input", "", "Directory containing JSON schema files")
 	outputDir := flag.String("output", "", "Directory where SQL files will be written")
@@ -61,21 +34,14 @@ func main() {
 
 	// Create output directory if it doesn't exist
 	if err := os.MkdirAll(*outputDir, 0755); err != nil {
-		fmt.Printf("Error creating output directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Create insert subdirectory for prepared statements
-	insertDir := filepath.Join(*outputDir, "insert")
-	if err := os.MkdirAll(insertDir, 0755); err != nil {
-		fmt.Printf("Error creating insert subdirectory: %v\n", err)
+		log.Error().Err(err).Msg("Error creating output directory")
 		os.Exit(1)
 	}
 
 	// Process all JSON files in the input directory
 	files, err := filepath.Glob(filepath.Join(*inputDir, "*.json"))
 	if err != nil {
-		fmt.Printf("Error reading input directory: %v\n", err)
+		log.Error().Err(err).Msg("Error reading input directory")
 		os.Exit(1)
 	}
 
@@ -83,71 +49,82 @@ func main() {
 	skipped := 0
 
 	for _, file := range files {
-		if processFile(file, *outputDir, insertDir, *dbSchema) {
+		did_process, err := processFile(file, *outputDir, *dbSchema)
+		if err != nil {
+			log.Error().Err(err).Str("file", file).Msg("Failed to process file")
+			os.Exit(2)
+		}
+		if did_process {
 			processed++
 		} else {
 			skipped++
 		}
 	}
 
-	fmt.Printf("Successfully processed %d schema files, skipped %d empty files\n", processed, skipped)
+	log.Info().Int("processed", processed).Int("skipped", skipped).Msg("Successfully schema files")
 }
 
-func processFile(filePath, outputDir, insertDir, dbSchema string) bool {
+func readJSON(filePath string) (baseName string, schema Schema, err error) {
+	baseName = filepath.Base(filePath)
+
 	// Read and parse the JSON file
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading file %s: %v\n", filePath, err)
-		return false
+		return baseName, schema, errors.New(fmt.Sprintf("Error reading file %s: %v\n", filePath, err))
 	}
 
-	var schema Schema
 	if err := json.Unmarshal(data, &schema); err != nil {
-		fmt.Printf("Error parsing JSON in file %s: %v\n", filePath, err)
-		return false
+		return baseName, schema, errors.New(fmt.Sprintf("Error parsing JSON in file %s: %v\n", filePath, err))
 	}
+	return baseName, schema, nil
+}
 
-	// Generate table name from the filename
-	baseName := filepath.Base(filePath)
-	tableName := strings.TrimSuffix(baseName, ".json")
+func processFile(filePath, outputDir, dbSchema string) (processed bool, err error) {
+	baseName, schema, err := readJSON(filePath)
+	if err != nil {
+		return false, fmt.Errorf("Failed to read JSON: %w", err)
+	}
+	sanitizedTableName := sanitizeSQLName(strings.TrimSuffix(baseName, ".json"))
 
 	// Check if the file is effectively empty (no fields or only has features array that's empty)
 	if len(schema.Fields) == 0 {
 		// This is an empty schema or a features file with no schema
 		if len(schema.Features) == 0 {
-			fmt.Printf("Warning: Skipping %s - file appears to be empty (no fields and empty or missing features array)\n", filePath)
+			log.Warn().Str("file", filePath).Msg("File appears to be empty (no fields and empty or missing features array)")
 		} else {
-			fmt.Printf("Warning: Skipping %s - file contains features but no schema fields\n", filePath)
+			log.Warn().Str("file", filePath).Msg("File contains features but no schema fields")
 		}
-		return false
+		return false, nil
 	}
 
 	// Generate the SQL code for table definition
-	tableSqlCode := generateTableSQL(tableName, schema, dbSchema)
+	tableSqlCode := generateTableSQL(sanitizedTableName, schema, dbSchema)
 
 	// Write the table SQL code to a file
-	outputFileName := strings.ToLower(tableName) + ".sql"
+	outputFileName := strings.ToLower(sanitizedTableName) + ".sql"
 	outputPath := filepath.Join(outputDir, outputFileName)
 
 	if err := ioutil.WriteFile(outputPath, []byte(tableSqlCode), 0644); err != nil {
-		fmt.Printf("Error writing SQL file %s: %v\n", outputPath, err)
-		return false
+		return false, fmt.Errorf("Error writing SQL file %s: %w", outputPath, err)
 	}
 
+	insertSql, err := createInsertFunction(dbSchema, sanitizedTableName, schema)
+	if err != nil {
+		return false, fmt.Errorf("Failed to create insert query: %w", err)
+	}
 	// Generate the SQL code for prepared insert statement
-	insertSqlCode := generatePreparedInsertSQL(tableName, schema, dbSchema)
+	//insertSqlCode := generatePreparedInsertSQL(sanitizedTableName, schema, dbSchema)
 
 	// Write the insert SQL code to a file in the insert subdirectory
-	insertFileName := strings.ToLower(fmt.Sprintf("insert_%s_versioned.sql", sanitizeSQLName(tableName)))
-	insertPath := filepath.Join(insertDir, insertFileName)
+	insertFileName := strings.ToLower(fmt.Sprintf("insert_%s_versioned.sql", strings.ToLower(sanitizedTableName)))
+	insertPath := filepath.Join(outputDir, insertFileName)
 
-	if err := ioutil.WriteFile(insertPath, []byte(insertSqlCode), 0644); err != nil {
-		fmt.Printf("Error writing SQL file %s: %v\n", insertPath, err)
-		return false
+	if err := ioutil.WriteFile(insertPath, []byte(insertSql), 0644); err != nil {
+		return false, fmt.Errorf("Error writing SQL file %s: %w\n", insertPath, err)
 	}
 
-	fmt.Printf("Generated %s and %s from %s\n", outputPath, insertPath, filePath)
-	return true
+	log.Info().Str("input", filePath).Str("output", outputPath).Str("insert", insertPath).Msg("Generated SQL")
+	return true, nil
 }
 
 func generateTableSQL(tableName string, schema Schema, dbSchema string) string {
@@ -452,7 +429,7 @@ func mapFieldTypeToSQL(fieldType string, length int) string {
 	case "esriFieldTypeGlobalID", "esriFieldTypeGUID":
 		return "UUID"
 	default:
-		fmt.Printf("Warning: No mapping exists for field type %s, using TEXT\n", fieldType)
+		log.Warn().Str("type", fieldType).Msg("No mapping exists for field type, using TEXT")
 		return "TEXT"
 	}
 }
