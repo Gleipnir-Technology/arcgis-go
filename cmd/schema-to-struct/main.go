@@ -114,6 +114,7 @@ func processFile(filePath, outputDir, packageName string) {
 
 func generateGoCode(structName string, schema Schema, packageName string) string {
 	var code strings.Builder
+	needsFmtImport := false
 	needsTimeImport := false
 	needsUUIDImport := false
 
@@ -128,6 +129,8 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 			needsTimeImport = true
 		} else if fieldType == "uuid.UUID" {
 			needsUUIDImport = true
+		} else if field.Domain != nil {
+			needsFmtImport = true
 		}
 	}
 
@@ -135,9 +138,12 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 	code.WriteString(fmt.Sprintf("package %s\n\n", packageName))
 
 	// Write imports only if needed
-	if needsTimeImport || needsUUIDImport {
+	if needsTimeImport || needsUUIDImport || needsFmtImport {
 		code.WriteString("import (\n")
 
+		if needsFmtImport {
+			code.WriteString("\t\"fmt\"\n")
+		}
 		if needsTimeImport {
 			code.WriteString("\t\"time\"\n")
 		}
@@ -183,6 +189,10 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		// Keep track of used constant names to ensure uniqueness
 		usedConstNames := make(map[string]bool)
 
+		// Store mappings for String() and FromString() methods
+		enumValueToString := make(map[string]string)
+		enumStringToValue := make(map[string]string)
+
 		// Add enum values
 		for _, value := range field.Domain.CodedValues {
 			valueName := descriptiveEnumValueName(value.Name)
@@ -208,12 +218,22 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 					// Clean up the string value to remove or escape problematic characters
 					cleanedStr := cleanStringLiteral(strVal)
 					codeValue = fmt.Sprintf("\"%s\"", cleanedStr)
+
+					// Store the original string value for the String() method
+					enumValueToString[constName] = strVal
+					enumStringToValue[strVal] = constName
 				} else {
 					codeValue = "\"\" // Error parsing code value"
+					enumValueToString[constName] = ""
+					enumStringToValue[""] = constName
 				}
 			} else {
 				// It's a numeric value, use as is
 				codeValue = string(value.Code)
+
+				// Store the string representation for the String() method
+				enumValueToString[constName] = string(value.Code)
+				enumStringToValue[string(value.Code)] = constName
 			}
 
 			code.WriteString(fmt.Sprintf("\t%s %s = %s\n", constName, enumName, codeValue))
@@ -221,6 +241,34 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 
 		// Close enum definition
 		code.WriteString(")\n\n")
+
+		// Generate String() method for the enum
+		code.WriteString(fmt.Sprintf("// String returns the string representation of %s\n", enumName))
+		code.WriteString(fmt.Sprintf("func (e %s) String() string {\n", enumName))
+		code.WriteString("\tswitch e {\n")
+		for constName, strValue := range enumValueToString {
+			cleanedStr := cleanStringLiteral(strValue)
+			code.WriteString(fmt.Sprintf("\tcase %s:\n\t\treturn \"%s\"\n", constName, cleanedStr))
+		}
+		code.WriteString("\tdefault:\n")
+		code.WriteString(fmt.Sprintf("\t\treturn \"<%s unknown value>\"\n", enumName))
+		code.WriteString("\t}\n")
+		code.WriteString("}\n\n")
+
+		// Generate FromString method for the enum
+		code.WriteString(fmt.Sprintf("// %sFromString converts a string to %s\n", enumName, enumName))
+		code.WriteString(fmt.Sprintf("func %sFromString(s string) (%s, error) {\n", enumName, enumName))
+		code.WriteString("\tswitch s {\n")
+
+		for strValue, constName := range enumStringToValue {
+			cleanedStr := cleanStringLiteral(strValue)
+			code.WriteString(fmt.Sprintf("\tcase \"%s\":\n\t\treturn %s, nil\n", cleanedStr, constName))
+		}
+
+		code.WriteString("\tdefault:\n")
+		code.WriteString(fmt.Sprintf("\t\treturn %s(0), fmt.Errorf(\"invalid string value '%%s' for %s\", s)\n", enumName, enumName))
+		code.WriteString("\t}\n")
+		code.WriteString("}\n\n")
 	}
 
 	// Begin struct definition
