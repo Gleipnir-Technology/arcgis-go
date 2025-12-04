@@ -36,4 +36,10 @@ type Schema struct {
 	GeometryType      string            `json:"geometryType"`
 	Fields            []Field           `json:"fields"`
 	Features          []json.RawMessage `json:"features"` // Added to detect empty files
+	SpatialReference  SpatialReference  `json:"spatialReference"`
+}
+
+type SpatialReference struct {
+	WKID       int `json:"wkid"`
+	LatestWKID int `json:"latestWkid"`
 }

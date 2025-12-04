@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
@@ -107,14 +108,9 @@ type UniqueIdField struct {
 	IsSystemMaintained bool
 }
 
-type Geometry struct {
-	X float64
-	Y float64
-}
-
 type Feature struct {
 	Attributes map[string]any
-	Geometry   Geometry
+	Geometry   json.RawMessage
 }
 
 type CodedValue struct {
@@ -271,9 +267,18 @@ func parsePortalsResponse(data []byte) (*PortalsResponse, error) {
 func parseQueryResult(data []byte) (*QueryResult, error) {
 	var result QueryResult
 	err := json.Unmarshal(data, &result)
-	//log.Println("Parsing", string(data))
 	if err != nil {
-		return nil, err
+		id := uuid.New()
+		filename := fmt.Sprintf("debug_response_%s.json", id.String())
+		output, err2 := os.Create(filename)
+		if err2 != nil {
+			log.Warn().Str("filename", filename).Msg("Failed to create debug file, can't dump request.")
+			return nil, fmt.Errorf("Failed to parse query result JSON: %w", err)
+		}
+		defer output.Close()
+		output.Write(data)
+		log.Info().Str("filename", filename).Msg("Wrote response file for debugging.")
+		return nil, fmt.Errorf("Failed to parse query result JSON: %w. Wrote debug file containing the request to %s", err, filename)
 	}
 	return &result, nil
 }
@@ -449,14 +454,14 @@ func logRequestBase(r *http.Request) {
 	q.Del("token")
 	cleanURL.RawQuery = q.Encode()
 
-	log.Info().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
+	//log.Info().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
 }
 
 func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 	logRequestBase(r)
 	resp, err := ag.client.Do(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to make request: %w", err)
 	}
 	//log.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
@@ -465,7 +470,7 @@ func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read response body: %w", err)
 	}
 	// During normal operation the ArcGIS server does _not_ respond with the standard
 	// 400-level response codes on error. Instead it responds with 200, which is wrong,
@@ -473,7 +478,7 @@ func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 	// to parse an error. If it works we have an error. If not, it must be something else.
 	errorFromJSON := tryParseError(body)
 	if errorFromJSON != nil {
-		return nil, errorFromJSON
+		return nil, fmt.Errorf("response was an application-level error in JSON: %w", errorFromJSON)
 	}
 	ag.updateUsage(resp)
 	return body, nil

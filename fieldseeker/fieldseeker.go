@@ -1,6 +1,7 @@
 package fieldseeker
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -287,8 +289,17 @@ func NameToLayerType(n string) (LayerType, error) {
 		return LayerUnknown, errors.New(fmt.Sprintf("'%s' is not a recognized layer name", n))
 	}
 }
-func featureToStruct[S any](fs *FieldSeeker, layer LayerType, offset uint) ([]*S, error) {
-	var results []*S
+
+type Geometric interface {
+	SetGeometry(json.RawMessage)
+	GetGeometry() json.RawMessage
+}
+
+func featureToStruct[T any, PT interface {
+	*T
+	Geometric
+}](fs *FieldSeeker, layer LayerType, offset uint) ([]PT, error) {
+	var results []PT
 
 	layer_id, ok := fs.layerToID[layer]
 	if !ok {
@@ -300,7 +311,8 @@ func featureToStruct[S any](fs *FieldSeeker, layer LayerType, offset uint) ([]*S
 	}
 
 	for _, feature := range qr.Features {
-		s, err := structFromAttributes[S](feature.Attributes)
+		//logFeature(feature)
+		s, err := structFromFeature[T, PT](&feature)
 		if err != nil {
 			return results, fmt.Errorf("Failed to get %s from query result: %w", layer, err)
 		}
@@ -309,6 +321,27 @@ func featureToStruct[S any](fs *FieldSeeker, layer LayerType, offset uint) ([]*S
 	return results, nil
 }
 
+func logFeature(f arcgis.Feature) {
+	//kv := make(map[string]string, 0)
+	l := zerolog.Dict()
+	for k, v := range f.Attributes {
+		/*
+			s, ok := v.(string)
+			if ok {
+				kv[k] = s
+				continue
+			}
+			i, ok := v.(int)
+			if ok {
+				kv[k] = string(i)
+				continue
+			}
+			kv[k] = "*unknown*"
+		*/
+		l.Interface(k, v)
+	}
+	log.Debug().Dict("feature", l).Msg("Handling feature")
+}
 func stringOrEmpty(data map[string]any, key string) string {
 	source, ok := data[key].(string)
 	if ok {

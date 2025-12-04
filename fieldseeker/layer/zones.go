@@ -1,6 +1,7 @@
 package layer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,4 +22,8 @@ type Zones struct {
 	Editor         string    `field:"Editor"`
 	ShapeArea      float64   `field:"Shape__Area"`
 	ShapeLength    float64   `field:"Shape__Length"`
+	Geometry       json.RawMessage
 }
+
+func (x *Zones) GetGeometry() json.RawMessage  { return x.Geometry }
+func (x *Zones) SetGeometry(m json.RawMessage) { x.Geometry = m }

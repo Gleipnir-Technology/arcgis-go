@@ -17,9 +17,13 @@ type InsertTemplateContext struct {
 }
 
 const insertTemplate string = `
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION {{.Schema}}.insert_{{.Table}}(
 	p_objectid bigint,
-	{{range $i, $p := .Parameters}}{{if $i}},{{end}}p_{{ $p.Name }} {{ $p.Type }}{{end}}
+	{{range $i, $p := .Parameters}}
+	p_{{ $p.Name }} {{ $p.Type }},{{end}}
+	p_geometry jsonb,
+	p_geospatial geometry
 ) RETURNS TABLE(row_inserted boolean, version_num integer) AS $$
 DECLARE
 	v_next_version integer;
@@ -29,7 +33,10 @@ BEGIN
 	SELECT NOT EXISTS (
 		SELECT 1 FROM {{.Schema}}.{{.Table}} lv 
 		WHERE lv.objectid = p_objectid
-		{{range .Parameters}}AND lv.{{.Name}} IS NOT DISTINCT FROM p_{{.Name}} {{end}}
+		{{range .Parameters}}
+		AND lv.{{.Name}} IS NOT DISTINCT FROM p_{{.Name}} {{end}}
+		AND lv.geometry IS NOT DISTINCT FROM p_geometry
+		AND lv.geospatial IS NOT DISTINCT FROM p_geospatial
 		ORDER BY VERSION DESC LIMIT 1
 	) INTO v_changes_exist;
 	
@@ -51,11 +58,17 @@ BEGIN
 	-- Insert new version
 	INSERT INTO {{.Schema}}.{{.Table}} (
 		objectid,
-		{{range .Parameters}}{{.Name}}, {{end}}
+		{{range .Parameters}}
+		{{.Name}},{{end}}
+		geometry,
+		geospatial,
 		VERSION
 	) VALUES (
 		p_objectid,
-		{{range .Parameters}}p_{{.Name}}, {{end}}
+		{{range .Parameters}}
+		p_{{.Name}},{{end}}
+		p_geometry,
+		p_geospatial,
 		v_next_version
 	);
 	
@@ -63,6 +76,7 @@ BEGIN
 	RETURN QUERY SELECT TRUE AS row_inserted, v_next_version AS version_num;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 `
 
 func createInsertFunction(schema, table string, s Schema) (result string, err error) {
@@ -78,7 +92,7 @@ func createInsertFunction(schema, table string, s Schema) (result string, err er
 		if name == "objectid" {
 			continue
 		}
-		pgType := toPGType(schema, table, field)
+		pgType := mapFieldTypeToPgParamType(field.Type, field.Length)
 		parameters = append(parameters, InsertTemplateParameter{
 			Name: name,
 			Type: pgType,
@@ -95,15 +109,4 @@ func createInsertFunction(schema, table string, s Schema) (result string, err er
 		return "", fmt.Errorf("Failed to execute template: %w", err)
 	}
 	return buffer.String(), nil
-}
-
-func toPGType(schema, table string, field Field) (pgType string) {
-	if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-		// For enum fields, use the fully qualified enum type
-		pgType = fmt.Sprintf("%s.%s_%s_enum", schema, table, sanitizeSQLName(field.Domain.Name))
-	} else {
-		// Map field type to PostgreSQL parameter type
-		pgType = mapFieldTypeToPgParamType(field.Type, field.Length)
-	}
-	return pgType
 }

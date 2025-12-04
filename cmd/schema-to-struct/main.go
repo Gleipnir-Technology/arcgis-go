@@ -114,7 +114,6 @@ func processFile(filePath, outputDir, packageName string) {
 
 func generateGoCode(structName string, schema Schema, packageName string) string {
 	var code strings.Builder
-	needsFmtImport := false
 	needsTimeImport := false
 	needsUUIDImport := false
 
@@ -129,147 +128,27 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 			needsTimeImport = true
 		} else if fieldType == "uuid.UUID" {
 			needsUUIDImport = true
-		} else if field.Domain != nil {
-			needsFmtImport = true
 		}
 	}
 
 	// Write package declaration
 	code.WriteString(fmt.Sprintf("package %s\n\n", packageName))
 
-	// Write imports only if needed
-	if needsTimeImport || needsUUIDImport || needsFmtImport {
-		code.WriteString("import (\n")
+	// Write imports
+	code.WriteString("import (\n")
+	code.WriteString("\t\"encoding/json\"\n")
+	if needsTimeImport {
+		code.WriteString("\t\"time\"\n")
+	}
 
-		if needsFmtImport {
-			code.WriteString("\t\"fmt\"\n")
-		}
+	if needsUUIDImport {
 		if needsTimeImport {
-			code.WriteString("\t\"time\"\n")
+			code.WriteString("\n")
 		}
-
-		if needsUUIDImport {
-			if needsTimeImport {
-				code.WriteString("\n")
-			}
-			code.WriteString("\t\"github.com/google/uuid\"\n")
-		}
-
-		code.WriteString(")\n\n")
+		code.WriteString("\t\"github.com/google/uuid\"\n")
 	}
 
-	// Generate enum types for fields with domains
-	domainFields := make(map[string]Field)
-	domainTypeNames := make(map[string]string) // Maps domain names to their clean Go type names
-
-	// First pass: collect all fields with domains
-	for _, field := range schema.Fields {
-		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			domainFields[field.Domain.Name] = field
-
-			// Create a clean domain name for Go
-			cleanDomainName := cleanIdentifier(field.Domain.Name)
-			domainTypeNames[field.Domain.Name] = structName + cleanDomainName + "Type"
-		}
-	}
-
-	// Second pass: generate enums
-	for domainName, field := range domainFields {
-		// Use the clean type name we created in the first pass
-		enumName := domainTypeNames[domainName]
-		enumPrefix := structName + cleanIdentifier(domainName)
-
-		// Determine enum base type based on field type
-		enumBaseType := getEnumBaseType(field.Type)
-
-		// Begin enum type definition
-		code.WriteString(fmt.Sprintf("type %s %s\n\n", enumName, enumBaseType))
-		code.WriteString("const (\n")
-
-		// Keep track of used constant names to ensure uniqueness
-		usedConstNames := make(map[string]bool)
-
-		// Store mappings for String() and FromString() methods
-		enumValueToString := make(map[string]string)
-		enumStringToValue := make(map[string]string)
-
-		// Add enum values
-		for _, value := range field.Domain.CodedValues {
-			valueName := descriptiveEnumValueName(value.Name)
-			constName := fmt.Sprintf("%s%s", enumPrefix, valueName)
-
-			// Ensure uniqueness of const names
-			originalConstName := constName
-			suffix := 1
-			for usedConstNames[constName] {
-				constName = fmt.Sprintf("%s%d", originalConstName, suffix)
-				suffix++
-			}
-			usedConstNames[constName] = true
-
-			// Format the code value based on its type
-			var codeValue string
-
-			// Detect if it's a string or numeric value by checking first character
-			if len(value.Code) > 0 && value.Code[0] == '"' {
-				// It's a string value
-				var strVal string
-				if err := json.Unmarshal(value.Code, &strVal); err == nil {
-					// Clean up the string value to remove or escape problematic characters
-					cleanedStr := cleanStringLiteral(strVal)
-					codeValue = fmt.Sprintf("\"%s\"", cleanedStr)
-
-					// Store the original string value for the String() method
-					enumValueToString[constName] = strVal
-					enumStringToValue[strVal] = constName
-				} else {
-					codeValue = "\"\" // Error parsing code value"
-					enumValueToString[constName] = ""
-					enumStringToValue[""] = constName
-				}
-			} else {
-				// It's a numeric value, use as is
-				codeValue = string(value.Code)
-
-				// Store the string representation for the String() method
-				enumValueToString[constName] = string(value.Code)
-				enumStringToValue[string(value.Code)] = constName
-			}
-
-			code.WriteString(fmt.Sprintf("\t%s %s = %s\n", constName, enumName, codeValue))
-		}
-
-		// Close enum definition
-		code.WriteString(")\n\n")
-
-		// Generate String() method for the enum
-		code.WriteString(fmt.Sprintf("// String returns the string representation of %s\n", enumName))
-		code.WriteString(fmt.Sprintf("func (e %s) String() string {\n", enumName))
-		code.WriteString("\tswitch e {\n")
-		for constName, strValue := range enumValueToString {
-			cleanedStr := cleanStringLiteral(strValue)
-			code.WriteString(fmt.Sprintf("\tcase %s:\n\t\treturn \"%s\"\n", constName, cleanedStr))
-		}
-		code.WriteString("\tdefault:\n")
-		code.WriteString(fmt.Sprintf("\t\treturn \"<%s unknown value>\"\n", enumName))
-		code.WriteString("\t}\n")
-		code.WriteString("}\n\n")
-
-		// Generate FromString method for the enum
-		code.WriteString(fmt.Sprintf("// %sFromString converts a string to %s\n", enumName, enumName))
-		code.WriteString(fmt.Sprintf("func %sFromString(s string) (%s, error) {\n", enumName, enumName))
-		code.WriteString("\tswitch s {\n")
-
-		for strValue, constName := range enumStringToValue {
-			cleanedStr := cleanStringLiteral(strValue)
-			code.WriteString(fmt.Sprintf("\tcase \"%s\":\n\t\treturn %s, nil\n", cleanedStr, constName))
-		}
-
-		code.WriteString("\tdefault:\n")
-		code.WriteString(fmt.Sprintf("\t\treturn %s(0), fmt.Errorf(\"invalid string value '%%s' for %s\", s)\n", enumName, enumName))
-		code.WriteString("\t}\n")
-		code.WriteString("}\n\n")
-	}
+	code.WriteString(")\n\n")
 
 	// Begin struct definition
 	code.WriteString(fmt.Sprintf("type %s struct {\n", structName))
@@ -308,19 +187,17 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		usedFieldNames[fieldName] = true
 
 		// Determine field type
-		var fieldType string
-		if field.Domain != nil && field.Domain.Type == "codedValue" && len(field.Domain.CodedValues) > 0 {
-			// Use our clean domain type name from the map
-			fieldType = domainTypeNames[field.Domain.Name]
-		} else {
-			fieldType = mapFieldType(field.Type)
-		}
+		fieldType := mapFieldType(field.Type)
 
 		code.WriteString(fmt.Sprintf("\t%s %s `field:\"%s\"`\n", fieldName, fieldType, field.Name))
 	}
+	// Add geometry definition
+	code.WriteString("\tGeometry json.RawMessage")
 
 	// Close struct definition
 	code.WriteString("}\n")
+	code.WriteString(fmt.Sprintf("func (x *%s) GetGeometry() json.RawMessage { return x.Geometry }\n", structName))
+	code.WriteString(fmt.Sprintf("func (x *%s) SetGeometry(m json.RawMessage) { x.Geometry = m }\n", structName))
 
 	return code.String()
 }

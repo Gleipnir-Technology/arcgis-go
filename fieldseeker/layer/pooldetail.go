@@ -1,6 +1,7 @@
 package layer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,4 +22,8 @@ type PoolDetail struct {
 	Creator        string    `field:"Creator"`
 	EditDate       time.Time `field:"EditDate"`
 	Editor         string    `field:"Editor"`
+	Geometry       json.RawMessage
 }
+
+func (x *PoolDetail) GetGeometry() json.RawMessage  { return x.Geometry }
+func (x *PoolDetail) SetGeometry(m json.RawMessage) { x.Geometry = m }

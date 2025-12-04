@@ -33,9 +33,9 @@ func Lon2x(lon float64) float64 {
 	return R * Radians(lon)
 }
 
-func GeometryToPosition(g Geometry) Position {
+func GeometryToPosition(x, y float64) Position {
 	var result Position
-	result.Latitude = X2lat(g.X)
-	result.Longitude = Y2lat(g.Y)
+	result.Latitude = X2lat(x)
+	result.Longitude = Y2lat(y)
 	return result
 }

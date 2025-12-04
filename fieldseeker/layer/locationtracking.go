@@ -1,6 +1,7 @@
 package layer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,4 +20,8 @@ type LocationTracking struct {
 	Creator        string    `field:"Creator"`
 	EditDate       time.Time `field:"EditDate"`
 	Editor         string    `field:"Editor"`
+	Geometry       json.RawMessage
 }
+
+func (x *LocationTracking) GetGeometry() json.RawMessage  { return x.Geometry }
+func (x *LocationTracking) SetGeometry(m json.RawMessage) { x.Geometry = m }

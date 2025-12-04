@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Gleipnir-Technology/arcgis-go"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
@@ -51,9 +52,12 @@ type Tracklog struct {
 	GlobalID uuid.UUID `field:"GlobalID"`
 }
 
-func structFromAttributes[S any](attributes map[string]any) (*S, error) {
+func structFromFeature[T any, PT interface {
+	*T
+	Geometric
+}](feature *arcgis.Feature) (PT, error) {
 	// Create new LocationTracking instance
-	result := new(S)
+	result := PT(new(T))
 
 	// Get the reflect.Value and reflect.Type of our struct
 	val := reflect.ValueOf(result).Elem()
@@ -64,14 +68,20 @@ func structFromAttributes[S any](attributes map[string]any) (*S, error) {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 
+		// If it's the Geometry field, pull it from a special place
+		if fieldType.Name == "Geometry" {
+			result.SetGeometry(feature.Geometry)
+			continue
+		}
 		// Get the field tag value
 		tagValue := fieldType.Tag.Get("field")
 		if tagValue == "" {
+			log.Warn().Str("field", fieldType.Name).Msg("No field tag")
 			continue // Skip fields without a "field" tag
 		}
 
 		// Get the attribute value from the map
-		attrValue, exists := attributes[tagValue]
+		attrValue, exists := feature.Attributes[tagValue]
 		if !exists {
 			log.Warn().Str("tag", tagValue).Msg("Missing expected tag for 'LocationTracking'")
 			continue // Skip if attribute doesn't exist in the map
@@ -79,6 +89,7 @@ func structFromAttributes[S any](attributes map[string]any) (*S, error) {
 
 		// Skip nil values
 		if attrValue == nil {
+			//log.Warn().Str("field", fieldType.Name).Msg("nil value")
 			continue
 		}
 
@@ -108,6 +119,9 @@ func setFieldValue(field reflect.Value, value any) error {
 		return setInt32Field(field, value)
 	case reflect.Uint:
 		return setUintField(field, value)
+	// json.RawMessage is a slice
+	case reflect.Slice:
+		return fmt.Errorf("not sure what to do with slice of '%s'", field.Elem().Kind())
 	case reflect.String:
 		return setStringField(field, value)
 	case reflect.Struct:
@@ -282,6 +296,7 @@ func setStringField(field reflect.Value, value any) error {
 		return fmt.Errorf("cannot convert %T to string", value)
 	}
 
+	//log.Debug().Str("field", field.Type().Name()).Str("value", strValue).Msg("Set field")
 	field.SetString(strValue)
 	return nil
 }
