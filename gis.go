@@ -187,9 +187,41 @@ func (ag *ArcGIS) DoQuery(service string, layer_id uint, query *Query) (*QueryRe
 func (ag *ArcGIS) DoQueryRaw(service string, layer_id uint, query *Query) ([]byte, error) {
 	r, err := ag.query(fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id), query)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create request: %v", err)
+		return nil, fmt.Errorf("Failed to create request: %w", err)
 	}
 	return ag.requestJSON(r)
+}
+
+type AdminInfo struct {
+	CurrentVersion string `json:"currentversion"`
+}
+
+func (ag *ArcGIS) AdminInfo(serviceName string, serviceType ServiceType) (*AdminInfo, error) {
+	// We may need to always direct this request to
+	//req, err := ag.sharingRequest("/admin/info")
+	//req, err := ag.serviceRequest("/admin/info")
+	u := fmt.Sprintf("%s/%s/ArcGIS/rest/admin/services/%s/%s/permissions", ag.Host, *ag.Context, serviceName, ServiceTypeNames[serviceType])
+	base, err := url.Parse(u)
+	if err != nil {
+		return nil, err
+	}
+	params := url.Values{}
+	params.Add("f", "json")
+	base.RawQuery = params.Encode()
+	req, err := http.NewRequest("GET", base.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create request: %w", err)
+	}
+	req, err = ag.Authenticator.addAuthentication(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to add authentication: %w", err)
+	}
+	content, err := ag.requestJSON(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to make request: %w", err)
+	}
+	saveResponse(content, "admin-info.json")
+	return nil, nil
 }
 
 func (ag *ArcGIS) GetFeatureServer(service string) (*FeatureServer, error) {
@@ -202,21 +234,6 @@ func (ag *ArcGIS) GetFeatureServer(service string) (*FeatureServer, error) {
 		return nil, err
 	}
 	return parseFeatureServer(content)
-}
-
-func (ag *ArcGIS) PortalsSelf() (*PortalsResponse, error) {
-	// We may need to always direct this request to
-	// https://www.arcgis.com/sharing/rest/portals/self?f=json
-	// not sure if hosted services are different
-	req, err := ag.sharingRequest("/portals/self")
-	if err != nil {
-		return nil, err
-	}
-	content, err := ag.requestJSON(req)
-	if err != nil {
-		return nil, err
-	}
-	return parsePortalsResponse(content)
 }
 
 func (ag *ArcGIS) Search(query string) (*SearchResponse, error) {
@@ -247,16 +264,6 @@ func (ag *ArcGIS) Services() (*ServiceInfo, error) {
 
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func parsePortalsResponse(data []byte) (*PortalsResponse, error) {
-	var result PortalsResponse
-	saveResponse(data, "portal.json")
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil, err
@@ -358,7 +365,7 @@ func (ag *ArcGIS) sharingRequest(endpoint string) (*http.Request, error) {
 	u := fmt.Sprintf("%s%s", sharingBaseURL, endpoint)
 	fullUrl, err := addParams(u, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("Failed to add params: %v", err)
+		return nil, fmt.Errorf("Failed to add params: %w", err)
 	}
 	return ag.serviceRequestFromFull(fullUrl)
 }
@@ -367,7 +374,7 @@ func (ag *ArcGIS) sharingRequestWithParams(endpoint string, params map[string]st
 	u := fmt.Sprintf("%s%s", sharingBaseURL, endpoint)
 	fullUrl, err := addParams(u, params)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to add params: %v", err)
+		return nil, fmt.Errorf("Failed to add params: %w", err)
 	}
 	return ag.serviceRequestFromFull(fullUrl)
 }
@@ -385,7 +392,7 @@ func (ag *ArcGIS) serviceUrl(endpoint string) string {
 func (ag *ArcGIS) serviceRequestFromFull(fullUrl *url.URL) (*http.Request, error) {
 	req, err := http.NewRequest("GET", fullUrl.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create request: %v", err)
+		return nil, fmt.Errorf("Failed to create request: %w", err)
 	}
 	return ag.Authenticator.addAuthentication(req)
 }
@@ -394,7 +401,7 @@ func (ag *ArcGIS) serviceRequest(endpoint string) (*http.Request, error) {
 	u := ag.serviceUrl(endpoint)
 	fullUrl, err := addParams(u, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("Failed to add params: %v", err)
+		return nil, fmt.Errorf("Failed to add params: %w", err)
 	}
 	return ag.serviceRequestFromFull(fullUrl)
 }
@@ -403,7 +410,7 @@ func (ag *ArcGIS) serviceRequestWithParams(endpoint string, params map[string]st
 	u := ag.serviceUrl(endpoint)
 	fullUrl, err := addParams(u, params)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to add params: %v", err)
+		return nil, fmt.Errorf("Failed to add params: %w", err)
 	}
 	return ag.serviceRequestFromFull(fullUrl)
 }
@@ -454,7 +461,7 @@ func logRequestBase(r *http.Request) {
 	q.Del("token")
 	cleanURL.RawQuery = q.Encode()
 
-	//log.Info().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
+	//log.Debug().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
 }
 
 func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
@@ -465,7 +472,7 @@ func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 	}
 	//log.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-		return nil, fmt.Errorf("Client request error %v", resp.StatusCode)
+		return nil, fmt.Errorf("Client request error %v from %s", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -570,6 +577,58 @@ func (arcgis ArcGIS) query(base string, query *Query) (*http.Request, error) {
 	return arcgis.serviceRequestWithParams(base, params)
 }
 
+func (ag *ArcGIS) PermissionList(serviceName string, serviceType ServiceType) ([]Permission, error) {
+	result := make([]Permission, 0)
+
+	u := fmt.Sprintf("%s/%s/ArcGIS/rest/admin/services/%s/%s/permissions", ag.Host, *ag.Context, serviceName, ServiceTypeNames[serviceType])
+	base, err := url.Parse(u)
+	if err != nil {
+		return result, err
+	}
+	params := url.Values{}
+	params.Add("f", "json")
+	base.RawQuery = params.Encode()
+	req, err := http.NewRequest("GET", base.String(), nil)
+	if err != nil {
+		return result, fmt.Errorf("Failed to create request: %w", err)
+	}
+	req, err = ag.Authenticator.addAuthentication(req)
+	if err != nil {
+		return result, fmt.Errorf("Failed to add authentication: %w", err)
+	}
+	content, err := ag.requestJSON(req)
+	if err != nil {
+		return result, fmt.Errorf("Failed to make request: %w", err)
+	}
+	resp, err := parsePermissionListResponse(content)
+	if err != nil {
+		return result, fmt.Errorf("Failed to parse JSON: %w", err)
+	}
+	return resp.Permissions, nil
+}
+type PermissionEntry struct {
+	Constraint string `json:"constraint"`
+	IsAllowed bool `json:"isAllowed"`
+}
+type Permission struct {
+	ChildURL string `json:"childURL"`
+	Operation string `json:"operation"`
+	Permission PermissionEntry `json:"permission"`
+	Principal string `json:"principal"`
+}
+type PermissionListResponse struct {
+	Permissions []Permission `json:"permissions"`
+}
+
+func parsePermissionListResponse(data []byte) (*PermissionListResponse, error) {
+	var result PermissionListResponse
+	saveResponse(data, "permission-list.json")
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal JSON: %w", err)
+	}
+	return &result, nil
+}
 func (ag *ArcGIS) QueryCount(service string, layer_id uint) (*QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"
@@ -628,19 +687,19 @@ func (ag *ArcGIS) WebhookList(serviceName string, serviceType ServiceType) ([]We
 	base.RawQuery = params.Encode()
 	req, err := http.NewRequest("GET", base.String(), nil)
 	if err != nil {
-		return result, fmt.Errorf("Failed to create request: %v", err)
+		return result, fmt.Errorf("Failed to create request: %w", err)
 	}
 	req, err = ag.Authenticator.addAuthentication(req)
 	if err != nil {
-		return result, fmt.Errorf("Failed to add authentication: %v", err)
+		return result, fmt.Errorf("Failed to add authentication: %w", err)
 	}
 	content, err := ag.requestJSON(req)
 	if err != nil {
-		return result, fmt.Errorf("Failed to make request: %v", err)
+		return result, fmt.Errorf("Failed to make request: %w", err)
 	}
 	resp, err := parseWebhookListResponse(content)
 	if err != nil {
-		return result, fmt.Errorf("Failed to parse JSON: %v", err)
+		return result, fmt.Errorf("Failed to parse JSON: %w", err)
 	}
 	return resp.Webhooks, nil
 }
@@ -654,7 +713,7 @@ func parseWebhookListResponse(data []byte) (*WebhookListResponse, error) {
 	saveResponse(data, "webhook-list.json")
 	err := json.Unmarshal(data, &result)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal JSON: %v", err)
+		return nil, fmt.Errorf("Failed to unmarshal JSON: %w", err)
 	}
 	return &result, nil
 }

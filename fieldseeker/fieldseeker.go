@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"strings"
 
@@ -100,7 +99,7 @@ func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, er
 		return nil, errors.New("Didn't get enough path parts")
 	}
 	context := pathParts[0]
-	slog.Info("Using base fieldseeker URL", slog.String("host", host), slog.String("context", context))
+	log.Info().Str("context", context).Str("host", host).Msg("Using base fieldseeker URL")
 	ar.Context = &context
 	ar.Host = host
 	fs := FieldSeeker{
@@ -117,6 +116,10 @@ func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, er
 	return &fs, nil
 }
 
+func (fs *FieldSeeker) AdminInfo() (*arcgis.AdminInfo, error) {
+	return fs.arcgis.AdminInfo(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+}
+
 func (fs *FieldSeeker) FeatureServerLayers() []arcgis.LayerFeature {
 	return fs.FeatureServer.Layers
 }
@@ -125,6 +128,9 @@ func (fs *FieldSeeker) MaxRecordCount() uint {
 	return fs.FeatureServer.MaxRecordCount
 }
 
+func (fs *FieldSeeker) PermissionList() ([]arcgis.Permission, error) {
+	return fs.arcgis.PermissionList(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+}
 func (fs *FieldSeeker) QueryCount(layer_id uint) (*arcgis.QueryResultCount, error) {
 	return fs.arcgis.QueryCount(fs.ServiceName, layer_id)
 }
@@ -160,7 +166,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
 	}
 	if fs.FeatureServer != nil {
-		slog.Info("already has feature server")
+		log.Debug().Msg("already has feature server")
 		return nil
 	}
 	s, err := fs.arcgis.GetFeatureServer(fs.ServiceName)
@@ -170,7 +176,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 	if s == nil {
 		return errors.New("Got a null feature server")
 	}
-	slog.Info("Add feature server", slog.String("item id", s.ServiceItemId))
+	log.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
 	fs.FeatureServer = s
 	for _, layer := range fs.FeatureServerLayers() {
 		t, err := NameToLayerType(layer.Name)
@@ -186,7 +192,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 // Make sure we have the Service IDs we need to use FieldSeeker
 func (fs *FieldSeeker) ensureHasServices() error {
 	if fs.ServiceInfo != nil {
-		slog.Info("already has services")
+		log.Debug().Msg("already has services")
 		return nil
 	}
 	s, err := fs.arcgis.Services()
@@ -197,7 +203,7 @@ func (fs *FieldSeeker) ensureHasServices() error {
 		return errors.New("Got a null service info")
 	}
 	fs.ServiceInfo = s
-	slog.Info("Add service info", slog.Float64("version", s.CurrentVersion), slog.Int("services", len(s.Services)))
+	log.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
 	return nil
 }
 
