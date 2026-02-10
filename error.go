@@ -2,6 +2,8 @@ package arcgis
 
 import (
 	"fmt"
+
+	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
 
 type apiErrorType string
@@ -50,7 +52,7 @@ func errorTypeFromString(s string) apiErrorType {
 	case "invalid_request":
 		return APIErrorInvalidRequest
 	default:
-		Logger.Warn().Str("s", s).Msg("Did not recognize API error type")
+		log.Warn().Str("s", s).Msg("Did not recognize API error type")
 		return APIErrorUnrecognized
 	}
 }
@@ -64,9 +66,9 @@ func hasString(strs []string, to_find string) bool {
 	return false
 }
 func newAPIError(e ErrorResponse) apiError {
-	Logger.Debug().Int("code", e.Error.Code).Strs("details", e.Error.Details).Str("error", e.Error.Error).Str("description", e.Error.Description).Str("message", e.Error.Message).Msg("got API error")
+	log.Debug().Int("code", e.Error.Code).Strs("details", e.Error.Details).Str("error", e.Error.Error).Str("description", e.Error.Description).Str("message", e.Error.Message).Msg("got API error")
 	if /*e.Error.Error == "" &&*/ e.Error.Code == 403 /*&& hasString(e.Error.Details, "User does not have permissions to access this service ()")*/ {
-		Logger.Debug().Msg("Recognized error as 'not premitted'")
+		log.Debug().Msg("Recognized error as 'not premitted'")
 		return *ErrorNotPermitted
 	}
 	return apiError{

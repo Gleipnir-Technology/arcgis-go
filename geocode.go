@@ -1,7 +1,10 @@
 package arcgis
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
 
 var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
@@ -46,7 +49,7 @@ var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/Wor
 	]
 }
 */
-func (ag *ArcGIS) GeocodeFindAddressCandidates(address string) error {
+func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) error {
 	full_url, err := addParams(geocodeURL, map[string]string{
 		"f": "json",
 		"outFields": "*",
@@ -59,7 +62,7 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(address string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create service request: %w", err)
 	}
-	body, err := ag.requestJSON(r)
+	body, err := ag.requestJSON(ctx, r)
 	if err != nil {
 		return fmt.Errorf("Failed to make request: %w", err)
 	}
@@ -71,6 +74,6 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(address string) error {
 	}
 	return &result, nil
 	*/
-	Logger.Info().Str("body", string(body)).Msg("did request")
+	log.Info().Str("body", string(body)).Msg("did request")
 	return nil
 }

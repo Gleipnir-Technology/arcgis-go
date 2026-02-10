@@ -1,8 +1,9 @@
 package arcgis
 import (
+	"context"
 	"encoding/json"
 )
-func (ag *ArcGIS) PortalsSelf() (*PortalsResponse, error) {
+func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
 	// We may need to always direct this request to
 	// https://www.arcgis.com/sharing/rest/portals/self?f=json
 	// not sure if hosted services are different
@@ -10,7 +11,7 @@ func (ag *ArcGIS) PortalsSelf() (*PortalsResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, err := ag.requestJSON(req)
+	content, err := ag.requestJSON(ctx, req)
 	if err != nil {
 		return nil, err
 	}

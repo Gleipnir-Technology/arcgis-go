@@ -1,6 +1,7 @@
 package fieldseeker
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -85,7 +86,7 @@ func extractURLParts(urlString string) (string, []string, error) {
 	return host, pathParts, nil
 }
 
-func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
+func NewFieldSeeker(ctx context.Context, ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
 	// The URL for fieldseeker should be something like
 	// https://foo.arcgis.com/123abc/arcgis/rest/services/FieldSeekerGIS/FeatureServer
 	// We need to break it up
@@ -107,15 +108,15 @@ func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, er
 		arcgis:        ar,
 		layerToID:     make(map[LayerType]uint, 0),
 	}
-	err = fs.ensureHasFeatureServer()
+	err = fs.ensureHasFeatureServer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
 	}
 	return &fs, nil
 }
 
-func (fs *FieldSeeker) AdminInfo() (*arcgis.AdminInfo, error) {
-	return fs.arcgis.AdminInfo(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error) {
+	return fs.arcgis.AdminInfo(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
 func (fs *FieldSeeker) FeatureServerLayers() []arcgis.LayerFeature {
@@ -126,40 +127,40 @@ func (fs *FieldSeeker) MaxRecordCount() uint {
 	return fs.FeatureServer.MaxRecordCount
 }
 
-func (fs *FieldSeeker) PermissionList() ([]arcgis.Permission, error) {
-	return fs.arcgis.PermissionList(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+func (fs *FieldSeeker) PermissionList(ctx context.Context, ) ([]arcgis.Permission, error) {
+	return fs.arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
-func (fs *FieldSeeker) QueryCount(layer_id uint) (*arcgis.QueryResultCount, error) {
-	return fs.arcgis.QueryCount(fs.ServiceName, layer_id)
+func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
+	return fs.arcgis.QueryCount(ctx, fs.ServiceName, layer_id)
 }
 
-func (fs *FieldSeeker) Schema(layer_id uint) ([]byte, error) {
+func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) ([]byte, error) {
 	query := arcgis.NewQuery()
 	query.ResultRecordCount = 1
 	query.ResultOffset = 0
 	query.OutFields = "*"
 	query.Where = "1=1"
-	return fs.arcgis.DoQueryRaw(fs.ServiceName, layer_id, query)
+	return fs.arcgis.DoQueryRaw(ctx, fs.ServiceName, layer_id, query)
 }
 
-func (fs *FieldSeeker) WebhookList() ([]arcgis.Webhook, error) {
-	return fs.arcgis.WebhookList(fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+func (fs *FieldSeeker) WebhookList(ctx context.Context) ([]arcgis.Webhook, error) {
+	return fs.arcgis.WebhookList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
-func (fs *FieldSeeker) doQueryAll(layer_id uint, offset uint) (*arcgis.QueryResult, error) {
+func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uint) (*arcgis.QueryResult, error) {
 	q := arcgis.NewQuery()
 	q.ResultRecordCount = fs.MaxRecordCount()
 	q.ResultOffset = offset
 	q.SpatialReference = "4326"
 	q.OutFields = "*"
 	q.Where = "1=1"
-	qr, err := fs.arcgis.DoQuery(fs.ServiceName, layer_id, q)
+	qr, err := fs.arcgis.DoQuery(ctx, fs.ServiceName, layer_id, q)
 	return qr, err
 }
 
 // Make sure we have the Layer IDs we need to perform queries
-func (fs *FieldSeeker) ensureHasFeatureServer() error {
-	err := fs.ensureHasServices()
+func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
+	err := fs.ensureHasServices(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
 	}
@@ -167,7 +168,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 		Logger.Debug().Msg("already has feature server")
 		return nil
 	}
-	s, err := fs.arcgis.GetFeatureServer(fs.ServiceName)
+	s, err := fs.arcgis.GetFeatureServer(ctx, fs.ServiceName)
 	if err != nil {
 		return fmt.Errorf("Failed to get feature server: %v", err)
 	}
@@ -188,12 +189,12 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 }
 
 // Make sure we have the Service IDs we need to use FieldSeeker
-func (fs *FieldSeeker) ensureHasServices() error {
+func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
 	if fs.ServiceInfo != nil {
 		Logger.Debug().Msg("already has services")
 		return nil
 	}
-	s, err := fs.arcgis.Services()
+	s, err := fs.arcgis.Services(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to query services: %v", err)
 	}
@@ -302,14 +303,14 @@ type Geometric interface {
 func featureToStruct[T any, PT interface {
 	*T
 	Geometric
-}](fs *FieldSeeker, layer LayerType, offset uint) ([]PT, error) {
+}](ctx context.Context, fs *FieldSeeker, layer LayerType, offset uint) ([]PT, error) {
 	var results []PT
 
 	layer_id, ok := fs.layerToID[layer]
 	if !ok {
 		return results, fmt.Errorf("Cannot get layer %s", layer)
 	}
-	qr, err := fs.doQueryAll(layer_id, offset)
+	qr, err := fs.doQueryAll(ctx, layer_id, offset)
 	if err != nil {
 		return results, fmt.Errorf("Failed to query %s (layer %d): %w", layer, layer_id, err)
 	}
