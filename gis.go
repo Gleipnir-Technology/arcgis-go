@@ -12,7 +12,6 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 // Root structure for an instance of the ArcGIS API
@@ -253,11 +252,11 @@ func (ag *ArcGIS) Search(query string) (*SearchResponse, error) {
 func (ag *ArcGIS) Services() (*ServiceInfo, error) {
 	req, err := ag.serviceRequest("/services")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create service request: %w", err)
 	}
 	content, err := ag.requestJSON(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to request JSON: %w", err)
 	}
 	return parseServiceInfo(content)
 }
@@ -279,12 +278,12 @@ func parseQueryResult(data []byte) (*QueryResult, error) {
 		filename := fmt.Sprintf("debug_response_%s.json", id.String())
 		output, err2 := os.Create(filename)
 		if err2 != nil {
-			log.Warn().Str("filename", filename).Msg("Failed to create debug file, can't dump request.")
+			Logger.Warn().Str("filename", filename).Msg("Failed to create debug file, can't dump request.")
 			return nil, fmt.Errorf("Failed to parse query result JSON: %w", err)
 		}
 		defer output.Close()
 		output.Write(data)
-		log.Info().Str("filename", filename).Msg("Wrote response file for debugging.")
+		Logger.Info().Str("filename", filename).Msg("Wrote response file for debugging.")
 		return nil, fmt.Errorf("Failed to parse query result JSON: %w. Wrote debug file containing the request to %s", err, filename)
 	}
 	return &result, nil
@@ -293,7 +292,7 @@ func parseQueryResult(data []byte) (*QueryResult, error) {
 func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
 	var result QueryResultCount
 	err := json.Unmarshal(data, &result)
-	//log.Println("Parsing", string(data))
+	//Logger.Println("Parsing", string(data))
 	if err != nil {
 		return nil, err
 	}
@@ -331,15 +330,15 @@ func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 func saveResponse(data []byte, filename string) {
 	dest, err := os.Create(filename)
 	if err != nil {
-		log.Error().Str("filename", filename).Str("err", err.Error()).Msg("Failed to create file")
+		Logger.Error().Str("filename", filename).Str("err", err.Error()).Msg("Failed to create file")
 		return
 	}
 	_, err = io.Copy(dest, bytes.NewReader(data))
 	if err != nil {
-		log.Error().Str("filename", filename).Str("err", err.Error()).Msg("Failed to write")
+		Logger.Error().Str("filename", filename).Str("err", err.Error()).Msg("Failed to write")
 		return
 	}
-	log.Info().Str("filename", filename).Msg("Wrote response")
+	Logger.Info().Str("filename", filename).Msg("Wrote response")
 }
 
 var sharingBaseURL string = "https://www.arcgis.com/sharing/rest"
@@ -448,7 +447,7 @@ func (arcgis ArcGIS) serviceUrlWithParams(endpoint string, params map[string]str
 
 func logRequestBase(r *http.Request) {
 	if r == nil {
-		log.Warn().Msg("Can't log request), it's nil")
+		Logger.Warn().Msg("Can't log request), it's nil")
 		return
 	}
 
@@ -461,7 +460,7 @@ func logRequestBase(r *http.Request) {
 	q.Del("token")
 	cleanURL.RawQuery = q.Encode()
 
-	//log.Debug().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
+	//Logger.Debug().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
 }
 
 func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
@@ -470,9 +469,9 @@ func (ag *ArcGIS) requestJSON(r *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to make request: %w", err)
 	}
-	//log.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
+	//Logger.Printf("Status %v total bytes %v", resp.StatusCode, resp.ContentLength)
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-		return nil, fmt.Errorf("Client request error %v from %s", resp.StatusCode)
+		return nil, fmt.Errorf("Client request error %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -508,10 +507,10 @@ func (ag *ArcGIS) updateUsage(resp *http.Response) {
 	for _, v := range qru {
 		n, err := fmt.Sscanf(v, "%d", &ag.Usage.LastRequest)
 		if err != nil {
-			log.Warn().Str("err", err.Error()).Msg("Failed to parse X-Esri-Query-Request-Units")
+			Logger.Warn().Str("err", err.Error()).Msg("Failed to parse X-Esri-Query-Request-Units")
 		}
 		if n < 1 {
-			log.Warn().Msg("Parsed no values from X-Esri-Query-Request-Units")
+			Logger.Warn().Msg("Parsed no values from X-Esri-Query-Request-Units")
 		}
 	}
 	orupm := resp.Header["X-Esri-Org-Request-Units-Per-Min"]
@@ -519,10 +518,10 @@ func (ag *ArcGIS) updateUsage(resp *http.Response) {
 		// The rupm value is of the form "usage=97;max=10000"
 		n, err := fmt.Sscanf(v, "usage=%d;max=%d", &ag.Usage.ThisMinute, &ag.Usage.MaxPerMinute)
 		if err != nil {
-			log.Warn().Str("err", err.Error()).Msg("Failed to parse X-Esri-Org-Request-Units-Per-Min:")
+			Logger.Warn().Str("err", err.Error()).Msg("Failed to parse X-Esri-Org-Request-Units-Per-Min:")
 		}
 		if n < 2 {
-			log.Warn().Msg("Parsed too few values from X-Esri-Org-Request-Per-Min")
+			Logger.Warn().Msg("Parsed too few values from X-Esri-Org-Request-Per-Min")
 		}
 	}
 }

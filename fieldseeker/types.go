@@ -83,7 +83,7 @@ func structFromFeature[T any, PT interface {
 		// Get the attribute value from the map
 		attrValue, exists := feature.Attributes[tagValue]
 		if !exists {
-			log.Warn().Str("tag", tagValue).Msg("Missing expected tag for 'LocationTracking'")
+			log.Warn().Str("tag", tagValue).Str("type", typ.Name()).Msg("Missing expected tag")
 			continue // Skip if attribute doesn't exist in the map
 		}
 
