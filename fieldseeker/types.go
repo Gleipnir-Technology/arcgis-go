@@ -1,12 +1,14 @@
 package fieldseeker
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/Gleipnir-Technology/arcgis-go/log"
 	"github.com/google/uuid"
 )
 
@@ -54,7 +56,8 @@ type Tracklog struct {
 func structFromFeature[T any, PT interface {
 	*T
 	Geometric
-}](feature *arcgis.Feature) (PT, error) {
+}](ctx context.Context, feature *arcgis.Feature) (PT, error) {
+	logger := log.LoggerFromContext(ctx)
 	// Create new LocationTracking instance
 	result := PT(new(T))
 
@@ -75,20 +78,20 @@ func structFromFeature[T any, PT interface {
 		// Get the field tag value
 		tagValue := fieldType.Tag.Get("field")
 		if tagValue == "" {
-			Logger.Warn().Str("field", fieldType.Name).Msg("No field tag")
+			logger.Warn().Str("field", fieldType.Name).Msg("No field tag")
 			continue // Skip fields without a "field" tag
 		}
 
 		// Get the attribute value from the map
 		attrValue, exists := feature.Attributes[tagValue]
 		if !exists {
-			Logger.Warn().Str("tag", tagValue).Str("type", typ.Name()).Msg("Missing expected tag")
+			logger.Warn().Str("tag", tagValue).Str("type", typ.Name()).Msg("Missing expected tag")
 			continue // Skip if attribute doesn't exist in the map
 		}
 
 		// Skip nil values
 		if attrValue == nil {
-			//Logger.Warn().Str("field", fieldType.Name).Msg("nil value")
+			//logger.Warn().Str("field", fieldType.Name).Msg("nil value")
 			continue
 		}
 
@@ -295,7 +298,7 @@ func setStringField(field reflect.Value, value any) error {
 		return fmt.Errorf("cannot convert %T to string", value)
 	}
 
-	//Logger.Debug().Str("field", field.Type().Name()).Str("value", strValue).Msg("Set field")
+	//logger.Debug().Str("field", field.Type().Name()).Str("value", strValue).Msg("Set field")
 	field.SetString(strValue)
 	return nil
 }

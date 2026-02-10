@@ -1,83 +1,87 @@
 package arcgis
 
+import (
+	"context"
+)
+
 type AttributesGeocode struct {
 	// See https://developers.arcgis.com/rest/geocode/service-output/#output-fields
 	/*
-	SpatialReference
-	Address
-	Location
-	ResultID
-	LocName
-	Status
-	Score
-	MatchAddr
-	LongLabel
-	ShortLabel
-	AddrType
-	Type
-	PlaceName
-	PlaceAddr
-	Phone
-	URL
-	Rank
-	AddBldg
-	AddNum
-	AddNumFrom
-	AddNumTo
-	AddRange
-	Side
-	StPreDir
-	StPreType
-	StName
-	StType
-	StdDir
-	BldgComp
-	BldgType
-	BldgName
-	LevelType
-	LevelName
-	UnitType
-	UnitName
-	RoomType
-	RoomName
-	WingType
-	WingName
-	SubAddr
-	StAddr
-	Block
-	Sector
-	Nbrhd
-	Neighborhood
-	District
-	City
-	MetroArea
-	Subregion
-	Region
-	RegionAbbr
-	Territory
-	Postal
-	PostalExt
-	Country
-	CountryCode
-	CntryName
-	LangCode
-	Distance
-	X
-	Y
-	InputX
-	InputY
-	DisplayX
-	DisplayY
-	Xmin
-	Xmax
-	Ymin
-	Ymax
-	ExInfo
-	MatchID
-	PotentialID
-	StrucType
-	StrucDet
-	extent
+		SpatialReference
+		Address
+		Location
+		ResultID
+		LocName
+		Status
+		Score
+		MatchAddr
+		LongLabel
+		ShortLabel
+		AddrType
+		Type
+		PlaceName
+		PlaceAddr
+		Phone
+		URL
+		Rank
+		AddBldg
+		AddNum
+		AddNumFrom
+		AddNumTo
+		AddRange
+		Side
+		StPreDir
+		StPreType
+		StName
+		StType
+		StdDir
+		BldgComp
+		BldgType
+		BldgName
+		LevelType
+		LevelName
+		UnitType
+		UnitName
+		RoomType
+		RoomName
+		WingType
+		WingName
+		SubAddr
+		StAddr
+		Block
+		Sector
+		Nbrhd
+		Neighborhood
+		District
+		City
+		MetroArea
+		Subregion
+		Region
+		RegionAbbr
+		Territory
+		Postal
+		PostalExt
+		Country
+		CountryCode
+		CntryName
+		LangCode
+		Distance
+		X
+		Y
+		InputX
+		InputY
+		DisplayX
+		DisplayY
+		Xmin
+		Xmax
+		Ymin
+		Ymax
+		ExInfo
+		MatchID
+		PotentialID
+		StrucType
+		StrucDet
+		extent
 	*/
 }
 type Basemap struct {
@@ -111,15 +115,15 @@ type Location struct {
 	Y float64 `json:"y"`
 }
 type GeocodeCandidate struct {
-	Address string `json:"address"`
-	Location Location `json:"location"`
-	Score int `json:"score"`
+	Address    string            `json:"address"`
+	Location   Location          `json:"location"`
+	Score      int               `json:"score"`
 	Attributes AttributesGeocode `json:"attributes"`
-	Extent Extent `json:"extent"`
+	Extent     Extent            `json:"extent"`
 }
 type GeocodeFindAddressCandidatesResponse struct {
-	Candidates []GeocodeCandidate `json:"candidates"`
-	SpatialReference SpatialReference `json:"spatialReference"`
+	Candidates       []GeocodeCandidate `json:"candidates"`
+	SpatialReference SpatialReference   `json:"spatialReference"`
 }
 type LayerResource struct {
 	ID        string `json:"id"`
@@ -374,6 +378,6 @@ type SearchResult struct {
 	//LastViewed int64 `json:"lastViewed"`
 }
 
-func (e ErrorResponse) AsError() apiError {
-	return newAPIError(e)
+func (e ErrorResponse) AsError(ctx context.Context) apiError {
+	return newAPIError(ctx, e)
 }

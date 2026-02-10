@@ -10,49 +10,50 @@ import (
 var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
 
 /*
-{
-	"spatialReference": {
-		"wkid": 4326,
-		"latestWkid": 4326
-	},
-	"candidates": [
-		{
-			"address": "1 Infinite Loop, Cupertino, California, 95014",
-			"location": {
-				"x": -122.030230668387,
-				"y": 37.331524210671
-			},
-			"score": 100,
-			"attributes": {},
-			"extent": {
-				"xmin": -122.031230668387,
-				"ymin": 37.330524210671,
-				"xmax": -122.029230668387,
-				"ymax": 37.332524210671
-			}
+	{
+		"spatialReference": {
+			"wkid": 4326,
+			"latestWkid": 4326
 		},
-		{
-			"address": "Infinite Loop, Cupertino, California, 95014",
-			"location": {
-				"x": -122.028892485803,
-				"y": 37.333228311614
+		"candidates": [
+			{
+				"address": "1 Infinite Loop, Cupertino, California, 95014",
+				"location": {
+					"x": -122.030230668387,
+					"y": 37.331524210671
+				},
+				"score": 100,
+				"attributes": {},
+				"extent": {
+					"xmin": -122.031230668387,
+					"ymin": 37.330524210671,
+					"xmax": -122.029230668387,
+					"ymax": 37.332524210671
+				}
 			},
-			"score": 98.54,
-			"attributes": {},
-			"extent": {
-				"xmin": -122.029892485803,
-				"ymin": 37.332228311614,
-				"xmax": -122.027892485803,
-				"ymax": 37.334228311614
+			{
+				"address": "Infinite Loop, Cupertino, California, 95014",
+				"location": {
+					"x": -122.028892485803,
+					"y": 37.333228311614
+				},
+				"score": 98.54,
+				"attributes": {},
+				"extent": {
+					"xmin": -122.029892485803,
+					"ymin": 37.332228311614,
+					"xmax": -122.027892485803,
+					"ymax": 37.334228311614
+				}
 			}
-		}
-	]
-}
+		]
+	}
 */
 func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) error {
+	logger := log.LoggerFromContext(ctx)
 	full_url, err := addParams(geocodeURL, map[string]string{
-		"f": "json",
-		"outFields": "*",
+		"f":          "json",
+		"outFields":  "*",
 		"SingleLine": address,
 	})
 	if err != nil {
@@ -67,13 +68,13 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address stri
 		return fmt.Errorf("Failed to make request: %w", err)
 	}
 	/*
-	var result RestInfo
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
+		var result RestInfo
+		err := json.Unmarshal(data, &result)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
 	*/
-	log.Info().Str("body", string(body)).Msg("did request")
+	logger.Info().Str("body", string(body)).Msg("did request")
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
 
 type LayerType uint
@@ -67,40 +68,8 @@ type FieldSeeker struct {
 	layerToID map[LayerType]uint
 }
 
-func extractURLParts(urlString string) (string, []string, error) {
-	parsedURL, err := url.Parse(urlString)
-	if err != nil {
-		return "", nil, err
-	}
-
-	host := parsedURL.Scheme + "://" + parsedURL.Host
-
-	// Split the path and filter empty parts
-	var pathParts []string
-	for _, part := range strings.Split(parsedURL.Path, "/") {
-		if part != "" {
-			pathParts = append(pathParts, part)
-		}
-	}
-
-	return host, pathParts, nil
-}
-
 func NewFieldSeeker(ctx context.Context, ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
-	// The URL for fieldseeker should be something like
-	// https://foo.arcgis.com/123abc/arcgis/rest/services/FieldSeekerGIS/FeatureServer
-	// We need to break it up
-	host, pathParts, err := extractURLParts(fieldseeker_url)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to break up provided url: %v", err)
-	}
-	if len(pathParts) < 1 {
-		return nil, errors.New("Didn't get enough path parts")
-	}
-	context := pathParts[0]
-	Logger.Info().Str("context", context).Str("host", host).Msg("Using base fieldseeker URL")
-	ar.Context = &context
-	ar.Host = host
+	//logger := log.LoggerFromContext(ctx)
 	fs := FieldSeeker{
 		FeatureServer: nil,
 		ServiceInfo:   nil,
@@ -108,7 +77,7 @@ func NewFieldSeeker(ctx context.Context, ar *arcgis.ArcGIS, fieldseeker_url stri
 		arcgis:        ar,
 		layerToID:     make(map[LayerType]uint, 0),
 	}
-	err = fs.ensureHasFeatureServer(ctx)
+	err := fs.ensureHasFeatureServer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
 	}
@@ -127,7 +96,7 @@ func (fs *FieldSeeker) MaxRecordCount() uint {
 	return fs.FeatureServer.MaxRecordCount
 }
 
-func (fs *FieldSeeker) PermissionList(ctx context.Context, ) ([]arcgis.Permission, error) {
+func (fs *FieldSeeker) PermissionList(ctx context.Context) ([]arcgis.Permission, error) {
 	return fs.arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
@@ -160,12 +129,13 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 
 // Make sure we have the Layer IDs we need to perform queries
 func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
+	logger := log.LoggerFromContext(ctx)
 	err := fs.ensureHasServices(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
 	}
 	if fs.FeatureServer != nil {
-		Logger.Debug().Msg("already has feature server")
+		logger.Debug().Msg("already has feature server")
 		return nil
 	}
 	s, err := fs.arcgis.GetFeatureServer(ctx, fs.ServiceName)
@@ -175,12 +145,12 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 	if s == nil {
 		return errors.New("Got a null feature server")
 	}
-	Logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
+	logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
 	fs.FeatureServer = s
 	for _, layer := range fs.FeatureServerLayers() {
 		t, err := NameToLayerType(layer.Name)
 		if err != nil {
-			Logger.Warn().Err(err).Msg("Failed to handle layer")
+			logger.Warn().Err(err).Msg("Failed to handle layer")
 			continue
 		}
 		fs.layerToID[t] = layer.ID
@@ -190,8 +160,9 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 
 // Make sure we have the Service IDs we need to use FieldSeeker
 func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
+	logger := log.LoggerFromContext(ctx)
 	if fs.ServiceInfo != nil {
-		Logger.Debug().Msg("already has services")
+		logger.Debug().Msg("already has services")
 		return nil
 	}
 	s, err := fs.arcgis.Services(ctx)
@@ -202,7 +173,7 @@ func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
 		return errors.New("Got a null service info")
 	}
 	fs.ServiceInfo = s
-	Logger.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
+	logger.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
 	return nil
 }
 
@@ -317,7 +288,7 @@ func featureToStruct[T any, PT interface {
 
 	for _, feature := range qr.Features {
 		//logFeature(feature)
-		s, err := structFromFeature[T, PT](&feature)
+		s, err := structFromFeature[T, PT](ctx, &feature)
 		if err != nil {
 			return results, fmt.Errorf("Failed to get %s from query result: %w", layer, err)
 		}
@@ -328,23 +299,23 @@ func featureToStruct[T any, PT interface {
 
 func logFeature(f arcgis.Feature) {
 	/*
-	kv := make(map[string]string, 0)
-	l := zerolog.Dict()
-	for k, v := range f.Attributes {
-			s, ok := v.(string)
-			if ok {
-				kv[k] = s
-				continue
-			}
-			i, ok := v.(int)
-			if ok {
-				kv[k] = string(i)
-				continue
-			}
-			kv[k] = "*unknown*"
-		l.Interface(k, v)
-	}
-	log.Debug().Dict("feature", l).Msg("Handling feature")
+		kv := make(map[string]string, 0)
+		l := zerolog.Dict()
+		for k, v := range f.Attributes {
+				s, ok := v.(string)
+				if ok {
+					kv[k] = s
+					continue
+				}
+				i, ok := v.(int)
+				if ok {
+					kv[k] = string(i)
+					continue
+				}
+				kv[k] = "*unknown*"
+			l.Interface(k, v)
+		}
+		log.Debug().Dict("feature", l).Msg("Handling feature")
 	*/
 }
 func stringOrEmpty(data map[string]any, key string) string {

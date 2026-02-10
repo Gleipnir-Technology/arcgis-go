@@ -2,48 +2,40 @@ package log
 
 import (
 	"context"
-	"io"
-	"os"
 
 	"github.com/rs/zerolog"
-	//"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/log"
 )
 
-var Logger = zerolog.New(os.Stderr).With().Timestamp().Logger()
+// No default logger declaration - use the global one instead
 
+// For context-based logging
 type loggerKey struct{}
 
-func Debug() *zerolog.Event {
-	return Logger.Debug()
-}
-func Error() *zerolog.Event {
-	return Logger.Error()
-}
-// LoggerFromContext gets the logger from context or falls back to the default
-func FromContext(ctx context.Context) zerolog.Logger {
-	if logger, ok := ctx.Value(loggerKey{}).(zerolog.Logger); ok {
-		return logger
-	}
-	return Logger // Fall back to package-level logger
-}
-
-func Info() *zerolog.Event {
-	return Logger.Info()
-}
-// SetLogLevel allows clients to control this library's log verbosity
-func SetLogLevel(level zerolog.Level) {
-	Logger = Logger.Level(level)
-}
-
-// SetLogOutput allows clients to redirect logs if needed
-func SetLogOutput(w io.Writer) {
-	Logger = zerolog.New(w).With().Timestamp().Logger().Level(Logger.GetLevel())
-}
-
-func Warn() *zerolog.Event {
-	return Logger.Warn()
-}
 // WithLogger adds a logger to the context
 func WithLogger(ctx context.Context, logger zerolog.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey{}, logger)
+}
+
+// LoggerFromContext gets the logger from context or falls back to the global logger
+func LoggerFromContext(ctx context.Context) zerolog.Logger {
+	if logger, ok := ctx.Value(loggerKey{}).(zerolog.Logger); ok {
+		return logger
+	}
+	return log.Logger // Fall back to global logger (uses client's setup)
+}
+
+// Helper to create a library-specific logger with consistent context
+func libraryLogger(ctx context.Context) zerolog.Logger {
+	return LoggerFromContext(ctx).With().Str("component", "mylibrary").Logger()
+}
+
+// Library functions use this pattern
+func DoSomething(ctx context.Context, param string) error {
+	logger := libraryLogger(ctx).With().Str("function", "DoSomething").Logger()
+
+	logger.Debug().Msg("Starting operation")
+	// Library logic...
+
+	return nil
 }
