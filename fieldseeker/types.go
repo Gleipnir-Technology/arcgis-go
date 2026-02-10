@@ -8,7 +8,6 @@ import (
 
 	"github.com/Gleipnir-Technology/arcgis-go"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type ServiceRequestSourceType int
@@ -76,20 +75,20 @@ func structFromFeature[T any, PT interface {
 		// Get the field tag value
 		tagValue := fieldType.Tag.Get("field")
 		if tagValue == "" {
-			log.Warn().Str("field", fieldType.Name).Msg("No field tag")
+			Logger.Warn().Str("field", fieldType.Name).Msg("No field tag")
 			continue // Skip fields without a "field" tag
 		}
 
 		// Get the attribute value from the map
 		attrValue, exists := feature.Attributes[tagValue]
 		if !exists {
-			log.Warn().Str("tag", tagValue).Str("type", typ.Name()).Msg("Missing expected tag")
+			Logger.Warn().Str("tag", tagValue).Str("type", typ.Name()).Msg("Missing expected tag")
 			continue // Skip if attribute doesn't exist in the map
 		}
 
 		// Skip nil values
 		if attrValue == nil {
-			//log.Warn().Str("field", fieldType.Name).Msg("nil value")
+			//Logger.Warn().Str("field", fieldType.Name).Msg("nil value")
 			continue
 		}
 
@@ -296,7 +295,7 @@ func setStringField(field reflect.Value, value any) error {
 		return fmt.Errorf("cannot convert %T to string", value)
 	}
 
-	//log.Debug().Str("field", field.Type().Name()).Str("value", strValue).Msg("Set field")
+	//Logger.Debug().Str("field", field.Type().Name()).Str("value", strValue).Msg("Set field")
 	field.SetString(strValue)
 	return nil
 }

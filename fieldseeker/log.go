@@ -1,4 +1,4 @@
-package arcgis
+package fieldseeker
 import (
 	"github.com/Gleipnir-Technology/arcgis-go/log"
 )

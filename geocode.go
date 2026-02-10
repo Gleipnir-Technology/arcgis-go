@@ -2,7 +2,6 @@ package arcgis
 
 import (
 	"fmt"
-	"github.com/rs/zerolog/log"
 )
 
 var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
@@ -72,6 +71,6 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(address string) error {
 	}
 	return &result, nil
 	*/
-	log.Info().Str("body", string(body)).Msg("did request")
+	Logger.Info().Str("body", string(body)).Msg("did request")
 	return nil
 }

@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type LayerType uint
@@ -99,7 +97,7 @@ func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, er
 		return nil, errors.New("Didn't get enough path parts")
 	}
 	context := pathParts[0]
-	log.Info().Str("context", context).Str("host", host).Msg("Using base fieldseeker URL")
+	Logger.Info().Str("context", context).Str("host", host).Msg("Using base fieldseeker URL")
 	ar.Context = &context
 	ar.Host = host
 	fs := FieldSeeker{
@@ -166,7 +164,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
 	}
 	if fs.FeatureServer != nil {
-		log.Debug().Msg("already has feature server")
+		Logger.Debug().Msg("already has feature server")
 		return nil
 	}
 	s, err := fs.arcgis.GetFeatureServer(fs.ServiceName)
@@ -176,12 +174,12 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 	if s == nil {
 		return errors.New("Got a null feature server")
 	}
-	log.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
+	Logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
 	fs.FeatureServer = s
 	for _, layer := range fs.FeatureServerLayers() {
 		t, err := NameToLayerType(layer.Name)
 		if err != nil {
-			log.Warn().Err(err).Msg("Failed to handle layer")
+			Logger.Warn().Err(err).Msg("Failed to handle layer")
 			continue
 		}
 		fs.layerToID[t] = layer.ID
@@ -192,7 +190,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer() error {
 // Make sure we have the Service IDs we need to use FieldSeeker
 func (fs *FieldSeeker) ensureHasServices() error {
 	if fs.ServiceInfo != nil {
-		log.Debug().Msg("already has services")
+		Logger.Debug().Msg("already has services")
 		return nil
 	}
 	s, err := fs.arcgis.Services()
@@ -203,7 +201,7 @@ func (fs *FieldSeeker) ensureHasServices() error {
 		return errors.New("Got a null service info")
 	}
 	fs.ServiceInfo = s
-	log.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
+	Logger.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
 	return nil
 }
 
@@ -328,10 +326,10 @@ func featureToStruct[T any, PT interface {
 }
 
 func logFeature(f arcgis.Feature) {
-	//kv := make(map[string]string, 0)
+	/*
+	kv := make(map[string]string, 0)
 	l := zerolog.Dict()
 	for k, v := range f.Attributes {
-		/*
 			s, ok := v.(string)
 			if ok {
 				kv[k] = s
@@ -343,10 +341,10 @@ func logFeature(f arcgis.Feature) {
 				continue
 			}
 			kv[k] = "*unknown*"
-		*/
 		l.Interface(k, v)
 	}
 	log.Debug().Dict("feature", l).Msg("Handling feature")
+	*/
 }
 func stringOrEmpty(data map[string]any, key string) string {
 	source, ok := data[key].(string)
