@@ -32,11 +32,6 @@ type SpeciesAbundance struct {
 	EditDate        time.Time `field:"EditDate"`
 	Editor          string    `field:"Editor"`
 	YearWeek        int32     `field:"yearWeek"`
-	GlobalZScore    float64   `field:"globalZScore"`
-	R7Score         float64   `field:"r7Score"`
-	R8Score         float64   `field:"r8Score"`
-	H3r7            string    `field:"h3r7"`
-	H3r8            string    `field:"h3r8"`
 	Geometry        json.RawMessage
 }
 
