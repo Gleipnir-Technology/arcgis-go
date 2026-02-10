@@ -374,12 +374,6 @@ type SearchResult struct {
 	//LastViewed int64 `json:"lastViewed"`
 }
 
-func (e ErrorResponse) AsError() error {
-	return ArcGISAPIError{
-		Code:        e.Error.Code,
-		Description: e.Error.Description,
-		Details:     e.Error.Details,
-		ErrorType:   errorTypeFromString(e.Error.Error),
-		Message:     e.Error.Message,
-	}
+func (e ErrorResponse) AsError() apiError {
+	return newAPIError(e)
 }

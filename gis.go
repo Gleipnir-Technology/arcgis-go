@@ -498,7 +498,7 @@ func tryParseError(data []byte) error {
 		return err
 	}
 	if msg.Error.Code != 0 || msg.Error.Message != "" || len(msg.Error.Details) > 0 {
-		return msg.AsError()
+		return newAPIError(msg)
 	}
 	return nil
 }
