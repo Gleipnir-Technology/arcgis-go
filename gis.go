@@ -250,6 +250,35 @@ func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*Featur
 	return parseFeatureServer(content)
 }
 
+/*
+not valid
+func (ag *ArcGIS) Root(ctx context.Context) (string, error) {
+	req, err := ag.serviceRequest("/")
+	if err != nil {
+		return "", fmt.Errorf("Failed to create root request: %w", err)
+	}
+	content, err := ag.requestJSON(ctx, req)
+	if err != nil {
+		return "", fmt.Errorf("Failed to request JSON: %w", err)
+	}
+	return string(content), err
+}
+*/
+
+func (ag *ArcGIS) RawGet(ctx context.Context, url url.URL) ([]byte, error) {
+	req, err := ag.serviceRequestFromFull(&url)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to create request")
+	}
+	return ag.requestRaw(ctx, req)
+}
+func (ag *ArcGIS) RawGetPath(ctx context.Context, path string) ([]byte, error) {
+	req, err := ag.serviceRequest(path)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to create request")
+	}
+	return ag.requestRaw(ctx, req)
+}
 func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, error) {
 	// "https://www.arcgis.com/sharing/rest/search?f=json&q=FieldseekerGIS"
 	req, err := ag.sharingRequestWithParams("/search", map[string]string{
@@ -481,7 +510,7 @@ func logRequestBase(ctx context.Context, r *http.Request) {
 	logger.Debug().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
 }
 
-func (ag *ArcGIS) requestJSON(ctx context.Context, r *http.Request) ([]byte, error) {
+func (ag *ArcGIS) requestRaw(ctx context.Context, r *http.Request) ([]byte, error) {
 	logRequestBase(ctx, r)
 	resp, err := ag.client.Do(r)
 	if err != nil {
@@ -496,6 +525,15 @@ func (ag *ArcGIS) requestJSON(ctx context.Context, r *http.Request) ([]byte, err
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response body: %w", err)
 	}
+	ag.updateUsage(ctx, resp)
+	return body, err
+}
+func (ag *ArcGIS) requestJSON(ctx context.Context, r *http.Request) ([]byte, error) {
+	//logger := log.LoggerFromContext(ctx)
+	body, err := ag.requestRaw(ctx, r)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to do raw request before JSON: %w", err)
+	}
 	// During normal operation the ArcGIS server does _not_ respond with the standard
 	// 400-level response codes on error. Instead it responds with 200, which is wrong,
 	// but we can't force them to be standards-compliant. Instead, we have to attempt
@@ -504,7 +542,8 @@ func (ag *ArcGIS) requestJSON(ctx context.Context, r *http.Request) ([]byte, err
 	if errorFromJSON != nil {
 		return nil, fmt.Errorf("response was an application-level error in JSON: %w", errorFromJSON)
 	}
-	ag.updateUsage(ctx, resp)
+	//logger.Debug().Str("body", string(body)).Msg("JSON response")
+
 	return body, nil
 }
 
@@ -512,7 +551,7 @@ func tryParseError(ctx context.Context, data []byte) error {
 	var msg ErrorResponse
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to unmarshal JSON: %w", err)
 	}
 	if msg.Error.Code != 0 || msg.Error.Message != "" || len(msg.Error.Details) > 0 {
 		return newAPIError(ctx, msg)

@@ -60,47 +60,50 @@ const (
 )
 
 type FieldSeeker struct {
+	Arcgis        *arcgis.ArcGIS
 	FeatureServer *arcgis.FeatureServer
 	ServiceInfo   *arcgis.ServiceInfo
 	ServiceName   string
 
-	arcgis    *arcgis.ArcGIS
 	layerToID map[LayerType]uint
 }
 
-func NewFieldSeeker(ctx context.Context, ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
+func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) *FieldSeeker {
 	//logger := log.LoggerFromContext(ctx)
-	fs := FieldSeeker{
+	return &FieldSeeker{
+		Arcgis:        ar,
 		FeatureServer: nil,
 		ServiceInfo:   nil,
 		ServiceName:   "FieldSeekerGIS",
-		arcgis:        ar,
 		layerToID:     make(map[LayerType]uint, 0),
 	}
+}
+
+func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error) {
+	return fs.Arcgis.AdminInfo(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+}
+
+func (fs *FieldSeeker) FeatureServerLayers(ctx context.Context) ([]arcgis.LayerFeature, error) {
 	err := fs.ensureHasFeatureServer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
 	}
-	return &fs, nil
+	return fs.FeatureServer.Layers, nil
 }
 
-func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error) {
-	return fs.arcgis.AdminInfo(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
-}
-
-func (fs *FieldSeeker) FeatureServerLayers() []arcgis.LayerFeature {
-	return fs.FeatureServer.Layers
-}
-
-func (fs *FieldSeeker) MaxRecordCount() uint {
-	return fs.FeatureServer.MaxRecordCount
+func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
+	err := fs.ensureHasFeatureServer(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
+	}
+	return fs.FeatureServer.MaxRecordCount, nil
 }
 
 func (fs *FieldSeeker) PermissionList(ctx context.Context) ([]arcgis.Permission, error) {
-	return fs.arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+	return fs.Arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
-	return fs.arcgis.QueryCount(ctx, fs.ServiceName, layer_id)
+	return fs.Arcgis.QueryCount(ctx, fs.ServiceName, layer_id)
 }
 
 func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) ([]byte, error) {
@@ -109,21 +112,25 @@ func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) ([]byte, error
 	query.ResultOffset = 0
 	query.OutFields = "*"
 	query.Where = "1=1"
-	return fs.arcgis.DoQueryRaw(ctx, fs.ServiceName, layer_id, query)
+	return fs.Arcgis.DoQueryRaw(ctx, fs.ServiceName, layer_id, query)
 }
 
 func (fs *FieldSeeker) WebhookList(ctx context.Context) ([]arcgis.Webhook, error) {
-	return fs.arcgis.WebhookList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
+	return fs.Arcgis.WebhookList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
 func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uint) (*arcgis.QueryResult, error) {
 	q := arcgis.NewQuery()
-	q.ResultRecordCount = fs.MaxRecordCount()
+	count, err := fs.MaxRecordCount(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to query for max count: %w", err)
+	}
+	q.ResultRecordCount = count
 	q.ResultOffset = offset
 	q.SpatialReference = "4326"
 	q.OutFields = "*"
 	q.Where = "1=1"
-	qr, err := fs.arcgis.DoQuery(ctx, fs.ServiceName, layer_id, q)
+	qr, err := fs.Arcgis.DoQuery(ctx, fs.ServiceName, layer_id, q)
 	return qr, err
 }
 
@@ -138,7 +145,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 		logger.Debug().Msg("already has feature server")
 		return nil
 	}
-	s, err := fs.arcgis.GetFeatureServer(ctx, fs.ServiceName)
+	s, err := fs.Arcgis.GetFeatureServer(ctx, fs.ServiceName)
 	if err != nil {
 		return fmt.Errorf("Failed to get feature server: %v", err)
 	}
@@ -147,7 +154,11 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 	}
 	logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
 	fs.FeatureServer = s
-	for _, layer := range fs.FeatureServerLayers() {
+	layers, err := fs.FeatureServerLayers(ctx)
+	if err != nil {
+		return fmt.Errorf("Failed to query for layers: %w", err)
+	}
+	for _, layer := range layers {
 		t, err := NameToLayerType(layer.Name)
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to handle layer")
@@ -165,7 +176,7 @@ func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
 		logger.Debug().Msg("already has services")
 		return nil
 	}
-	s, err := fs.arcgis.Services(ctx)
+	s, err := fs.Arcgis.Services(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to query services: %v", err)
 	}

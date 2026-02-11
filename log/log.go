@@ -29,13 +29,3 @@ func LoggerFromContext(ctx context.Context) zerolog.Logger {
 func libraryLogger(ctx context.Context) zerolog.Logger {
 	return LoggerFromContext(ctx).With().Str("component", "mylibrary").Logger()
 }
-
-// Library functions use this pattern
-func DoSomething(ctx context.Context, param string) error {
-	logger := libraryLogger(ctx).With().Str("function", "DoSomething").Logger()
-
-	logger.Debug().Msg("Starting operation")
-	// Library logic...
-
-	return nil
-}
