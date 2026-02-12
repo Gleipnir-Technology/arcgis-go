@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 // Root structure for an instance of the ArcGIS API
@@ -86,8 +87,28 @@ func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*Featur
 	return reqGetJSON[FeatureServer](ctx, ag.requestor, path)
 }
 
-func (ag *ArcGIS) MapServices(ctx context.Context) (*SearchResponse, error) {
-	return ag.SearchInAccount(ctx, "type:\"Map Service\"")
+func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
+	logger := zerolog.Ctx(ctx)
+	resp, err := ag.SearchInAccount(ctx, "type:\"Map Service\"")
+	if err != nil {
+		return nil, fmt.Errorf("search err: %w", err)
+	}
+	logger.Debug().Int("total", resp.Total).Msg("got results")
+	results := make([]MapService, 0)
+	for _, r := range resp.Results {
+		if r.Type != "Map Service" {
+			logger.Warn().Str("type", r.Type).Msg("Got the wrong type for a map service")
+			continue
+		}
+		m := MapService{
+			ID:    r.ID,
+			Name:  r.Name,
+			Title: r.Title,
+			URL:   r.URL,
+		}
+		results = append(results, m)
+	}
+	return results, nil
 }
 func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
 	// We may need to always direct this request to

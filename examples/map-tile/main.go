@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
 	//"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -80,8 +82,27 @@ func main() {
 		log.Error().Err(err).Msg("Failed to get map service")
 		os.Exit(3)
 	}
-	log.Info().Int("total", map_services.Total).Msg("got results")
-	for _, s := range map_services.Results {
-		log.Info().Str("id", s.ID).Str("name", s.Name).Str("type", s.Type).Str("url", s.URL).Str("title", s.Title).Msg("Map service")
+	for _, s := range map_services {
+		log.Info().Str("id", s.ID).Str("name", s.Name).Str("url", s.URL).Str("title", s.Title).Msg("Map service")
+		img, err := s.TileGPS(ctx, gis, 15, 36.322155, -119.33614)
+		if err != nil {
+			log.Error().Err(err).Msg("tile failure")
+			os.Exit(4)
+		}
+		// Create file in configured directory
+		filename := "tile.raw"
+		dst, err := os.Create(filename)
+		if err != nil {
+			log.Error().Err(err).Msg("file create failure")
+			os.Exit(4)
+		}
+		defer dst.Close()
+		// Copy rest of request body to file
+		_, err = io.Copy(dst, bytes.NewReader(img))
+		if err != nil {
+			log.Error().Err(err).Msg("file copy failure")
+			os.Exit(4)
+		}
+		log.Info().Str("filename", filename).Msg("Wrote file")
 	}
 }

@@ -14,25 +14,28 @@ import (
 )
 
 func doGetParamsHeaders(ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) ([]byte, error) {
-	logger := zerolog.Ctx(ctx)
-	// Parse the URL
-	reqURL, err := url.Parse(host + path)
+	req_url, err := url.Parse(host + path)
 	if err != nil {
 		return nil, fmt.Errorf("parsing URL: %w", err)
 	}
+	return doGetParamsHeadersFullURL(ctx, client, *req_url, params, headers)
+}
+func doGetParamsHeadersFullURL(ctx context.Context, client http.Client, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, error) {
+	logger := zerolog.Ctx(ctx)
+	// Parse the URL
 
 	// Add query parameters if any are provided
 	if len(params) > 0 {
-		q := reqURL.Query()
+		q := req_url.Query()
 		for key, value := range params {
 			q.Add(key, value)
 		}
-		reqURL.RawQuery = q.Encode()
+		req_url.RawQuery = q.Encode()
 	}
 
 	// Create request with context
-	logger.Debug().Str("method", "GET").Str("url", reqURL.String()).Msg("Making request")
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL.String(), nil)
+	logger.Debug().Str("method", "GET").Str("url", req_url.String()).Msg("Making request")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, req_url.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
@@ -96,6 +99,26 @@ func doGetJSONParamsHeaders[T any](ctx context.Context, client http.Client, host
 	}
 
 	return &result, nil
+}
+func reqGet(ctx context.Context, r gisRequestor, path string) ([]byte, error) {
+	return reqGetParamsHeaders(ctx, r, path, map[string]string{}, map[string]string{})
+}
+func reqGetFullURL(ctx context.Context, r gisRequestor, req_url url.URL) ([]byte, error) {
+	return reqGetParamsHeadersFullURL(ctx, r, req_url, map[string]string{}, map[string]string{})
+}
+func reqGetParams(ctx context.Context, r gisRequestor, path string, params map[string]string) ([]byte, error) {
+	return reqGetParamsHeaders(ctx, r, path, params, map[string]string{})
+}
+func reqGetParamsHeaders(ctx context.Context, r gisRequestor, path string, params map[string]string, headers map[string]string) ([]byte, error) {
+	req_url, err := url.Parse(r.host + path)
+	if err != nil {
+		return nil, fmt.Errorf("parsing URL: %w", err)
+	}
+	return reqGetParamsHeadersFullURL(ctx, r, *req_url, params, headers)
+}
+func reqGetParamsHeadersFullURL(ctx context.Context, r gisRequestor, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, error) {
+	headers = r.authenticator.addAuthHeaders(ctx, headers)
+	return doGetParamsHeadersFullURL(ctx, r.client, req_url, params, headers)
 }
 func reqGetJSON[T any](ctx context.Context, r gisRequestor, path string) (*T, error) {
 	return reqGetJSONParamsHeaders[T](ctx, r, path, map[string]string{}, map[string]string{})
