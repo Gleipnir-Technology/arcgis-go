@@ -3,6 +3,8 @@ package arcgis
 import (
 	"context"
 	"fmt"
+
+	"github.com/rs/zerolog"
 )
 
 type apiErrorType string
@@ -57,7 +59,7 @@ var (
 )
 
 func errorTypeFromString(ctx context.Context, s string) apiErrorType {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	switch s {
 	case "invalid_request":
 		return APIErrorInvalidRequest
@@ -77,7 +79,7 @@ func hasString(strs []string, to_find string) bool {
 	return false
 }
 func newAPIError(ctx context.Context, e ErrorResponse) apiError {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	logger.Debug().
 		Int("code", e.Error.Code).
 		Strs("details", e.Error.Details).

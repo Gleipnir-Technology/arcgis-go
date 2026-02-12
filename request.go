@@ -204,7 +204,7 @@ func parseJSON[T any](body []byte) (*T, error) {
 }
 
 func logRequestBase(ctx context.Context, r *http.Request) {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	if r == nil {
 		logger.Warn().Msg("Can't log request, it's nil")
 		return

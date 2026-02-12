@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/rs/zerolog"
 )
 
 type LayerType uint
@@ -141,7 +142,7 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 
 // Make sure we have the Layer IDs we need to perform queries
 func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
-	logger := arcgis.LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	err := fs.ensureHasServices(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
@@ -176,7 +177,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 
 // Make sure we have the Service IDs we need to use FieldSeeker
 func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
-	logger := arcgis.LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	if fs.ServiceInfo != nil {
 		logger.Debug().Msg("already has services")
 		return nil

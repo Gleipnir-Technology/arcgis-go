@@ -138,7 +138,7 @@ func (ag *ArcGIS) Services(ctx context.Context) (*ServiceInfo, error) {
 }
 
 func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	portals, err := ag.PortalsSelf(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to get portals: %w", err)
@@ -162,7 +162,7 @@ func parseFeatureServer(data []byte) (*FeatureServer, error) {
 
 func parseQueryResult(ctx context.Context, data []byte) (*QueryResult, error) {
 	var result QueryResult
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		id := uuid.New()
@@ -210,7 +210,7 @@ func parseServiceInfo(data []byte) (*ServiceInfo, error) {
 }
 
 func saveResponse(ctx context.Context, data []byte, filename string) {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	dest, err := os.Create(filename)
 	if err != nil {
 		logger.Error().Str("filename", filename).Str("err", err.Error()).Msg("Failed to create file")
@@ -244,7 +244,7 @@ func addParams(u string, params map[string]string) (*url.URL, error) {
 }
 
 func (ag *ArcGIS) updateUsage(ctx context.Context, resp *http.Response) {
-	logger := LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	qru := resp.Header["X-Esri-Query-Request-Units"]
 	for _, v := range qru {
 		n, err := fmt.Sscanf(v, "%d", &ag.usage.LastRequest)

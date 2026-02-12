@@ -9,6 +9,7 @@ import (
 
 	"github.com/Gleipnir-Technology/arcgis-go"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type ServiceRequestSourceType int
@@ -56,7 +57,7 @@ func structFromFeature[T any, PT interface {
 	*T
 	Geometric
 }](ctx context.Context, feature *arcgis.Feature) (PT, error) {
-	logger := arcgis.LoggerFromContext(ctx)
+	logger := zerolog.Ctx(ctx)
 	// Create new LocationTracking instance
 	result := PT(new(T))
 
