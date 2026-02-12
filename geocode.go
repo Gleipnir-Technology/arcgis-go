@@ -59,5 +59,5 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address stri
 		"outFields":  "*",
 		"SingleLine": address,
 	}
-	return doJSONGetParams[GeocodeCandidatesResponse](ctx, sub, path, params)
+	return reqGetJSONParams[GeocodeCandidatesResponse](ctx, sub, path, params)
 }

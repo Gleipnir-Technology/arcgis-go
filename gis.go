@@ -159,15 +159,27 @@ type Usage struct {
 	ThisMinute int
 }
 
-func NewArcGIS(auth Authenticator, host *string) *ArcGIS {
+func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, transport *http.Transport) (*ArcGIS, error) {
 	h := "https://www.arcgis.com"
 	if host != nil {
 		h = *host
 	}
-	return &ArcGIS{
-		requestor: newGisRequestor(auth, h),
+	requestor, err := newGisRequestor(ctx, auth, h, transport)
+	if err != nil {
+		return nil, fmt.Errorf("create requestor: %w", err)
+	}
+	result := &ArcGIS{
+		requestor: requestor,
 		//ServiceRoot:   "https://www.arcgis.com/sharing/rest",
 	}
+	err = result.switchHostByPortal(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("switch portal: %w", err)
+	}
+	return result, nil
+}
+func NewArcGIS(ctx context.Context, host *string, auth Authenticator) (*ArcGIS, error) {
+	return NewArcGISTransport(ctx, host, auth, &http.Transport{})
 }
 
 func ServiceRootFromTenant(base string, tenantId string) string {
@@ -176,11 +188,11 @@ func ServiceRootFromTenant(base string, tenantId string) string {
 
 func (ag *ArcGIS) Query(ctx context.Context, service string, layer_id uint, query *Query) (*QueryResult, error) {
 	path := fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id)
-	return doJSONGet[QueryResult](ctx, ag.requestor, path)
+	return reqGetJSON[QueryResult](ctx, ag.requestor, path)
 }
 func (ag *ArcGIS) QueryRaw(ctx context.Context, service string, layer_id uint, query *Query) ([]byte, error) {
 	path := fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id)
-	return doGet(ctx, ag.requestor, path)
+	return ag.requestor.doGet(ctx, path)
 }
 
 type AdminInfo struct {
@@ -190,38 +202,34 @@ type AdminInfo struct {
 func (ag *ArcGIS) AdminInfo(ctx context.Context, serviceName string, serviceType ServiceType) (*AdminInfo, error) {
 	// We may need to always direct this request to
 	path := fmt.Sprintf("/ArcGIS/rest/admin/services/%s/%s/permissions", serviceName, ServiceTypeNames[serviceType])
-	return doJSONGet[AdminInfo](ctx, ag.requestor, path)
+	return reqGetJSON[AdminInfo](ctx, ag.requestor, path)
 }
 
 func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*FeatureServer, error) {
 	path := fmt.Sprintf("/services/%s/FeatureServer", service)
-	return doJSONGet[FeatureServer](ctx, ag.requestor, path)
+	return reqGetJSON[FeatureServer](ctx, ag.requestor, path)
 }
 
-/*
-not valid
-func (ag *ArcGIS) Root(ctx context.Context) (string, error) {
-	req, err := ag.serviceRequest("/")
-	if err != nil {
-		return "", fmt.Errorf("Failed to create root request: %w", err)
-	}
-	content, err := ag.requestJSON(ctx, req)
-	if err != nil {
-		return "", fmt.Errorf("Failed to request JSON: %w", err)
-	}
-	return string(content), err
+func (ag *ArcGIS) MapServices(ctx context.Context) (*SearchResponse, error) {
+	return ag.Search(ctx, "type: Map Module")
 }
-*/
-
+func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
+	// We may need to always direct this request to
+	// GET https://www.arcgis.com/sharing/rest/portals/self?f=json
+	// not sure if hosted services are different
+	//
+	return reqGetJSON[PortalsResponse](ctx, ag.requestor, "/sharing/rest/portals/self")
+}
 func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, error) {
-	return doJSONPost[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
+	return reqPostJSONParams[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
 		"q": query,
 	})
 }
 func (ag *ArcGIS) Services(ctx context.Context) (*ServiceInfo, error) {
-	return doJSONGet[ServiceInfo](ctx, ag.requestor, "/sharing/rest/services")
+	return reqGetJSON[ServiceInfo](ctx, ag.requestor, "/sharing/rest/services")
 }
-func (ag *ArcGIS) SwitchHostByPortal(ctx context.Context) error {
+
+func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 	logger := LoggerFromContext(ctx)
 	portals, err := ag.PortalsSelf(ctx)
 	if err != nil {
@@ -229,10 +237,11 @@ func (ag *ArcGIS) SwitchHostByPortal(ctx context.Context) error {
 	} else if portals == nil {
 		return errors.New("Returned portals was nil")
 	}
-	logger.Debug().Str("id", portals.ID).Str("name", portals.PortalName).Str("urlkey", portals.UrlKey).Msg("Found a portal")
 	ag.requestor.host = fmt.Sprintf("https://%s.maps.arcgis.com", portals.UrlKey)
+	logger.Debug().Str("id", portals.ID).Str("name", portals.PortalName).Str("urlkey", portals.UrlKey).Str("host", ag.requestor.host).Msg("Switched host by portal")
 	return nil
 }
+
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
 	var result FeatureServer
 	err := json.Unmarshal(data, &result)
@@ -360,7 +369,7 @@ func (ag *ArcGIS) updateUsage(ctx context.Context, resp *http.Response) {
 }
 
 func (ag *ArcGIS) Info(ctx context.Context) (*RestInfo, error) {
-	return doJSONGet[RestInfo](ctx, ag.requestor, "/sharing/rest/info")
+	return reqGetJSON[RestInfo](ctx, ag.requestor, "/sharing/rest/info")
 }
 
 type Query struct {
@@ -405,7 +414,7 @@ type PermissionSlice = []Permission
 
 func (ag *ArcGIS) PermissionList(ctx context.Context, serviceName string, serviceType ServiceType) (*PermissionSlice, error) {
 	path := fmt.Sprintf("/ArcGIS/rest/admin/services/%s/%s/permissions", serviceName, ServiceTypeNames[serviceType])
-	return doJSONGet[PermissionSlice](ctx, ag.requestor, path)
+	return reqGetJSON[PermissionSlice](ctx, ag.requestor, path)
 }
 
 type PermissionEntry struct {
@@ -436,7 +445,7 @@ func (ag *ArcGIS) QueryCount(ctx context.Context, service string, layer_id uint)
 	params["returnCountOnly"] = "true"
 	params["where"] = "9999=9999"
 	path := fmt.Sprintf("/services/%s/FeatureServer/%d/query", service, layer_id)
-	return doJSONGetParams[QueryResultCount](ctx, ag.requestor, path, params)
+	return reqGetJSONParams[QueryResultCount](ctx, ag.requestor, path, params)
 }
 
 func (d *DefaultValueWrapper) UnmarshalJSON(data []byte) (err error) {
@@ -471,7 +480,7 @@ type WebhookSlice = []Webhook
 
 func (ag *ArcGIS) WebhookList(ctx context.Context, serviceName string, serviceType ServiceType) (*WebhookSlice, error) {
 	path := fmt.Sprintf("/ArcGIS/rest/admin/services/%s/%s/webhooks", serviceName, ServiceTypeNames[serviceType])
-	return doJSONGet[WebhookSlice](ctx, ag.requestor, path)
+	return reqGetJSON[WebhookSlice](ctx, ag.requestor, path)
 }
 
 type WebhookListResponse struct {

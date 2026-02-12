@@ -8,33 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"github.com/rs/zerolog"
 )
 
-type gisRequestor struct {
-	authenticator Authenticator
-	client        http.Client
-	host          string
-}
-
-func newGisRequestor(authenticator Authenticator, host string) gisRequestor {
-	return gisRequestor{
-		authenticator: authenticator,
-		client:        http.Client{},
-		host:          host,
-	}
-
-}
-func (r gisRequestor) withHost(host string) gisRequestor {
-	return gisRequestor{
-		authenticator: r.authenticator,
-		client:        http.Client{},
-		host:          host,
-	}
-}
-
-func doGetParamsHeaders(ctx context.Context, r gisRequestor, path string, params map[string]string, headers map[string]string) ([]byte, error) {
+func doGetParamsHeaders(ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) ([]byte, error) {
+	logger := zerolog.Ctx(ctx)
 	// Parse the URL
-	reqURL, err := url.Parse(r.host + path)
+	reqURL, err := url.Parse(host + path)
 	if err != nil {
 		return nil, fmt.Errorf("parsing URL: %w", err)
 	}
@@ -49,6 +31,7 @@ func doGetParamsHeaders(ctx context.Context, r gisRequestor, path string, params
 	}
 
 	// Create request with context
+	logger.Debug().Str("method", "GET").Str("url", reqURL.String()).Msg("Making request")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating request: %w", err)
@@ -57,7 +40,7 @@ func doGetParamsHeaders(ctx context.Context, r gisRequestor, path string, params
 		req.Header.Set(k, v)
 	}
 	// Make the request
-	resp, err := r.client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("making request: %w", err)
 	}
@@ -65,22 +48,35 @@ func doGetParamsHeaders(ctx context.Context, r gisRequestor, path string, params
 
 	// Check status code
 	body, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, string(body))
 	}
 	return body, nil
 }
-func doGetParams(ctx context.Context, r gisRequestor, path string, params map[string]string) ([]byte, error) {
-	return doGetParamsHeaders(ctx, r, path, params, map[string]string{})
+func doGetParams(ctx context.Context, client http.Client, host string, path string, params map[string]string) ([]byte, error) {
+	return doGetParamsHeaders(ctx, client, host, path, params, map[string]string{})
 }
-func doGet(ctx context.Context, r gisRequestor, path string) ([]byte, error) {
-	return doGetParams(ctx, r, path, map[string]string{})
+func doGet(ctx context.Context, client http.Client, host string, path string) ([]byte, error) {
+	return doGetParams(ctx, client, host, path, map[string]string{})
 }
-func doJSONGet[T any](ctx context.Context, r gisRequestor, path string) (*T, error) {
-	return doJSONGetParams[T](ctx, r, path, map[string]string{})
+func doGetJSON[T any](ctx context.Context, client http.Client, host string, path string) (*T, error) {
+	return doGetJSONParamsHeaders[T](ctx, client, host, path, map[string]string{}, map[string]string{})
 }
-func doJSONGetParams[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
-	body, err := doGetParamsHeaders(ctx, r, path, params, map[string]string{"Accept": "application/json"})
+func doGetJSONParams[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string) (*T, error) {
+	return doGetJSONParamsHeaders[T](ctx, client, host, path, params, map[string]string{})
+}
+func doGetJSONParamsHeaders[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) (*T, error) {
+	// Add the 'f=json' param to request a response in json format, if it's not already specified
+	_, ok := params["f"]
+	if !ok {
+		params["f"] = "json"
+	}
+	// Add accept header, if not present
+	_, ok = headers["Accept"]
+	if !ok {
+		headers["Accept"] = "application/json"
+	}
+	body, err := doGetParamsHeaders(ctx, client, host, path, params, headers)
 	if err != nil {
 		return nil, fmt.Errorf("doing request: %w", err)
 	}
@@ -101,34 +97,93 @@ func doJSONGetParams[T any](ctx context.Context, r gisRequestor, path string, pa
 
 	return &result, nil
 }
+func reqGetJSON[T any](ctx context.Context, r gisRequestor, path string) (*T, error) {
+	return reqGetJSONParamsHeaders[T](ctx, r, path, map[string]string{}, map[string]string{})
+}
+func reqGetJSONParams[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
+	return reqGetJSONParamsHeaders[T](ctx, r, path, params, map[string]string{})
+}
+func reqGetJSONParamsHeaders[T any](ctx context.Context, r gisRequestor, path string, params map[string]string, headers map[string]string) (*T, error) {
+	headers = r.authenticator.addAuthHeaders(ctx, headers)
+	return doGetJSONParamsHeaders[T](ctx, r.client, r.host, path, params, headers)
+}
 
-func doJSONPost[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
-
-	// Create request with context
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, r.host+path, nil)
-	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
+func doPostFormParams(ctx context.Context, client http.Client, host string, path string, params map[string]string) (http.Header, []byte, error) {
+	return doPostFormParamsHeaders(ctx, client, host, path, params, map[string]string{})
+}
+func doPostFormParamsHeaders(ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) (http.Header, []byte, error) {
+	logger := zerolog.Ctx(ctx)
+	data := url.Values{}
+	for k, v := range params {
+		data.Set(k, v)
 	}
-
-	// Set headers
-	req.Header.Set("Accept", "application/json")
-
-	// Make the request
-	resp, err := r.client.Do(req)
+	body := strings.NewReader(data.Encode())
+	url := host + path
+	resp, err := client.PostForm(url, data)
+	logger.Debug().Str("method", "POST").Str("params", mapToString(params)).Str("url", url).Int("status", resp.StatusCode).Msg("Making request")
 	if err != nil {
-		return nil, fmt.Errorf("making request: %w", err)
+		return nil, nil, fmt.Errorf("make post form: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check status code
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
+	resp_body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode >= 400 {
+		return nil, nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
+	}
+	/*
+		for k, v := range resp.Header {
+			logger.Debug().Str("header", k).Strs("values", v).Msg("response header")
+		}
+	*/
+	return resp.Header, resp_body, nil
+}
+func doPostParamsHeaders(ctx context.Context, client http.Client, host string, path string, body io.Reader, headers map[string]string) (http.Header, []byte, error) {
+	// Create request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, host+path, body)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating request: %w", err)
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	// Make the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("making request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check status code
+	resp_body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode >= 400 {
+		return nil, nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
+	}
+	return resp.Header, resp_body, nil
+}
+func doPostJSON[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string) (*T, error) {
+	return doPostJSONParams[T](ctx, client, host, path, map[string]string{})
+}
+func doPostJSONParams[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string) (*T, error) {
+	// Set headers
+	headers := map[string]string{
+		"Accept": "application/json",
+	}
+
+	body, err := json.Marshal(params)
+	if err != nil {
+		return nil, fmt.Errorf("json marshal: %w", err)
+	}
+	_, resp_body, err := doPostParamsHeaders(ctx, client, host, path, bytes.NewBuffer(body), headers)
+	if err != nil {
+		return nil, fmt.Errorf("do post: %w", err)
 	}
 
 	// Decode JSON
 	var result T
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(resp_body)).Decode(&result); err != nil {
 		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
@@ -153,7 +208,22 @@ func logRequestBase(ctx context.Context, r *http.Request) {
 
 	logger.Debug().Str("method", r.Method).Str("url", cleanURL.String()).Msg("ArcGIS request")
 }
-
+func mapToString(m map[string]string) string {
+	var b strings.Builder
+	first := true
+	for k, v := range m {
+		if first {
+			b.WriteString(fmt.Sprintf("%s: %s", k, v))
+			first = false
+		} else {
+			b.WriteString(fmt.Sprintf(", %s: %s", k, v))
+		}
+	}
+	return b.String()
+}
+func reqPostJSONParams[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
+	return doPostJSONParams[T](ctx, r.client, r.host, path, params)
+}
 func tryParseError(ctx context.Context, data []byte) error {
 	var msg ErrorResponse
 	err := json.Unmarshal(data, &msg)
