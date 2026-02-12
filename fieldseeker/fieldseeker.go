@@ -74,7 +74,7 @@ func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, er
 		ServiceInfo:   nil,
 		ServiceName:   "FieldSeekerGIS",
 		layerToID:     make(map[LayerType]uint, 0),
-	}
+	}, nil
 }
 
 func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error) {

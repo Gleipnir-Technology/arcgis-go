@@ -137,7 +137,7 @@ func (a AuthenticatorToken) addAuthHeaders(ctx context.Context, h map[string]str
 	h["X-ESRI-Authorization"] = "Bearer " + a.Token
 	return h
 }
-func (a AuthenticatorToken) init(ctx context.Context) error {
+func (a AuthenticatorToken) init(ctx context.Context, client http.Client) error {
 	return nil
 }
 func (a AuthenticatorOAuth) addAuthentication(req *http.Request) (*http.Request, error) {
@@ -148,7 +148,7 @@ func (a AuthenticatorOAuth) addAuthHeaders(ctx context.Context, h map[string]str
 	h["X-ESRI-Authorization"] = "Bearer " + a.AccessToken
 	return h
 }
-func (a AuthenticatorOAuth) init(ctx context.Context) error {
+func (a AuthenticatorOAuth) init(ctx context.Context, client http.Client) error {
 	return nil
 }
 
