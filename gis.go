@@ -18,136 +18,12 @@ import (
 
 // Root structure for an instance of the ArcGIS API
 type ArcGIS struct {
+	AccountID string
+
 	//ServiceRoot   string
 	requestor gisRequestor
 
 	usage Usage
-}
-
-// Basic information about the REST API itself
-type AuthInfo struct {
-	isTokenBasedSecurity bool
-	tokenServiceUrl      string
-}
-type RestInfo struct {
-	CurrentVersion  float64
-	FullVersion     string
-	OwningSystemUrl string
-	OwningTenant    string
-	AuthInfo        AuthInfo
-}
-
-// Listing of available services
-type ServiceListing struct {
-	Name string
-	Type string
-	URL  string
-}
-
-type ServiceInfo struct {
-	CurrentVersion float64
-	Services       []ServiceListing
-}
-
-// Feature Server details
-type LayerFeature struct {
-	ID                uint
-	Name              string
-	ParentLayerID     int
-	DefaultVisibility bool
-	SubLayerIDs       *string
-	MinScale          int
-	MaxScale          int
-	Type              string
-	GeometryType      string
-}
-
-type Table struct {
-	ID                int
-	Name              string
-	ParentLayerID     int
-	DefaultVisibility bool
-	SubLayerIDs       *string
-	MinScale          int
-	MaxScale          int
-}
-
-type FeatureServer struct {
-	CurrentVersion                 float64
-	ServiceItemId                  string
-	ServiceDescription             string
-	HasVersionedData               bool
-	HasSharedDomains               bool
-	MaxRecordCount                 uint
-	SupportedQueryFormats          string
-	SupportsVCSProjection          bool
-	SupportedExportFormats         string
-	SupportedConvertFileFormats    string
-	SupportedConvertContentFormats string
-	SupportedFullTextLocales       []string
-	Capabilities                   string
-	Description                    string
-	CopyrightText                  string
-	SpatialReference               SpatialReference
-	InitialExtent                  Extent
-	FullExtent                     Extent
-	AllowGeometryUpdates           bool
-	SupportsTrueCurve              bool
-	SupportedCurveTypes            []string
-	AllowTrueCurvesUpdates         bool
-	Layers                         []LayerFeature
-	Tables                         []Table
-	// many missing fields
-}
-
-// Query endpoint
-type UniqueIdField struct {
-	Name               string
-	IsSystemMaintained bool
-}
-
-type Feature struct {
-	Attributes map[string]any
-	Geometry   json.RawMessage
-}
-
-type CodedValue struct {
-	Code CodeWrapper
-	Name string
-}
-
-type Domain struct {
-	CodedValues []CodedValue
-	MergePolicy string
-	Name        string
-	SplitPolicy string
-	Type        string
-}
-
-type DefaultValueWrapper string
-
-type Field struct {
-	Alias        string
-	DefaultValue *DefaultValueWrapper
-	Domain       *Domain
-	Length       int
-	Name         string
-	SQLType      string
-	Type         string
-}
-
-type QueryResult struct {
-	Features          []Feature
-	Fields            []Field
-	GeometryType      string
-	GlobalIDFieldName string
-	ObjectIdFieldName string
-	SpatialReference  SpatialReference
-	UniqueIdField     UniqueIdField
-}
-
-type QueryResultCount struct {
-	Count int
 }
 
 type Usage struct {
@@ -211,7 +87,7 @@ func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*Featur
 }
 
 func (ag *ArcGIS) MapServices(ctx context.Context) (*SearchResponse, error) {
-	return ag.Search(ctx, "type: Map Module")
+	return ag.SearchInAccount(ctx, "type: Map Service")
 }
 func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
 	// We may need to always direct this request to
@@ -225,6 +101,17 @@ func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, er
 		"q": query,
 	})
 }
+func (ag *ArcGIS) SearchInAccount(ctx context.Context, query string) (*SearchResponse, error) {
+	params := map[string]string{
+		"f":         "json",
+		"q":         fmt.Sprintf("%s accountid:%s", query, ag.AccountID),
+		"start":     "1",
+		"num":       "100",
+		"sortField": "avgRating",
+		"sortOrder": "desc",
+	}
+	return reqPostFormToJSON[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", params)
+}
 func (ag *ArcGIS) Services(ctx context.Context) (*ServiceInfo, error) {
 	return reqGetJSON[ServiceInfo](ctx, ag.requestor, "/sharing/rest/services")
 }
@@ -237,6 +124,7 @@ func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 	} else if portals == nil {
 		return errors.New("Returned portals was nil")
 	}
+	ag.AccountID = portals.ID
 	ag.requestor.host = fmt.Sprintf("https://%s.maps.arcgis.com", portals.UrlKey)
 	logger.Debug().Str("id", portals.ID).Str("name", portals.PortalName).Str("urlkey", portals.UrlKey).Str("host", ag.requestor.host).Msg("Switched host by portal")
 	return nil
@@ -275,15 +163,6 @@ func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
 	var result QueryResultCount
 	err := json.Unmarshal(data, &result)
 	//Println("Parsing", string(data))
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func parseRestInfo(data []byte) (*RestInfo, error) {
-	var result RestInfo
-	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil, err
 	}

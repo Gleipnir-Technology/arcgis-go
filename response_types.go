@@ -2,7 +2,121 @@ package arcgis
 
 import (
 	"context"
+	"encoding/json"
 )
+
+type DefaultValueWrapper string
+
+type Field struct {
+	Alias        string
+	DefaultValue *DefaultValueWrapper
+	Domain       *Domain
+	Length       int
+	Name         string
+	SQLType      string
+	Type         string
+}
+
+type QueryResult struct {
+	Features          []Feature
+	Fields            []Field
+	GeometryType      string
+	GlobalIDFieldName string
+	ObjectIdFieldName string
+	SpatialReference  SpatialReference
+	UniqueIdField     UniqueIdField
+}
+
+type QueryResultCount struct {
+	Count int
+}
+
+// Listing of available services
+type ServiceListing struct {
+	Name string
+	Type string
+	URL  string
+}
+
+type ServiceInfo struct {
+	CurrentVersion float64
+	Services       []ServiceListing
+}
+
+// Feature Server details
+type LayerFeature struct {
+	ID                uint
+	Name              string
+	ParentLayerID     int
+	DefaultVisibility bool
+	SubLayerIDs       *string
+	MinScale          int
+	MaxScale          int
+	Type              string
+	GeometryType      string
+}
+
+type Table struct {
+	ID                int
+	Name              string
+	ParentLayerID     int
+	DefaultVisibility bool
+	SubLayerIDs       *string
+	MinScale          int
+	MaxScale          int
+}
+
+type FeatureServer struct {
+	CurrentVersion                 float64
+	ServiceItemId                  string
+	ServiceDescription             string
+	HasVersionedData               bool
+	HasSharedDomains               bool
+	MaxRecordCount                 uint
+	SupportedQueryFormats          string
+	SupportsVCSProjection          bool
+	SupportedExportFormats         string
+	SupportedConvertFileFormats    string
+	SupportedConvertContentFormats string
+	SupportedFullTextLocales       []string
+	Capabilities                   string
+	Description                    string
+	CopyrightText                  string
+	SpatialReference               SpatialReference
+	InitialExtent                  Extent
+	FullExtent                     Extent
+	AllowGeometryUpdates           bool
+	SupportsTrueCurve              bool
+	SupportedCurveTypes            []string
+	AllowTrueCurvesUpdates         bool
+	Layers                         []LayerFeature
+	Tables                         []Table
+	// many missing fields
+}
+
+// Query endpoint
+type UniqueIdField struct {
+	Name               string
+	IsSystemMaintained bool
+}
+
+type Feature struct {
+	Attributes map[string]any
+	Geometry   json.RawMessage
+}
+
+type CodedValue struct {
+	Code CodeWrapper
+	Name string
+}
+
+type Domain struct {
+	CodedValues []CodedValue
+	MergePolicy string
+	Name        string
+	SplitPolicy string
+	Type        string
+}
 
 type AttributesGeocode struct {
 	// See https://developers.arcgis.com/rest/geocode/service-output/#output-fields
@@ -83,6 +197,12 @@ type AttributesGeocode struct {
 		StrucDet
 		extent
 	*/
+}
+
+// Basic information about the REST API itself
+type AuthInfo struct {
+	isTokenBasedSecurity bool
+	tokenServiceUrl      string
 }
 type Basemap struct {
 	BasemapLayers []LayerResource `json:"baseMapLayers"`
@@ -282,6 +402,70 @@ type Group struct {
 	Owner string `json:"owner"`
 }
 
+type RestInfo struct {
+	CurrentVersion  float64
+	FullVersion     string
+	OwningSystemUrl string
+	OwningTenant    string
+	AuthInfo        AuthInfo
+}
+
+type SearchResponse struct {
+	Total     int            `json:"total"`
+	Start     int            `json:"start"`
+	Num       int            `json:"num"`
+	NextStart int            `json:"nextStart"`
+	Results   []SearchResult `json:"results"`
+}
+type SearchResult struct {
+	ID string `json:"id"`
+	//Owner string `json:"owner"`
+	//OrgID string `json:"orgId"`
+	//Created int64 `json:"created"`
+	//IsOrgItem bool `json:"isOrgItem"`
+	//Modified int64 `json:"modified"`
+	//Guid *string `json:"guid"`
+	Name  string `json:"name"`
+	Title string `json:"title"`
+	//Type string `json:"type"`
+	//TypeKeywords []string `json:"typeKeywords"`
+	//Description string `json:"description"`
+	//Tags []string `json:"tags"`
+	//Snippet string `json:"snippet"`
+	//Thumbnail string `json:"thumbnail"`
+	//Documentation *string `json:"documentation"`
+	//Extent [][]float32 `json:"extent"`
+	//Categories []string `json:"categories"`
+	//SpatialReference string `json:"spatialReference"`
+	//AccessInformation string `json:"accessInformation"`
+	//Classification *string `json:"classification"`
+	//LicenseInfo string `json:"licenseInfo"`
+	//Culture string `json:"culture"`
+	//Properties *string `json:"properties"`
+	//AdvancedSettings *string `json:"advancedSettings"`
+	URL string `json:"url"`
+	//ProxyFilter *string `json:"proxyFilter"`
+	//Access string `json:"access"`
+	//Size int `json:"size"`
+	//SubInfo int `json:"subInfo"`
+	//AppCategories []string `json:"appCategories"`
+	//Industries []string `json:"industries"`
+	//Languages []string `json:"languages"`
+	//LargeThumbnail *string `json:"largeThumbnail"`
+	//Banner *string `json:"banner"`
+	//Screenshots []string `json:"screenshots"`
+	//Listed bool `json:"listed"`
+	//NumComments int `json:"numComments"`
+	//NumRatings int `json:"numRatings"`
+	//AvgRating int `json:"avgRating"`
+	//NumViews int `json:"numViews"`
+	//ScoreCompleteness int `json:"scoreCompleteness"`
+	//GroupDesignations *string `json:"groupDesignations"`
+	//ApiToken1ExpirationDate int `json:"apiToken1ExpirationDate"`
+	//ApiToken2ExpirationDate int `json:"apiToken2ExpirationDate"`
+	//LastViewed int64 `json:"lastViewed"`
+}
+
 type UserInfo struct {
 	Username             string   `json:"username"`
 	Udn                  *string  `json:"udn"`
@@ -320,62 +504,6 @@ type UserInfo struct {
 	Created              int64    `json:"created"`
 	Modified             int64    `json:"modified"`
 	Provider             string   `json:"provider"`
-}
-
-type SearchResponse struct {
-	Total     int            `json:"total"`
-	Start     int            `json:"start"`
-	Num       int            `json:"num"`
-	NextStart int            `json:"nextStart"`
-	Results   []SearchResult `json:"results"`
-}
-type SearchResult struct {
-	ID string `json:"id"`
-	//Owner string `json:"owner"`
-	//OrgID string `json:"orgId"`
-	//Created int64 `json:"created"`
-	//IsOrgItem bool `json:"isOrgItem"`
-	//Modified int64 `json:"modified"`
-	//Guid *string `json:"guid"`
-	Name string `json:"name"`
-	//Title string `json:"title"`
-	//Type string `json:"type"`
-	//TypeKeywords []string `json:"typeKeywords"`
-	//Description string `json:"description"`
-	//Tags []string `json:"tags"`
-	//Snippet string `json:"snippet"`
-	//Thumbnail string `json:"thumbnail"`
-	//Documentation *string `json:"documentation"`
-	//Extent [][]float32 `json:"extent"`
-	//Categories []string `json:"categories"`
-	//SpatialReference string `json:"spatialReference"`
-	//AccessInformation string `json:"accessInformation"`
-	//Classification *string `json:"classification"`
-	//LicenseInfo string `json:"licenseInfo"`
-	//Culture string `json:"culture"`
-	//Properties *string `json:"properties"`
-	//AdvancedSettings *string `json:"advancedSettings"`
-	URL string `json:"url"`
-	//ProxyFilter *string `json:"proxyFilter"`
-	//Access string `json:"access"`
-	//Size int `json:"size"`
-	//SubInfo int `json:"subInfo"`
-	//AppCategories []string `json:"appCategories"`
-	//Industries []string `json:"industries"`
-	//Languages []string `json:"languages"`
-	//LargeThumbnail *string `json:"largeThumbnail"`
-	//Banner *string `json:"banner"`
-	//Screenshots []string `json:"screenshots"`
-	//Listed bool `json:"listed"`
-	//NumComments int `json:"numComments"`
-	//NumRatings int `json:"numRatings"`
-	//AvgRating int `json:"avgRating"`
-	//NumViews int `json:"numViews"`
-	//ScoreCompleteness int `json:"scoreCompleteness"`
-	//GroupDesignations *string `json:"groupDesignations"`
-	//ApiToken1ExpirationDate int `json:"apiToken1ExpirationDate"`
-	//ApiToken2ExpirationDate int `json:"apiToken2ExpirationDate"`
-	//LastViewed int64 `json:"lastViewed"`
 }
 
 func (e ErrorResponse) AsError(ctx context.Context) apiError {

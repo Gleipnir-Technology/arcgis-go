@@ -82,7 +82,7 @@ func main() {
 	}
 	log.Info().Int("total", map_services.Total).Msg("got results")
 	for _, s := range map_services.Results {
-		log.Info().Str("id", s.ID).Str("name", s.Name).Str("url", s.URL).Msg("Map service")
+		log.Info().Str("id", s.ID).Str("name", s.Name).Str("url", s.URL).Str("title", s.Title).Msg("Map service")
 	}
 	log.Info().Str("username", username).Str("password", password).Msg("creds")
 }

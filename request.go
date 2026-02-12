@@ -112,31 +112,16 @@ func doPostFormParams(ctx context.Context, client http.Client, host string, path
 	return doPostFormParamsHeaders(ctx, client, host, path, params, map[string]string{})
 }
 func doPostFormParamsHeaders(ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) (http.Header, []byte, error) {
-	logger := zerolog.Ctx(ctx)
+	//logger := zerolog.Ctx(ctx)
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
 	data := url.Values{}
 	for k, v := range params {
 		data.Set(k, v)
 	}
 	body := strings.NewReader(data.Encode())
-	url := host + path
-	resp, err := client.PostForm(url, data)
-	logger.Debug().Str("method", "POST").Str("params", mapToString(params)).Str("url", url).Int("status", resp.StatusCode).Msg("Making request")
-	if err != nil {
-		return nil, nil, fmt.Errorf("make post form: %w", err)
-	}
-	defer resp.Body.Close()
 
-	// Check status code
-	resp_body, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode >= 400 {
-		return nil, nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
-	}
-	/*
-		for k, v := range resp.Header {
-			logger.Debug().Str("header", k).Strs("values", v).Msg("response header")
-		}
-	*/
-	return resp.Header, resp_body, nil
+	//logger.Debug().Str("method", "POST").Str("params", mapToString(params)).Str("url", url).Int("status", resp.StatusCode).Msg("Making request")
+	return doPostParamsHeaders(ctx, client, host, path, body, headers)
 }
 func doPostParamsHeaders(ctx context.Context, client http.Client, host string, path string, body io.Reader, headers map[string]string) (http.Header, []byte, error) {
 	// Create request with context
@@ -164,14 +149,17 @@ func doPostParamsHeaders(ctx context.Context, client http.Client, host string, p
 	return resp.Header, resp_body, nil
 }
 func doPostJSON[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string) (*T, error) {
-	return doPostJSONParams[T](ctx, client, host, path, map[string]string{})
+	return doPostJSONParamsHeaders[T](ctx, client, host, path, map[string]string{}, map[string]string{})
 }
-func doPostJSONParams[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string) (*T, error) {
-	// Set headers
-	headers := map[string]string{
-		"Accept": "application/json",
+func doPostFormToJSON[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) (*T, error) {
+	//logger := zerolog.Ctx(ctx)
+	_, body, err := doPostFormParamsHeaders(ctx, client, host, path, params, headers)
+	if err != nil {
+		return nil, fmt.Errorf("do POST: %w", err)
 	}
-
+	return parseJSON[T](body)
+}
+func doPostJSONParamsHeaders[T any](ctx context.Context, client http.Client, host string, path string, params map[string]string, headers map[string]string) (*T, error) {
 	body, err := json.Marshal(params)
 	if err != nil {
 		return nil, fmt.Errorf("json marshal: %w", err)
@@ -180,10 +168,12 @@ func doPostJSONParams[T any](ctx context.Context, client http.Client, host strin
 	if err != nil {
 		return nil, fmt.Errorf("do post: %w", err)
 	}
-
+	return parseJSON[T](resp_body)
+}
+func parseJSON[T any](body []byte) (*T, error) {
 	// Decode JSON
 	var result T
-	if err := json.NewDecoder(bytes.NewReader(resp_body)).Decode(&result); err != nil {
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&result); err != nil {
 		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
@@ -221,8 +211,13 @@ func mapToString(m map[string]string) string {
 	}
 	return b.String()
 }
+func reqPostFormToJSON[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
+	headers := r.authenticator.addAuthHeaders(ctx, map[string]string{})
+	return doPostFormToJSON[T](ctx, r.client, r.host, path, params, headers)
+}
 func reqPostJSONParams[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
-	return doPostJSONParams[T](ctx, r.client, r.host, path, params)
+	headers := r.authenticator.addAuthHeaders(ctx, map[string]string{})
+	return doPostJSONParamsHeaders[T](ctx, r.client, r.host, path, params, headers)
 }
 func tryParseError(ctx context.Context, data []byte) error {
 	var msg ErrorResponse
