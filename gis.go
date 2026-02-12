@@ -146,8 +146,11 @@ func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
 	return reqGetJSON[PortalsResponse](ctx, ag.requestor, "/sharing/rest/portals/self")
 }
 func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, error) {
-	return reqPostJSONParams[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
-		"q": query,
+	return reqPostFormToJSON[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
+		"f":     "json",
+		"q":     query,
+		"start": "1",
+		"num":   "100",
 	})
 }
 func (ag *ArcGIS) SearchInAccount(ctx context.Context, query string) (*SearchResponse, error) {
