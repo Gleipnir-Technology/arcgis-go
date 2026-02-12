@@ -3,16 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
-	"os/user"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
 	"github.com/rs/zerolog"
@@ -45,40 +39,10 @@ func main() {
 	ctx := context.TODO()
 	ctx = log.With().Str("component", "arcgis").Logger().WithContext(ctx)
 
-	// Load mitmproxy certificate
-	usr, err := user.Current()
-	if err != nil {
-		log.Error().Err(err).Msg("current usr")
-		os.Exit(1)
-	}
-	certPath := usr.HomeDir + "/.mitmproxy/mitmproxy-ca-cert.pem" // Default location
-	certBytes, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		panic(err)
-	}
-
-	// Create a certificate pool and add the certificate
-	rootCAs, _ := x509.SystemCertPool()
-	if rootCAs == nil {
-		rootCAs = x509.NewCertPool()
-	}
-	rootCAs.AppendCertsFromPEM(certBytes)
-
-	// Configure proxy
-	proxyURL, _ := url.Parse("http://127.0.0.1:8080")
-
-	// Configure transport with proxy and certificates
-	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyURL),
-		TLSClientConfig: &tls.Config{
-			RootCAs: rootCAs,
-		},
-	}
-
-	gis, err := arcgis.NewArcGISTransport(ctx, &base, &arcgis.AuthenticatorUsernamePassword{
+	gis, err := arcgis.NewArcGIS(ctx, &base, &arcgis.AuthenticatorUsernamePassword{
 		Password: password,
 		Username: username,
-	}, transport)
+	})
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create arcgis")
 		os.Exit(2)

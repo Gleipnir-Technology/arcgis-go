@@ -56,7 +56,16 @@ func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, t
 	return result, nil
 }
 func NewArcGIS(ctx context.Context, host *string, auth Authenticator) (*ArcGIS, error) {
-	return NewArcGISTransport(ctx, host, auth, &http.Transport{})
+	var mitm_proxy = os.Getenv("MITMPROXY")
+	var err error
+	transport := &http.Transport{}
+	if mitm_proxy != "" {
+		transport, err = MITMProxyTransport()
+		if err != nil {
+			return nil, fmt.Errorf("create mitm proxy: %w", err)
+		}
+	}
+	return NewArcGISTransport(ctx, host, auth, transport)
 }
 
 func ServiceRootFromTenant(base string, tenantId string) string {
