@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["-lat=36.3260431", "-lng=-119.3444741"]
+  args_bin = ["-lat=36.3260431000042", "-lng=-119.34384512198031"]
   bin = "./tmp/example-map-tile"
   cmd = "go build -o ./tmp/example-map-tile ./examples/map-tile"
   delay = 1000
