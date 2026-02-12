@@ -2,12 +2,7 @@ package arcgis
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
-
-var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
 
 /*
 	{
@@ -49,32 +44,20 @@ var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/Wor
 		]
 	}
 */
-func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) error {
-	logger := log.LoggerFromContext(ctx)
-	full_url, err := addParams(geocodeURL, map[string]string{
+type GeocodeCandidatesResponse struct {
+	SpatialReference SpatialReference
+	Candidates       []GeocodeCandidate
+}
+
+var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+
+func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) (*GeocodeCandidatesResponse, error) {
+	sub := ag.requestor.withHost("https://geocode-api.arcgis.com")
+	path := "/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+	params := map[string]string{
 		"f":          "json",
 		"outFields":  "*",
 		"SingleLine": address,
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to add params: %w", err)
 	}
-	r, err := ag.serviceRequestFromFull(full_url)
-	if err != nil {
-		return fmt.Errorf("Failed to create service request: %w", err)
-	}
-	body, err := ag.requestJSON(ctx, r)
-	if err != nil {
-		return fmt.Errorf("Failed to make request: %w", err)
-	}
-	/*
-		var result RestInfo
-		err := json.Unmarshal(data, &result)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	*/
-	logger.Info().Str("body", string(body)).Msg("did request")
-	return nil
+	return doJSONGetParams[GeocodeCandidatesResponse](ctx, sub, path, params)
 }

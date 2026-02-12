@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
-	"github.com/Gleipnir-Technology/arcgis-go/log"
 	"github.com/google/uuid"
 )
 
@@ -57,7 +56,7 @@ func structFromFeature[T any, PT interface {
 	*T
 	Geometric
 }](ctx context.Context, feature *arcgis.Feature) (PT, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := arcgis.LoggerFromContext(ctx)
 	// Create new LocationTracking instance
 	result := PT(new(T))
 

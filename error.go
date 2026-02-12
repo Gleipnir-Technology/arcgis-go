@@ -3,8 +3,6 @@ package arcgis
 import (
 	"context"
 	"fmt"
-
-	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
 
 type apiErrorType string
@@ -59,7 +57,7 @@ var (
 )
 
 func errorTypeFromString(ctx context.Context, s string) apiErrorType {
-	logger := log.LoggerFromContext(ctx)
+	logger := LoggerFromContext(ctx)
 	switch s {
 	case "invalid_request":
 		return APIErrorInvalidRequest
@@ -79,7 +77,7 @@ func hasString(strs []string, to_find string) bool {
 	return false
 }
 func newAPIError(ctx context.Context, e ErrorResponse) apiError {
-	logger := log.LoggerFromContext(ctx)
+	logger := LoggerFromContext(ctx)
 	logger.Debug().
 		Int("code", e.Error.Code).
 		Strs("details", e.Error.Details).

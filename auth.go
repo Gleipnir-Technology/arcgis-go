@@ -22,7 +22,8 @@ type AuthenticatorOAuth struct {
 }
 
 func (a AuthenticatorToken) addAuthentication(req *http.Request) (*http.Request, error) {
-	return nil, nil
+	panic("Not implemented")
+	//return nil, nil
 }
 func (a AuthenticatorOAuth) addAuthentication(req *http.Request) (*http.Request, error) {
 	req.Header.Add("X-ESRI-Authorization", "Bearer "+a.AccessToken)

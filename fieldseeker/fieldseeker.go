@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
-	"github.com/Gleipnir-Technology/arcgis-go/log"
 )
 
 type LayerType uint
@@ -68,8 +67,7 @@ type FieldSeeker struct {
 	layerToID map[LayerType]uint
 }
 
-func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) *FieldSeeker {
-	//logger := log.LoggerFromContext(ctx)
+func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
 	return &FieldSeeker{
 		Arcgis:        ar,
 		FeatureServer: nil,
@@ -99,23 +97,31 @@ func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
 	return fs.FeatureServer.MaxRecordCount, nil
 }
 
-func (fs *FieldSeeker) PermissionList(ctx context.Context) ([]arcgis.Permission, error) {
+func (fs *FieldSeeker) PermissionList(ctx context.Context) (*arcgis.PermissionSlice, error) {
 	return fs.Arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
 	return fs.Arcgis.QueryCount(ctx, fs.ServiceName, layer_id)
 }
 
-func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) ([]byte, error) {
+func (fs *FieldSeeker) SchemaRaw(ctx context.Context, layer_id uint) ([]byte, error) {
 	query := arcgis.NewQuery()
 	query.ResultRecordCount = 1
 	query.ResultOffset = 0
 	query.OutFields = "*"
 	query.Where = "1=1"
-	return fs.Arcgis.DoQueryRaw(ctx, fs.ServiceName, layer_id, query)
+	return fs.Arcgis.QueryRaw(ctx, fs.ServiceName, layer_id, query)
+}
+func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) (*arcgis.QueryResult, error) {
+	query := arcgis.NewQuery()
+	query.ResultRecordCount = 1
+	query.ResultOffset = 0
+	query.OutFields = "*"
+	query.Where = "1=1"
+	return fs.Arcgis.Query(ctx, fs.ServiceName, layer_id, query)
 }
 
-func (fs *FieldSeeker) WebhookList(ctx context.Context) ([]arcgis.Webhook, error) {
+func (fs *FieldSeeker) WebhookList(ctx context.Context) (*arcgis.WebhookSlice, error) {
 	return fs.Arcgis.WebhookList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
@@ -130,13 +136,12 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 	q.SpatialReference = "4326"
 	q.OutFields = "*"
 	q.Where = "1=1"
-	qr, err := fs.Arcgis.DoQuery(ctx, fs.ServiceName, layer_id, q)
-	return qr, err
+	return fs.Arcgis.Query(ctx, fs.ServiceName, layer_id, q)
 }
 
 // Make sure we have the Layer IDs we need to perform queries
 func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
-	logger := log.LoggerFromContext(ctx)
+	logger := arcgis.LoggerFromContext(ctx)
 	err := fs.ensureHasServices(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
@@ -171,7 +176,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 
 // Make sure we have the Service IDs we need to use FieldSeeker
 func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
-	logger := log.LoggerFromContext(ctx)
+	logger := arcgis.LoggerFromContext(ctx)
 	if fs.ServiceInfo != nil {
 		logger.Debug().Msg("already has services")
 		return nil

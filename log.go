@@ -1,4 +1,4 @@
-package log
+package arcgis
 
 import (
 	"context"
