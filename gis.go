@@ -87,7 +87,7 @@ func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*Featur
 }
 
 func (ag *ArcGIS) MapServices(ctx context.Context) (*SearchResponse, error) {
-	return ag.SearchInAccount(ctx, "type:Map Service")
+	return ag.SearchInAccount(ctx, "type:\"Map Service\"")
 }
 func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
 	// We may need to always direct this request to
