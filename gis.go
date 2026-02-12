@@ -37,6 +37,13 @@ type Usage struct {
 }
 
 func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, transport *http.Transport) (*ArcGIS, error) {
+	if host == nil {
+		h := os.Getenv("ARCGIS_BASE")
+		if h == "" {
+			h = "https://www.arcgis.com"
+		}
+		host = &h
+	}
 	h := "https://www.arcgis.com"
 	if host != nil {
 		h = *host
@@ -55,8 +62,8 @@ func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, t
 	}
 	return result, nil
 }
-func NewArcGIS(ctx context.Context, host *string, auth Authenticator) (*ArcGIS, error) {
-	var mitm_proxy = os.Getenv("MITMPROXY")
+func NewArcGIS(ctx context.Context) (*ArcGIS, error) {
+	var mitm_proxy = os.Getenv("MITM_PROXY")
 	var err error
 	transport := &http.Transport{}
 	if mitm_proxy != "" {
@@ -65,7 +72,19 @@ func NewArcGIS(ctx context.Context, host *string, auth Authenticator) (*ArcGIS, 
 			return nil, fmt.Errorf("create mitm proxy: %w", err)
 		}
 	}
-	return NewArcGISTransport(ctx, host, auth, transport)
+	var username = os.Getenv("ARCGIS_USERNAME")
+	if username == "" {
+		return nil, fmt.Errorf("no username")
+	}
+	var password = os.Getenv("ARCGIS_PASSWORD")
+	if password == "" {
+		return nil, fmt.Errorf("no password")
+	}
+	auth := AuthenticatorUsernamePassword{
+		Password: password,
+		Username: username,
+	}
+	return NewArcGISTransport(ctx, nil, &auth, transport)
 }
 
 func ServiceRootFromTenant(base string, tenantId string) string {

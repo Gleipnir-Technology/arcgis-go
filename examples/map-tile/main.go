@@ -16,33 +16,15 @@ import (
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	var base = os.Getenv("BASEURL")
-	var password = os.Getenv("PASSWORD")
-	var username = os.Getenv("USERNAME")
 
 	var lat = flag.Float64("lat", 37.332003, "The latitude to pull the tile from")
 	var lng = flag.Float64("lng", -122.0307812, "The longitude to pull the tile from")
 	flag.Parse()
 
-	if base == "" {
-		base = "https://www.arcgis.com"
-	}
-	if password == "" {
-		log.Error().Msg("Cannot have empty password")
-		os.Exit(1)
-	}
-	if username == "" {
-		log.Error().Msg("Cannot have empty username")
-		os.Exit(1)
-	}
-
 	ctx := context.TODO()
 	ctx = log.With().Str("component", "arcgis").Logger().WithContext(ctx)
 
-	gis, err := arcgis.NewArcGIS(ctx, &base, &arcgis.AuthenticatorUsernamePassword{
-		Password: password,
-		Username: username,
-	})
+	gis, err := arcgis.NewArcGIS(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create arcgis")
 		os.Exit(2)
