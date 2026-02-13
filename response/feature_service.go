@@ -100,7 +100,7 @@ type FeatureService struct {
 	SupportsReturnDeleteResults                 bool                        `json:"supportsReturnDeleteResults"`
 	HasStaticData                               bool                        `json:"hasStaticData"`
 	HasSharedDomains                            bool                        `json:"hasSharedDomains,omitempty"`
-	MaxRecordCount                              int                         `json:"maxRecordCount,omitempty"`
+	MaxRecordCount                              uint                        `json:"maxRecordCount,omitempty"`
 	SupportedQueryFormats                       string                      `json:"supportedQueryFormats"`
 	SupportsRelationshipsResource               bool                        `json:"supportsRelationshipsResource,omitempty"`
 	SupportsAppend                              bool                        `json:"supportsAppend"`

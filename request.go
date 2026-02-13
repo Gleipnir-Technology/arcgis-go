@@ -135,6 +135,9 @@ func reqGetParamsHeadersFullURL(ctx context.Context, r gisRequestor, req_url url
 func reqGetJSON[T any](ctx context.Context, r gisRequestor, path string) (*T, error) {
 	return reqGetJSONParamsHeaders[T](ctx, r, path, map[string]string{}, map[string]string{})
 }
+func reqGetJSONFullURL[T any](ctx context.Context, r gisRequestor, req_url url.URL) (*T, error) {
+	return reqGetJSONParamsHeadersFullURL[T](ctx, r, req_url, map[string]string{}, map[string]string{})
+}
 func reqGetJSONParams[T any](ctx context.Context, r gisRequestor, path string, params map[string]string) (*T, error) {
 	return reqGetJSONParamsHeaders[T](ctx, r, path, params, map[string]string{})
 }

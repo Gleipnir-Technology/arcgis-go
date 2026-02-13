@@ -10,9 +10,10 @@ import (
 )
 
 type ServiceFeature struct {
-	Layers []response.Layer
-	Name   string
-	URL    url.URL
+	Layers         []response.Layer
+	Name           string
+	MaxRecordCount uint
+	URL            url.URL
 
 	info      response.FeatureService
 	requestor *gisRequestor
@@ -28,11 +29,12 @@ func newServiceFeature(ctx context.Context, name string, url url.URL, requestor 
 	logger.Debug().Str("name", name).Str("description", info.ServiceDescription).Msg("init ServiceFeature")
 
 	result := ServiceFeature{
-		Layers:    info.Layers,
-		Name:      name,
-		URL:       url,
-		info:      *info,
-		requestor: &requestor,
+		Layers:         info.Layers,
+		MaxRecordCount: info.MaxRecordCount,
+		Name:           name,
+		URL:            url,
+		info:           *info,
+		requestor:      &requestor,
 	}
 	return &result, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/rs/zerolog"
 	"resty.dev/v3"
@@ -43,9 +44,12 @@ func (r gisRequestor) withHost(host string) gisRequestor {
 	}
 }
 
+func (r gisRequestor) doGetParamsHeadersFullURL(ctx context.Context, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, error) {
+	return reqGetParamsHeadersFullURL(ctx, r, req_url, params, headers)
+}
 func (r gisRequestor) doGetParamsHeaders(ctx context.Context, path string, params map[string]string, headers map[string]string) ([]byte, error) {
 	headers = r.authenticator.addAuthHeaders(ctx, headers)
-	return doGetParamsHeaders(ctx, r.client, r.host, path, params, headers)
+	return reqGetParamsHeaders(ctx, r, path, params, headers)
 }
 func (r gisRequestor) doGetParams(ctx context.Context, path string, params map[string]string) ([]byte, error) {
 	return doGetParamsHeaders(ctx, r.client, r.host, path, params, map[string]string{})

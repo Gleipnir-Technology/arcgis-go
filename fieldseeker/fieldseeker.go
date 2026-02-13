@@ -141,11 +141,10 @@ func (fs *FieldSeeker) Layers() []response.Layer {
 }
 
 func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
-	//return fs.ServiceFeature.MaxRecordCount, nil
-	return 0, nil
+	return fs.ServiceFeature.MaxRecordCount, nil
 }
 
-func (fs *FieldSeeker) PermissionList(ctx context.Context) (*arcgis.PermissionSlice, error) {
+func (fs *FieldSeeker) PermissionList(ctx context.Context) (*response.PermissionSlice, error) {
 	return fs.Arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
@@ -185,39 +184,6 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 	q.OutFields = "*"
 	q.Where = "1=1"
 	return fs.Arcgis.Query(ctx, fs.ServiceName, layer_id, q)
-}
-
-// Make sure we have the Layer IDs we need to perform queries
-func (fs *FieldSeeker) ensureHasServerFeature(ctx context.Context) error {
-	logger := zerolog.Ctx(ctx)
-	/*err := fs.ensureHasServices(ctx)
-	if err != nil {
-		return fmt.Errorf("Failed to ensure has services: %v", err)
-	}*/
-	if fs.ServiceFeature != nil {
-		logger.Debug().Msg("already has feature server")
-		return nil
-	}
-	s, err := fs.Arcgis.GetFeatureServer(ctx, fs.ServiceName)
-	if err != nil {
-		return fmt.Errorf("Failed to get feature server: %v", err)
-	}
-	if s == nil {
-		return errors.New("Got a null feature server")
-	}
-	logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
-	//fs.ServiceFeature = s
-	/*
-		for _, layer := range layers {
-			t, err := NameToLayerType(layer.Name)
-			if err != nil {
-				logger.Warn().Err(err).Msg("Failed to handle layer")
-				continue
-			}
-			fs.layerToID[t] = layer.ID
-		}
-	*/
-	return nil
 }
 
 func NameToLayerType(n string) (LayerType, error) {
