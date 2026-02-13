@@ -60,22 +60,52 @@ const (
 )
 
 type FieldSeeker struct {
-	Arcgis        *arcgis.ArcGIS
-	FeatureServer *arcgis.FeatureServer
-	ServiceInfo   *arcgis.ServiceInfo
-	ServiceName   string
+	Arcgis         *arcgis.ArcGIS
+	ServiceFeature *arcgis.ServiceFeature
+	ServiceName    string
 
 	layerToID map[LayerType]uint
 }
 
-func NewFieldSeeker(ar *arcgis.ArcGIS, fieldseeker_url string) (*FieldSeeker, error) {
-	return &FieldSeeker{
-		Arcgis:        ar,
-		FeatureServer: nil,
-		ServiceInfo:   nil,
-		ServiceName:   "FieldSeekerGIS",
-		layerToID:     make(map[LayerType]uint, 0),
-	}, nil
+func NewFieldSeeker(ctx context.Context) (*FieldSeeker, error) {
+	logger := zerolog.Ctx(ctx)
+	ag, err := arcgis.NewArcGIS(ctx)
+	name := "FieldSeekerGIS"
+	if err != nil {
+		return nil, fmt.Errorf("new arcgis: %w", err)
+	}
+	logger.Info().Msg("Created arcgis client, searching for FieldSeekerGIS FeatureServer")
+	resp, err := ag.Search(ctx, fmt.Sprintf("name:\"%s\"", name))
+	if err != nil {
+		return nil, fmt.Errorf("search %s: %w", name, err)
+	}
+	logger.Debug().Int("total", resp.Total).Int("num", resp.Num).Msg("fieldseeker search results")
+	var service *arcgis.ServiceFeature
+	for _, r := range resp.Results {
+		logger.Debug().Str("name", r.Name).Str("type", r.Type).Str("url", r.URL).Msg("Search Result")
+		if r.Name == name && r.Type == "Feature Service" {
+			u, err := url.Parse(r.URL)
+			if err != nil {
+				return nil, fmt.Errorf("parse url: %w", err)
+			}
+			service, err = ag.NewServiceFeature(ctx, r.Name, *u)
+			if err != nil {
+				return nil, fmt.Errorf("NewServiceFeature: %w", err)
+			}
+		}
+	}
+	if service == nil {
+		return nil, fmt.Errorf("Failed to find a Feature Service named '%s'", name)
+	}
+
+	result := FieldSeeker{
+		Arcgis:         ag,
+		ServiceFeature: service,
+		//ServiceInfo:   nil,
+		ServiceName: "FieldSeekerGIS",
+		layerToID:   make(map[LayerType]uint, 0),
+	}
+	return &result, nil
 }
 
 func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error) {
@@ -83,19 +113,13 @@ func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error)
 }
 
 func (fs *FieldSeeker) FeatureServerLayers(ctx context.Context) ([]arcgis.LayerFeature, error) {
-	err := fs.ensureHasFeatureServer(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
-	}
-	return fs.FeatureServer.Layers, nil
+	//return fs.ServiceFeature.Layers, nil
+	return make([]arcgis.LayerFeature, 0), nil
 }
 
 func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
-	err := fs.ensureHasFeatureServer(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("Failed to get FieldSeeker service info: %v", err)
-	}
-	return fs.FeatureServer.MaxRecordCount, nil
+	//return fs.ServiceFeature.MaxRecordCount, nil
+	return 0, nil
 }
 
 func (fs *FieldSeeker) PermissionList(ctx context.Context) (*arcgis.PermissionSlice, error) {
@@ -141,13 +165,13 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 }
 
 // Make sure we have the Layer IDs we need to perform queries
-func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
+func (fs *FieldSeeker) ensureHasServerFeature(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
-	err := fs.ensureHasServices(ctx)
+	/*err := fs.ensureHasServices(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to ensure has services: %v", err)
-	}
-	if fs.FeatureServer != nil {
+	}*/
+	if fs.ServiceFeature != nil {
 		logger.Debug().Msg("already has feature server")
 		return nil
 	}
@@ -159,7 +183,7 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 		return errors.New("Got a null feature server")
 	}
 	logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
-	fs.FeatureServer = s
+	//fs.ServiceFeature = s
 	layers, err := fs.FeatureServerLayers(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to query for layers: %w", err)
@@ -172,25 +196,6 @@ func (fs *FieldSeeker) ensureHasFeatureServer(ctx context.Context) error {
 		}
 		fs.layerToID[t] = layer.ID
 	}
-	return nil
-}
-
-// Make sure we have the Service IDs we need to use FieldSeeker
-func (fs *FieldSeeker) ensureHasServices(ctx context.Context) error {
-	logger := zerolog.Ctx(ctx)
-	if fs.ServiceInfo != nil {
-		logger.Debug().Msg("already has services")
-		return nil
-	}
-	s, err := fs.Arcgis.Services(ctx)
-	if err != nil {
-		return fmt.Errorf("Failed to query services: %v", err)
-	}
-	if s == nil {
-		return errors.New("Got a null service info")
-	}
-	fs.ServiceInfo = s
-	logger.Info().Float64("version", s.CurrentVersion).Int("services", len(s.Services)).Msg("Add service info")
 	return nil
 }
 

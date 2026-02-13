@@ -44,10 +44,10 @@ func (a *AuthenticatorUsernamePassword) addAuthentication(req *http.Request) (*h
 	return req, nil
 }
 func (a *AuthenticatorUsernamePassword) addAuthHeaders(ctx context.Context, h map[string]string) map[string]string {
-	logger := zerolog.Ctx(ctx)
+	//logger := zerolog.Ctx(ctx)
 	val := "Bearer " + a.AccessToken
 	h["X-ESRI-Authorization"] = val
-	logger.Debug().Str("val", val).Msg("Added auth header")
+	//logger.Debug().Str("val", val).Msg("Added auth header")
 	return h
 }
 func (a *AuthenticatorUsernamePassword) init(ctx context.Context, client http.Client) error {

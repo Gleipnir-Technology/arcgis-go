@@ -3,8 +3,10 @@ package arcgis
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
 	"net/http"
+
+	"github.com/rs/zerolog"
+	"resty.dev/v3"
 )
 
 type gisRequestor struct {
@@ -50,4 +52,42 @@ func (r gisRequestor) doGetParams(ctx context.Context, path string, params map[s
 }
 func (r gisRequestor) doGet(ctx context.Context, path string) ([]byte, error) {
 	return doGetParamsHeaders(ctx, r.client, r.host, path, map[string]string{}, map[string]string{})
+}
+
+type gisRequestorResty struct {
+	authenticator Authenticator
+	client        *resty.Client
+	host          string
+}
+
+func newGisRequestorResty(ctx context.Context, authenticator Authenticator, host string, transport *http.Transport) (gisRequestorResty, error) {
+	logger := zerolog.Ctx(ctx)
+	if transport == nil {
+		transport = &http.Transport{}
+	}
+	client := http.Client{
+		Transport: transport,
+	}
+	err := authenticator.init(ctx, client)
+	if err != nil {
+		return gisRequestorResty{}, fmt.Errorf("init auth: %w", err)
+	}
+	r_client := resty.New()
+	r_client.SetTransport(transport)
+	f_headers := authenticator.addAuthHeaders(ctx, map[string]string{})
+	logger.Debug().Str("access_token", mapToString(f_headers)).Msg("handing auth to requestor")
+	return gisRequestorResty{
+		authenticator: authenticator,
+		client:        r_client,
+		host:          host,
+	}, nil
+}
+func (r gisRequestorResty) postForm() {
+	/*
+		resp, err := client.R().SetFormData(map[string]string{
+			"f": "json",
+		}).
+		SetResult(&resp).
+		Post(s.URL)
+	*/
 }

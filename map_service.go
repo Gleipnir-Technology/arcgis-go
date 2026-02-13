@@ -24,7 +24,7 @@ func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column in
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
 	}
-	return reqGetFullURL(ctx, ag.requestor, *u)
+	return reqGetParamsHeadersFullURL(ctx, ag.requestor, *u, map[string]string{}, map[string]string{})
 }
 func (ms MapService) TileGPS(ctx context.Context, ag *ArcGIS, level int, lat, lng float64) ([]byte, error) {
 	row, col := LatLngToTile(level, lat, lng)

@@ -21,8 +21,12 @@ import (
 type ArcGIS struct {
 	AccountID string
 
-	//ServiceRoot   string
 	requestor gisRequestor
+
+	urlFeatures  string
+	urlInsights  string
+	urlNotebooks string
+	urlTiles     string
 
 	usage Usage
 }
@@ -88,6 +92,10 @@ func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, t
 	if err != nil {
 		return nil, fmt.Errorf("switch portal: %w", err)
 	}
+	err = result.populateURLs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("populate urls: %w", err)
+	}
 	return result, nil
 }
 func ServiceRootFromTenant(base string, tenantId string) string {
@@ -118,6 +126,9 @@ func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*Featur
 	return reqGetJSON[FeatureServer](ctx, ag.requestor, path)
 }
 
+func (ag *ArcGIS) NewServiceFeature(ctx context.Context, name string, url url.URL) (*ServiceFeature, error) {
+	return newServiceFeature(ctx, name, url, ag.requestor)
+}
 func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
 	logger := zerolog.Ctx(ctx)
 	resp, err := ag.SearchInAccount(ctx, "type:\"Map Service\"")
@@ -141,12 +152,26 @@ func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
 	}
 	return results, nil
 }
-func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsResponse, error) {
+
+var globalBaseURL string = "https://www.arcgis.com/"
+
+func (ag *ArcGIS) PortalsGlobal(ctx context.Context) (*PortalsGlobalResponse, error) {
+	// So, this is a bit nuts. Bear with me.
+	// There is a special endpoint at GET https://www.arcgis.com/sharing/rest/portals/self?f=json
+	req_url, err := url.Parse(globalBaseURL + "/sharing/rest/portals")
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+	return reqGetJSONParamsHeadersFullURL[PortalsGlobalResponse](ctx, ag.requestor, *req_url, map[string]string{}, map[string]string{})
+}
+func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsGlobalResponse, error) {
 	// We may need to always direct this request to
-	// GET https://www.arcgis.com/sharing/rest/portals/self?f=json
+	//
 	// not sure if hosted services are different
 	//
-	return reqGetJSON[PortalsResponse](ctx, ag.requestor, "/sharing/rest/portals/self")
+	// GET https://<urlkey>.maps.arcgis.com/sharing/rest/portals/self/urls?f=json
+	// seems to also work, ond may give different data.
+	return reqGetJSON[PortalsGlobalResponse](ctx, ag.requestor, "/sharing/rest/portals/self")
 }
 func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, error) {
 	return reqPostFormToJSON[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
@@ -167,10 +192,52 @@ func (ag *ArcGIS) SearchInAccount(ctx context.Context, query string) (*SearchRes
 	}
 	return reqPostFormToJSON[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", params)
 }
-func (ag *ArcGIS) Services(ctx context.Context) (*ServiceInfo, error) {
-	return reqGetJSON[ServiceInfo](ctx, ag.requestor, "/sharing/rest/services")
-}
+func (ag *ArcGIS) Services(ctx context.Context) ([]*ServiceFeature, error) {
+	//org_path := ag.orgPath("/arcgis/rest/services")
+	//return reqGetJSON[ServiceInfo](ctx, ag.requestor, org_path)
+	u, err := ag.urlFeature("/arcgis/rest/services")
+	if err != nil {
+		return nil, fmt.Errorf("make url: %w", err)
+	}
+	resp, err := reqGetJSONParamsHeadersFullURL[ResponseServiceInfo](ctx, ag.requestor, *u, map[string]string{}, map[string]string{})
+	if err != nil {
+		return nil, err
+	}
 
+	logger := zerolog.Ctx(ctx)
+	results := make([]*ServiceFeature, 0)
+	for _, s := range resp.Services {
+		logger.Info().Str("name", s.Name).Str("type", s.Type).Str("url", s.URL).Msg("service")
+
+		u, err := url.Parse(s.URL)
+		if err != nil {
+			return results, fmt.Errorf("parse url: %w", err)
+		}
+		sf, err := newServiceFeature(ctx, s.Name, *u, ag.requestor)
+		if err != nil {
+			return results, fmt.Errorf("new service feature: %w", err)
+		}
+		results = append(results, sf)
+	}
+	return results, nil
+}
+func (ag *ArcGIS) orgPath(path string) string {
+	return fmt.Sprintf("/%s%s", ag.AccountID, path)
+}
+func (ag *ArcGIS) populateURLs(ctx context.Context) error {
+	logger := zerolog.Ctx(ctx)
+	path := "/sharing/rest/portals/self/urls"
+	resp, err := reqGetJSON[ResponseURLs](ctx, ag.requestor, path)
+	if err != nil {
+		return fmt.Errorf("get urls: %w", err)
+	}
+	ag.urlFeatures = resp.URLs.Features.HTTPS[0]
+	ag.urlInsights = resp.URLs.Insights.HTTPS[0]
+	ag.urlNotebooks = resp.URLs.Notebooks.HTTPS[0]
+	ag.urlTiles = resp.URLs.Tiles.HTTPS[0]
+	logger.Info().Str("feature-url", ag.urlFeatures).Msg("Populated URLs")
+	return nil
+}
 func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	portals, err := ag.PortalsSelf(ctx)
@@ -183,6 +250,9 @@ func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 	ag.requestor.host = fmt.Sprintf("https://%s.maps.arcgis.com", portals.UrlKey)
 	logger.Debug().Str("id", portals.ID).Str("name", portals.PortalName).Str("urlkey", portals.UrlKey).Str("host", ag.requestor.host).Msg("Switched host by portal")
 	return nil
+}
+func (ag *ArcGIS) urlFeature(path string) (*url.URL, error) {
+	return url.Parse(fmt.Sprintf("%s/%s%s", ag.urlFeatures, ag.AccountID, path))
 }
 
 func parseFeatureServer(data []byte) (*FeatureServer, error) {
@@ -224,25 +294,6 @@ func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
 	return &result, nil
 }
 
-func parseSearchResponse(ctx context.Context, data []byte) (*SearchResponse, error) {
-	saveResponse(ctx, data, "search.json")
-	var result SearchResponse
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func parseServiceInfo(data []byte) (*ServiceInfo, error) {
-	var result ServiceInfo
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
 func saveResponse(ctx context.Context, data []byte, filename string) {
 	logger := zerolog.Ctx(ctx)
 	dest, err := os.Create(filename)
@@ -257,9 +308,6 @@ func saveResponse(ctx context.Context, data []byte, filename string) {
 	}
 	logger.Info().Str("filename", filename).Msg("Wrote response")
 }
-
-var sharingBaseURL string = "https://www.arcgis.com/sharing/rest"
-
 func addParams(u string, params map[string]string) (*url.URL, error) {
 	parsed, err := url.Parse(u)
 	if err != nil {

@@ -4,8 +4,8 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  bin = "./tmp/example-fieldseeker-search"
-  cmd = "go build -o ./tmp/example-fieldseeker-search ./examples/fieldseeker-search"
+  bin = "./tmp/example-fieldseeker-default"
+  cmd = "go build -o ./tmp/example-fieldseeker-default ./examples/fieldseeker-default"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []

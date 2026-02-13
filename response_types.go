@@ -38,7 +38,7 @@ type ServiceListing struct {
 	URL  string
 }
 
-type ServiceInfo struct {
+type ResponseServiceInfo struct {
 	CurrentVersion float64
 	Services       []ServiceListing
 }
@@ -268,7 +268,7 @@ type ResourceInfo struct {
 	//FullExtent Extent `json:"fullExtent"`
 }
 
-type PortalsResponse struct {
+type PortalsGlobalResponse struct {
 	TwoDSketchStylesGroupQuery     string   `json:"2DSketchStylesGroupQuery"`
 	TwoDStylesGroupQuery           string   `json:"2DStylesGroupQuery"`
 	ThreeDBasemapGalleryGroupQuery string   `json:"3DBasemapGalleryGroupQuery"`
@@ -504,6 +504,19 @@ type UserInfo struct {
 	Created              int64    `json:"created"`
 	Modified             int64    `json:"modified"`
 	Provider             string   `json:"provider"`
+}
+
+type ServerURL struct {
+	HTTPS []string `json:"https"`
+}
+type ServerURLCollection struct {
+	Features  ServerURL `json:"features"`
+	Insights  ServerURL `json:"insights"`
+	Notebooks ServerURL `json:"notebooks"`
+	Tiles     ServerURL `json:"tiles"`
+}
+type ResponseURLs struct {
+	URLs ServerURLCollection `json:"urls"`
 }
 
 func (e ErrorResponse) AsError(ctx context.Context) apiError {
