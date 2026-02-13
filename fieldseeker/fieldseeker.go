@@ -85,35 +85,16 @@ func NewFieldSeekerFromAG(ctx context.Context, ag arcgis.ArcGIS) (*FieldSeeker, 
 		return nil, fmt.Errorf("search %s: %w", fieldseekerFeatureName, err)
 	}
 	logger.Debug().Int("total", resp.Total).Int("num", resp.Num).Msg("fieldseeker search results")
-	var service *arcgis.ServiceFeature
 	for _, r := range resp.Results {
 		logger.Debug().Str("name", r.Name).Str("type", r.Type).Str("url", r.URL).Msg("Search Result")
 		if r.Name == fieldseekerFeatureName && r.Type == "Feature Service" {
-			u, err := url.Parse(r.URL)
-			if err != nil {
-				return nil, fmt.Errorf("parse url: %w", err)
-			}
-			service, err = ag.NewServiceFeature(ctx, r.Name, *u)
-			if err != nil {
-				return nil, fmt.Errorf("NewServiceFeature: %w", err)
-			}
+			return NewFieldSeekerFromURL(ctx, ag, r.URL)
 		}
 	}
-	if service == nil {
-		return nil, fmt.Errorf("Failed to find a Feature Service named '%s'", fieldseekerFeatureName)
-	}
-
-	result := FieldSeeker{
-		Arcgis:         &ag,
-		ServiceFeature: service,
-		//ServiceInfo:   nil,
-		ServiceName: "FieldSeekerGIS",
-		layerToID:   make(map[LayerType]uint, 0),
-	}
-	return &result, nil
+	return nil, fmt.Errorf("Failed to find a Feature Service named '%s'", fieldseekerFeatureName)
 }
 func NewFieldSeekerFromURL(ctx context.Context, ag arcgis.ArcGIS, url_str string) (*FieldSeeker, error) {
-	//logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx)
 	u, err := url.Parse(url_str)
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
@@ -122,12 +103,22 @@ func NewFieldSeekerFromURL(ctx context.Context, ag arcgis.ArcGIS, url_str string
 	if err != nil {
 		return nil, fmt.Errorf("new service feature: %w", err)
 	}
+	layer_to_id := make(map[LayerType]uint, 0)
+	for _, layer := range service.Layers {
+		t, err := NameToLayerType(layer.Name)
+		if err != nil {
+			logger.Warn().Err(err).Msg("Failed to handle layer")
+			continue
+		}
+		layer_to_id[t] = layer.ID
+	}
+
 	result := FieldSeeker{
 		Arcgis:         &ag,
 		ServiceFeature: service,
 		//ServiceInfo:   nil,
 		ServiceName: "FieldSeekerGIS",
-		layerToID:   make(map[LayerType]uint, 0),
+		layerToID:   layer_to_id,
 	}
 	return &result, nil
 }
