@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
@@ -121,9 +122,9 @@ func (ag *ArcGIS) AdminInfo(ctx context.Context, serviceName string, serviceType
 	return reqGetJSON[AdminInfo](ctx, ag.requestor, path)
 }
 
-func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*FeatureServer, error) {
+func (ag *ArcGIS) GetFeatureServer(ctx context.Context, service string) (*response.FeatureService, error) {
 	path := fmt.Sprintf("/services/%s/FeatureServer", service)
-	return reqGetJSON[FeatureServer](ctx, ag.requestor, path)
+	return reqGetJSON[response.FeatureService](ctx, ag.requestor, path)
 }
 
 func (ag *ArcGIS) NewServiceFeature(ctx context.Context, name string, url url.URL) (*ServiceFeature, error) {
@@ -155,23 +156,23 @@ func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
 
 var globalBaseURL string = "https://www.arcgis.com/"
 
-func (ag *ArcGIS) PortalsGlobal(ctx context.Context) (*PortalsGlobalResponse, error) {
+func (ag *ArcGIS) PortalsGlobal(ctx context.Context) (*response.Portal, error) {
 	// So, this is a bit nuts. Bear with me.
 	// There is a special endpoint at GET https://www.arcgis.com/sharing/rest/portals/self?f=json
 	req_url, err := url.Parse(globalBaseURL + "/sharing/rest/portals")
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
 	}
-	return reqGetJSONParamsHeadersFullURL[PortalsGlobalResponse](ctx, ag.requestor, *req_url, map[string]string{}, map[string]string{})
+	return reqGetJSONParamsHeadersFullURL[response.Portal](ctx, ag.requestor, *req_url, map[string]string{}, map[string]string{})
 }
-func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*PortalsGlobalResponse, error) {
+func (ag *ArcGIS) PortalsSelf(ctx context.Context) (*response.Portal, error) {
 	// We may need to always direct this request to
 	//
 	// not sure if hosted services are different
 	//
 	// GET https://<urlkey>.maps.arcgis.com/sharing/rest/portals/self/urls?f=json
 	// seems to also work, ond may give different data.
-	return reqGetJSON[PortalsGlobalResponse](ctx, ag.requestor, "/sharing/rest/portals/self")
+	return reqGetJSON[response.Portal](ctx, ag.requestor, "/sharing/rest/portals/self")
 }
 func (ag *ArcGIS) Search(ctx context.Context, query string) (*SearchResponse, error) {
 	return reqPostFormToJSON[SearchResponse](ctx, ag.requestor, "/sharing/rest/search", map[string]string{
@@ -253,15 +254,6 @@ func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 }
 func (ag *ArcGIS) urlFeature(path string) (*url.URL, error) {
 	return url.Parse(fmt.Sprintf("%s/%s%s", ag.urlFeatures, ag.AccountID, path))
-}
-
-func parseFeatureServer(data []byte) (*FeatureServer, error) {
-	var result FeatureServer
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
 }
 
 func parseQueryResult(ctx context.Context, data []byte) (*QueryResult, error) {

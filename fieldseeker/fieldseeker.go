@@ -68,23 +68,27 @@ type FieldSeeker struct {
 	layerToID map[LayerType]uint
 }
 
+var fieldseekerFeatureName string = "FieldSeekerGIS"
+
 func NewFieldSeeker(ctx context.Context) (*FieldSeeker, error) {
-	logger := zerolog.Ctx(ctx)
 	ag, err := arcgis.NewArcGIS(ctx)
-	name := "FieldSeekerGIS"
 	if err != nil {
 		return nil, fmt.Errorf("new arcgis: %w", err)
 	}
+	return NewFieldSeekerFromAG(ctx, *ag)
+}
+func NewFieldSeekerFromAG(ctx context.Context, ag arcgis.ArcGIS) (*FieldSeeker, error) {
+	logger := zerolog.Ctx(ctx)
 	logger.Info().Msg("Created arcgis client, searching for FieldSeekerGIS FeatureServer")
-	resp, err := ag.Search(ctx, fmt.Sprintf("name:\"%s\"", name))
+	resp, err := ag.Search(ctx, fmt.Sprintf("name:\"%s\"", fieldseekerFeatureName))
 	if err != nil {
-		return nil, fmt.Errorf("search %s: %w", name, err)
+		return nil, fmt.Errorf("search %s: %w", fieldseekerFeatureName, err)
 	}
 	logger.Debug().Int("total", resp.Total).Int("num", resp.Num).Msg("fieldseeker search results")
 	var service *arcgis.ServiceFeature
 	for _, r := range resp.Results {
 		logger.Debug().Str("name", r.Name).Str("type", r.Type).Str("url", r.URL).Msg("Search Result")
-		if r.Name == name && r.Type == "Feature Service" {
+		if r.Name == fieldseekerFeatureName && r.Type == "Feature Service" {
 			u, err := url.Parse(r.URL)
 			if err != nil {
 				return nil, fmt.Errorf("parse url: %w", err)
@@ -96,11 +100,30 @@ func NewFieldSeeker(ctx context.Context) (*FieldSeeker, error) {
 		}
 	}
 	if service == nil {
-		return nil, fmt.Errorf("Failed to find a Feature Service named '%s'", name)
+		return nil, fmt.Errorf("Failed to find a Feature Service named '%s'", fieldseekerFeatureName)
 	}
 
 	result := FieldSeeker{
-		Arcgis:         ag,
+		Arcgis:         &ag,
+		ServiceFeature: service,
+		//ServiceInfo:   nil,
+		ServiceName: "FieldSeekerGIS",
+		layerToID:   make(map[LayerType]uint, 0),
+	}
+	return &result, nil
+}
+func NewFieldSeekerFromURL(ctx context.Context, ag arcgis.ArcGIS, url_str string) (*FieldSeeker, error) {
+	//logger := zerolog.Ctx(ctx)
+	u, err := url.Parse(url_str)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+	service, err := ag.NewServiceFeature(ctx, fieldseekerFeatureName, *u)
+	if err != nil {
+		return nil, fmt.Errorf("new service feature: %w", err)
+	}
+	result := FieldSeeker{
+		Arcgis:         &ag,
 		ServiceFeature: service,
 		//ServiceInfo:   nil,
 		ServiceName: "FieldSeekerGIS",

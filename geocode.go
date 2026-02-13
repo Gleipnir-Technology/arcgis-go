@@ -2,6 +2,8 @@ package arcgis
 
 import (
 	"context"
+
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 )
 
 /*
@@ -44,14 +46,10 @@ import (
 		]
 	}
 */
-type GeocodeCandidatesResponse struct {
-	SpatialReference SpatialReference
-	Candidates       []GeocodeCandidate
-}
 
 var geocodeURL string = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
 
-func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) (*GeocodeCandidatesResponse, error) {
+func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address string) (*response.GeocodeFindAddressCandidates, error) {
 	sub := ag.requestor.withHost("https://geocode-api.arcgis.com")
 	path := "/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
 	params := map[string]string{
@@ -59,5 +57,5 @@ func (ag *ArcGIS) GeocodeFindAddressCandidates(ctx context.Context, address stri
 		"outFields":  "*",
 		"SingleLine": address,
 	}
-	return reqGetJSONParams[GeocodeCandidatesResponse](ctx, sub, path, params)
+	return reqGetJSONParams[response.GeocodeFindAddressCandidates](ctx, sub, path, params)
 }

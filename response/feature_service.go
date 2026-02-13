@@ -235,7 +235,7 @@ type ChangeTrackingInfo struct {
 }
 
 type Layer struct {
-	ID                int    `json:"id"`
+	ID                uint   `json:"id"`
 	Name              string `json:"name"`
 	ParentLayerId     int    `json:"parentLayerId"`
 	DefaultVisibility bool   `json:"defaultVisibility"`

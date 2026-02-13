@@ -23,10 +23,6 @@ func main() {
 	}
 	log.Info().Msg("Getting layers")
 	layers := fs.Layers()
-	if err != nil {
-		log.Error().Err(err).Msg("get layers")
-		os.Exit(3)
-	}
 	for _, l := range layers {
 		log.Info().Str("name", l.Name).Msg("layer")
 	}
