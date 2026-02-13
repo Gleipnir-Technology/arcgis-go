@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/rs/zerolog"
 )
 
@@ -112,9 +113,8 @@ func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error)
 	return fs.Arcgis.AdminInfo(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
-func (fs *FieldSeeker) FeatureServerLayers(ctx context.Context) ([]arcgis.LayerFeature, error) {
-	//return fs.ServiceFeature.Layers, nil
-	return make([]arcgis.LayerFeature, 0), nil
+func (fs *FieldSeeker) Layers() []response.Layer {
+	return fs.ServiceFeature.Layers
 }
 
 func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
@@ -184,18 +184,16 @@ func (fs *FieldSeeker) ensureHasServerFeature(ctx context.Context) error {
 	}
 	logger.Info().Str("item id", s.ServiceItemId).Msg("Add feature server")
 	//fs.ServiceFeature = s
-	layers, err := fs.FeatureServerLayers(ctx)
-	if err != nil {
-		return fmt.Errorf("Failed to query for layers: %w", err)
-	}
-	for _, layer := range layers {
-		t, err := NameToLayerType(layer.Name)
-		if err != nil {
-			logger.Warn().Err(err).Msg("Failed to handle layer")
-			continue
+	/*
+		for _, layer := range layers {
+			t, err := NameToLayerType(layer.Name)
+			if err != nil {
+				logger.Warn().Err(err).Msg("Failed to handle layer")
+				continue
+			}
+			fs.layerToID[t] = layer.ID
 		}
-		fs.layerToID[t] = layer.ID
-	}
+	*/
 	return nil
 }
 

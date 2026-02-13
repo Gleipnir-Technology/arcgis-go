@@ -22,7 +22,7 @@ func main() {
 		os.Exit(2)
 	}
 	log.Info().Msg("Getting layers")
-	layers, err := fs.FeatureServerLayers(ctx)
+	layers := fs.Layers()
 	if err != nil {
 		log.Error().Err(err).Msg("get layers")
 		os.Exit(3)

@@ -134,7 +134,7 @@ type FeatureService struct {
 	EditorTrackingInfo                          EditorTrackingInfo          `json:"editorTrackingInfo,omitempty"`
 	ChangeTrackingInfo                          ChangeTrackingInfo          `json:"changeTrackingInfo,omitempty"`
 	DocumentInfo                                map[string]string           `json:"documentInfo,omitempty"`
-	Layers                                      []LayerInfo                 `json:"layers,omitempty"`
+	Layers                                      []Layer                     `json:"layers,omitempty"`
 	Tables                                      []TableInfo                 `json:"tables,omitempty"`
 	Relationships                               []RelationshipInfo          `json:"relationships,omitempty"`
 	DatumTransformations                        []interface{}               `json:"datumTransformations,omitempty"`
@@ -234,7 +234,7 @@ type ChangeTrackingInfo struct {
 	LayerServerGens []ServerGen `json:"layerServerGens"`
 }
 
-type LayerInfo struct {
+type Layer struct {
 	ID                int    `json:"id"`
 	Name              string `json:"name"`
 	ParentLayerId     int    `json:"parentLayerId"`

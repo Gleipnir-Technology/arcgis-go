@@ -10,33 +10,29 @@ import (
 )
 
 type ServiceFeature struct {
-	Name string
-	URL  url.URL
+	Layers []response.Layer
+	Name   string
+	URL    url.URL
 
+	info      response.FeatureService
 	requestor *gisRequestor
 }
 
 func newServiceFeature(ctx context.Context, name string, url url.URL, requestor gisRequestor) (*ServiceFeature, error) {
+	logger := zerolog.Ctx(ctx)
+	// POST https://services8.arcgis.com/<context>/ArcGIS/rest/services/BorderDistrict/FeatureServer
+	info, err := reqPostFormToJSONFullURL[response.FeatureService](ctx, requestor, url, map[string]string{})
+	if err != nil || info == nil {
+		return nil, fmt.Errorf("get url: %w", err)
+	}
+	logger.Debug().Str("name", name).Str("description", info.ServiceDescription).Msg("init ServiceFeature")
+
 	result := ServiceFeature{
+		Layers:    info.Layers,
 		Name:      name,
 		URL:       url,
+		info:      *info,
 		requestor: &requestor,
 	}
-	err := result.init(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("init: %w", err)
-	}
 	return &result, nil
-}
-
-// Make sure we have the Service IDs we need to use FieldSeeker
-func (s *ServiceFeature) init(ctx context.Context) error {
-	// POST https://services8.arcgis.com/pV7SH1EgRc6tpxlJ/ArcGIS/rest/services/BorderDistrict/FeatureServer
-	logger := zerolog.Ctx(ctx)
-	resp, err := reqPostFormToJSONFullURL[response.FeatureService](ctx, *s.requestor, s.URL, map[string]string{})
-	if err != nil {
-		return fmt.Errorf("get url: %w", err)
-	}
-	logger.Debug().Str("name", s.Name).Str("description", resp.ServiceDescription).Msg("init ServiceFeature")
-	return nil
 }
