@@ -107,7 +107,12 @@ func ServiceRootFromTenant(base string, tenantId string) string {
 
 func (ag *ArcGIS) Query(ctx context.Context, service string, layer_id uint, query *Query) (*QueryResult, error) {
 	path := fmt.Sprintf("/arcgis/rest/services/%s/FeatureServer/%d/query", service, layer_id)
-	return reqGetJSON[QueryResult](ctx, ag.requestor, path)
+	url, err := ag.urlFeature(path)
+	if err != nil {
+		return nil, fmt.Errorf("make url: %w", err)
+	}
+	params := query.toParams()
+	return reqGetJSONParamsHeadersFullURL[QueryResult](ctx, ag.requestor, *url, params, map[string]string{})
 }
 func (ag *ArcGIS) QueryRaw(ctx context.Context, service string, layer_id uint, query *Query) ([]byte, error) {
 	// path := fmt.Sprintf("/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
@@ -258,36 +263,6 @@ func (ag *ArcGIS) urlFeature(path string) (*url.URL, error) {
 	return url.Parse(fmt.Sprintf("https://%s/%s%s", ag.urlFeatures, ag.AccountID, path))
 }
 
-func parseQueryResult(ctx context.Context, data []byte) (*QueryResult, error) {
-	var result QueryResult
-	logger := zerolog.Ctx(ctx)
-	err := json.Unmarshal(data, &result)
-	if err != nil {
-		id := uuid.New()
-		filename := fmt.Sprintf("debug_response_%s.json", id.String())
-		output, err2 := os.Create(filename)
-		if err2 != nil {
-			logger.Warn().Str("filename", filename).Msg("Failed to create debug file, can't dump request.")
-			return nil, fmt.Errorf("Failed to parse query result JSON: %w", err)
-		}
-		defer output.Close()
-		output.Write(data)
-		logger.Info().Str("filename", filename).Msg("Wrote response file for debugging.")
-		return nil, fmt.Errorf("Failed to parse query result JSON: %w. Wrote debug file containing the request to %s", err, filename)
-	}
-	return &result, nil
-}
-
-func parseQueryResultCount(data []byte) (*QueryResultCount, error) {
-	var result QueryResultCount
-	err := json.Unmarshal(data, &result)
-	//Println("Parsing", string(data))
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
 func saveResponse(ctx context.Context, data []byte, filename string) {
 	logger := zerolog.Ctx(ctx)
 	dest, err := os.Create(filename)
@@ -302,23 +277,6 @@ func saveResponse(ctx context.Context, data []byte, filename string) {
 	}
 	logger.Info().Str("filename", filename).Msg("Wrote response")
 }
-func addParams(u string, params map[string]string) (*url.URL, error) {
-	parsed, err := url.Parse(u)
-	if err != nil {
-		return nil, err
-	}
-	_, ok := params["f"]
-	if !ok {
-		params["f"] = "json"
-	}
-	vals := url.Values{}
-	for k, v := range params {
-		vals.Add(k, v)
-	}
-	parsed.RawQuery = vals.Encode()
-	return parsed, nil
-}
-
 func (ag *ArcGIS) updateUsage(ctx context.Context, resp *http.Response) {
 	logger := zerolog.Ctx(ctx)
 	qru := resp.Header["X-Esri-Query-Request-Units"]
