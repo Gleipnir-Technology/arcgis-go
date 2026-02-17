@@ -14,7 +14,6 @@ import (
 	"strconv"
 
 	"github.com/Gleipnir-Technology/arcgis-go/response"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
