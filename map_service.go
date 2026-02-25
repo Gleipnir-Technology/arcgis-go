@@ -11,9 +11,17 @@ type MapService struct {
 	ID    string
 	Name  string
 	Title string
-	URL   string
+	URL   url.URL
+
+	meta *MapServiceMetadata
 }
 
+func (ms MapService) Metadata(ctx context.Context, ag *ArcGIS) (*MapServiceMetadata, error) {
+	if ms.meta != nil {
+		return ms.meta, nil
+	}
+	return reqGetJSONFullURL[MapServiceMetadata](ctx, ag.requestor, ms.URL)
+}
 func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column int) ([]byte, error) {
 	// From https://developers.arcgis.com/documentation/portal-and-data-services/data-services/map-tile-services/introduction/
 	// GET https://{host}/{organizationId}/arcgis/rest/services/{serviceName}/MapServer/tile/{z}/{y}/{x}

@@ -153,11 +153,18 @@ func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
 			logger.Warn().Str("type", r.Type).Msg("Got the wrong type for a map service")
 			continue
 		}
+		u, err := url.Parse(r.URL)
+		if err != nil {
+			logger.Error().Err(err).Msg("map service url parse error")
+			continue
+		}
 		m := MapService{
 			ID:    r.ID,
 			Name:  r.Name,
 			Title: r.Title,
-			URL:   r.URL,
+			URL:   *u,
+
+			meta: nil,
 		}
 		results = append(results, m)
 	}
