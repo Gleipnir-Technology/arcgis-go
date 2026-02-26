@@ -39,11 +39,18 @@ func main() {
 	//var feature_service *arcgis.ServiceFeature
 	log.Info().Str("name", fs.Name).Str("url", fs.URL.String()).Msg("found map service")
 	for _, layer := range fs.Layers {
-		count, err := fs.QueryCount(ctx, gis, layer.ID)
+		/*
+			count, err := fs.QueryCount(ctx, gis, layer.ID)
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to get count")
+				continue
+			}
+		*/
+		result, err := fs.QueryPoint(ctx, gis, layer.ID)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to get count")
 			continue
 		}
-		log.Info().Str("name", layer.Name).Uint("id", layer.ID).Int("count", count.Count).Msg("found layer")
+		log.Info().Str("name", layer.Name).Uint("id", layer.ID).Str("result", result.GlobalIDFieldName).Msg("found layer")
 	}
 }

@@ -46,3 +46,13 @@ func (sf *ServiceFeature) QueryCount(ctx context.Context, ag *ArcGIS, layer_id u
 	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
 	return reqGetJSONParamsHeadersFullURL[QueryResultCount](ctx, ag.requestor, *url, params, map[string]string{})
 }
+
+func (sf *ServiceFeature) QueryPoint(ctx context.Context, ag *ArcGIS, layer_id uint) (*QueryResult, error) {
+	params := make(map[string]string)
+	params["where"] = "9999=9999"
+	params["geometry"] = "-119.12,36.36"
+	params["geometryType"] = "esriGeometryPoint"
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
+	return reqGetJSONParamsHeadersFullURL[QueryResult](ctx, ag.requestor, *url, params, map[string]string{})
+
+}
