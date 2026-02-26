@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 
 	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/rs/zerolog"
@@ -102,25 +101,6 @@ func NewArcGISTransport(ctx context.Context, host *string, auth Authenticator, t
 }
 func ServiceRootFromTenant(base string, tenantId string) string {
 	return fmt.Sprintf("%s/%s", base, tenantId)
-}
-
-func (ag *ArcGIS) Query(ctx context.Context, service string, layer_id uint, query *Query) (*response.QueryResult, error) {
-	path := fmt.Sprintf("/arcgis/rest/services/%s/FeatureServer/%d/query", service, layer_id)
-	url, err := ag.urlFeature(path)
-	if err != nil {
-		return nil, fmt.Errorf("make url: %w", err)
-	}
-	params := query.toParams()
-	return reqGetJSONParamsHeadersFullURL[response.QueryResult](ctx, ag.requestor, *url, params, map[string]string{})
-}
-func (ag *ArcGIS) QueryRaw(ctx context.Context, service string, layer_id uint, query *Query) ([]byte, error) {
-	// path := fmt.Sprintf("/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
-	path := fmt.Sprintf("/arcgis/rest/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
-	url, err := ag.urlFeature(path)
-	if err != nil {
-		return nil, fmt.Errorf("make url: %w", err)
-	}
-	return ag.requestor.doGetParamsHeadersFullURL(ctx, *url, map[string]string{}, map[string]string{})
 }
 
 type AdminInfo struct {
@@ -255,6 +235,17 @@ func (ag *ArcGIS) ServiceByName(ctx context.Context, name string) (*ServiceFeatu
 	}
 	return nil, fmt.Errorf("no matching results")
 }
+func (ag *ArcGIS) ServiceByURL(ctx context.Context, url url.URL) (*ServiceFeature, error) {
+	s := newServiceFeature(ctx, "unknown", url, ag.requestor)
+	_, err := s.PopulateMetadata(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("service by URL: %w", err)
+	}
+	// TODO figure out how to populate the name here, it appears to be in the URL
+	// https://services7.arcgis.com/q3SI94vj8qWDxwBr/ArcGIS/rest/services/Public_Parcels/FeatureServer
+	//s.Name = meta.Name
+	return s, nil
+}
 func (ag *ArcGIS) populateURLs(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	path := "/sharing/rest/portals/self/urls"
@@ -327,44 +318,6 @@ func (ag *ArcGIS) updateUsage(ctx context.Context, resp *http.Response) {
 
 func (ag *ArcGIS) Info(ctx context.Context) (*RestInfo, error) {
 	return reqGetJSON[RestInfo](ctx, ag.requestor, "/sharing/rest/info")
-}
-
-type Query struct {
-	Limit             int
-	ObjectIDs         string
-	OutFields         string
-	ResultRecordCount uint
-	ResultOffset      uint
-	SpatialReference  string // Should eventually make an enum, probably
-	Where             string
-}
-
-func NewQuery() *Query {
-	q := new(Query)
-	return q
-}
-
-func (query Query) toParams() map[string]string {
-	params := make(map[string]string)
-	if query.Limit > 0 {
-		params["limit"] = strconv.Itoa(query.Limit)
-	}
-	if query.ObjectIDs != "" {
-		params["objectIds"] = query.ObjectIDs
-	}
-	if query.OutFields != "" {
-		params["outFields"] = query.OutFields
-	}
-	if query.ResultOffset > 0 {
-		params["resultOffset"] = strconv.Itoa(int(query.ResultOffset))
-	}
-	if query.Where != "" {
-		params["where"] = query.Where
-	}
-	if len(query.SpatialReference) > 0 {
-		params["outSR"] = query.SpatialReference
-	}
-	return params
 }
 
 func (ag *ArcGIS) PermissionList(ctx context.Context, serviceName string, serviceType ServiceType) (*response.PermissionSlice, error) {

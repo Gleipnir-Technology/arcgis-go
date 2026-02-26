@@ -33,6 +33,17 @@ func (sf *ServiceFeature) LayerMetadata(ctx context.Context, layer_id uint) (*re
 	return reqGetJSONParamsHeadersFullURL[response.LayerMetadata](ctx, *sf.requestor, *url, map[string]string{}, map[string]string{})
 }
 
+func (sf *ServiceFeature) Query(ctx context.Context, layer_id uint, query Query) (*response.QueryResult, error) {
+	params := query.toParams()
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
+	return reqGetJSONParamsHeadersFullURL[response.QueryResult](ctx, *sf.requestor, *url, params, map[string]string{})
+}
+func (sf *ServiceFeature) QueryRaw(ctx context.Context, service string, layer_id uint, query Query) ([]byte, error) {
+	// path := fmt.Sprintf("/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query?f=json")
+	return reqGetParamsHeadersFullURL(ctx, *sf.requestor, *url, map[string]string{}, map[string]string{})
+}
+
 func (sf *ServiceFeature) QueryCount(ctx context.Context, layer_id uint) (*response.QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"

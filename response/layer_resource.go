@@ -206,19 +206,6 @@ type TimeInfo struct {
 	TimeIntervalUnits *string                  `json:"timeIntervalUnits,omitempty"`
 }
 
-// Field represents a field in the layer or table
-type Field struct {
-	Name         *string     `json:"name,omitempty"`
-	Type         *string     `json:"type,omitempty"`
-	Alias        *string     `json:"alias,omitempty"`
-	Domain       interface{} `json:"domain,omitempty"`
-	Editable     *bool       `json:"editable,omitempty"`
-	Nullable     *bool       `json:"nullable,omitempty"`
-	Length       *int        `json:"length,omitempty"`
-	DefaultValue interface{} `json:"defaultValue,omitempty"`
-	ModelName    *string     `json:"modelName,omitempty"`
-}
-
 // Type represents a feature type
 type Type struct {
 	ID        *int                   `json:"id,omitempty"`
