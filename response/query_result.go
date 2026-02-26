@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 )
 
+type QueryResultOnlyIDs struct {
+	ObjectIDFieldName string `json:"objectIdFieldName"`
+	ObjectIDs         []int  `json:"objectIds"`
+}
 type QueryResult struct {
 	Features          []Feature        `json:"-"` // Handle manually
 	Fields            []Field          `json:"-"` // Handle manually
