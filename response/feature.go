@@ -94,8 +94,6 @@ func (f *Feature) UnmarshalWithType(data []byte, geometryType string, fieldNameT
 		f.Attributes[attrName] = typedValue
 		if typedValue == nil {
 			log.Warn().Str("name", attrName).Msg("set to nil")
-		} else {
-			log.Debug().Str("name", attrName).Str("value", typedValue.String()).Send()
 		}
 	}
 
