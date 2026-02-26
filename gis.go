@@ -104,14 +104,14 @@ func ServiceRootFromTenant(base string, tenantId string) string {
 	return fmt.Sprintf("%s/%s", base, tenantId)
 }
 
-func (ag *ArcGIS) Query(ctx context.Context, service string, layer_id uint, query *Query) (*QueryResult, error) {
+func (ag *ArcGIS) Query(ctx context.Context, service string, layer_id uint, query *Query) (*response.QueryResult, error) {
 	path := fmt.Sprintf("/arcgis/rest/services/%s/FeatureServer/%d/query", service, layer_id)
 	url, err := ag.urlFeature(path)
 	if err != nil {
 		return nil, fmt.Errorf("make url: %w", err)
 	}
 	params := query.toParams()
-	return reqGetJSONParamsHeadersFullURL[QueryResult](ctx, ag.requestor, *url, params, map[string]string{})
+	return reqGetJSONParamsHeadersFullURL[response.QueryResult](ctx, ag.requestor, *url, params, map[string]string{})
 }
 func (ag *ArcGIS) QueryRaw(ctx context.Context, service string, layer_id uint, query *Query) ([]byte, error) {
 	// path := fmt.Sprintf("/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
@@ -137,7 +137,7 @@ func (ag *ArcGIS) AdminInfo(ctx context.Context, serviceName string, serviceType
 	return reqGetJSONFullURL[AdminInfo](ctx, ag.requestor, *url)
 }
 
-func (ag *ArcGIS) NewServiceFeature(ctx context.Context, name string, url url.URL) (*ServiceFeature, error) {
+func (ag *ArcGIS) NewServiceFeature(ctx context.Context, name string, url url.URL) *ServiceFeature {
 	return newServiceFeature(ctx, name, url, ag.requestor)
 }
 func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
@@ -230,10 +230,7 @@ func (ag *ArcGIS) Services(ctx context.Context) ([]*ServiceFeature, error) {
 		if err != nil {
 			return results, fmt.Errorf("parse url: %w", err)
 		}
-		sf, err := newServiceFeature(ctx, s.Name, *u, ag.requestor)
-		if err != nil {
-			return results, fmt.Errorf("new service feature: %w", err)
-		}
+		sf := newServiceFeature(ctx, s.Name, *u, ag.requestor)
 		results = append(results, sf)
 	}
 	return results, nil
@@ -252,10 +249,7 @@ func (ag *ArcGIS) ServiceByName(ctx context.Context, name string) (*ServiceFeatu
 			if err != nil {
 				return nil, fmt.Errorf("parse url: %w", err)
 			}
-			r, err := newServiceFeature(ctx, name, *u, ag.requestor)
-			if err != nil {
-				return nil, fmt.Errorf("creating service: %w", err)
-			}
+			r := newServiceFeature(ctx, name, *u, ag.requestor)
 			return r, nil
 		}
 	}

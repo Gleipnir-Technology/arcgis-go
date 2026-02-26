@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 )
 
 type MapService struct {
@@ -13,14 +15,14 @@ type MapService struct {
 	Title string
 	URL   url.URL
 
-	meta *MapServiceMetadata
+	meta *response.MapServiceMetadata
 }
 
-func (ms MapService) Metadata(ctx context.Context, ag *ArcGIS) (*MapServiceMetadata, error) {
+func (ms MapService) Metadata(ctx context.Context, ag *ArcGIS) (*response.MapServiceMetadata, error) {
 	if ms.meta != nil {
 		return ms.meta, nil
 	}
-	return reqGetJSONFullURL[MapServiceMetadata](ctx, ag.requestor, ms.URL)
+	return reqGetJSONFullURL[response.MapServiceMetadata](ctx, ag.requestor, ms.URL)
 }
 func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column int) ([]byte, error) {
 	// From https://developers.arcgis.com/documentation/portal-and-data-services/data-services/map-tile-services/introduction/
