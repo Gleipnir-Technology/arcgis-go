@@ -39,6 +39,11 @@ func newServiceFeature(ctx context.Context, name string, url url.URL, requestor 
 	}
 	return &result, nil
 }
+func (sf *ServiceFeature) LayerMetadata(ctx context.Context, ag *ArcGIS, layer_id uint) (*response.LayerMetadata, error) {
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)))
+	return reqGetJSONParamsHeadersFullURL[response.LayerMetadata](ctx, ag.requestor, *url, map[string]string{}, map[string]string{})
+}
+
 func (sf *ServiceFeature) QueryCount(ctx context.Context, ag *ArcGIS, layer_id uint) (*QueryResultCount, error) {
 	params := make(map[string]string)
 	params["returnCountOnly"] = "true"

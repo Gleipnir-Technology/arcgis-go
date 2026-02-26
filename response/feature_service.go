@@ -154,11 +154,6 @@ type FeatureService struct {
 	LayerOverridesEnabled                       bool                        `json:"layerOverridesEnabled,omitempty"`
 }
 
-type SpatialReference struct {
-	Wkid       int `json:"wkid"`
-	LatestWkid int `json:"latestWkid,omitempty"`
-}
-
 type Envelope struct {
 	Xmin             float64          `json:"xmin"`
 	Ymin             float64          `json:"ymin"`
@@ -201,15 +196,6 @@ type SyncCapabilities struct {
 	SupportsSyncModelNone                bool `json:"supportsSyncModelNone,omitempty"`
 	SupportsAttachmentsSyncDirection     bool `json:"supportsAttachmentsSyncDirection,omitempty"`
 	SupportsBiDirectionalSyncForServer   bool `json:"supportsBiDirectionalSyncForServer,omitempty"`
-}
-
-type AdvancedEditingCapabilities struct {
-	SupportsSplit                        bool   `json:"supportsSplit"`
-	SupportsReturnServiceEditsInSourceSR bool   `json:"supportsReturnServiceEditsInSourceSR"`
-	SupportsAsyncApplyEdits              bool   `json:"supportsAsyncApplyEdits,omitempty"`
-	SupportsReturnEditResults            bool   `json:"supportsReturnEditResults,omitempty"`
-	SupportsApplyEditsbyUploadID         bool   `json:"supportsApplyEditsbyUploadID,omitempty"`
-	SupportedApplyEditsUploadIDFormats   string `json:"supportedApplyEditsUploadIDFormats,omitempty"`
 }
 
 type EditorTrackingInfo struct {
