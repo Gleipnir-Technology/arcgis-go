@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 
 	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/rs/zerolog"
@@ -37,4 +38,11 @@ func newServiceFeature(ctx context.Context, name string, url url.URL, requestor 
 		requestor:      &requestor,
 	}
 	return &result, nil
+}
+func (sf *ServiceFeature) QueryCount(ctx context.Context, ag *ArcGIS, layer_id uint) (*QueryResultCount, error) {
+	params := make(map[string]string)
+	params["returnCountOnly"] = "true"
+	params["where"] = "9999=9999"
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
+	return reqGetJSONParamsHeadersFullURL[QueryResultCount](ctx, ag.requestor, *url, params, map[string]string{})
 }

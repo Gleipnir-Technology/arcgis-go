@@ -382,18 +382,6 @@ func (ag *ArcGIS) PermissionList(ctx context.Context, serviceName string, servic
 	return reqGetJSONParamsHeadersFullURL[response.PermissionSlice](ctx, ag.requestor, *url, map[string]string{}, map[string]string{})
 }
 
-func (ag *ArcGIS) QueryCount(ctx context.Context, service string, layer_id uint) (*QueryResultCount, error) {
-	params := make(map[string]string)
-	params["returnCountOnly"] = "true"
-	params["where"] = "9999=9999"
-	path := fmt.Sprintf("/arcgis/rest/services/%s/FeatureServer/%d/query", service, layer_id)
-	url, err := ag.urlFeature(path)
-	if err != nil {
-		return nil, fmt.Errorf("make url: %w", err)
-	}
-	return reqGetJSONParamsHeadersFullURL[QueryResultCount](ctx, ag.requestor, *url, params, map[string]string{})
-}
-
 func (d *DefaultValueWrapper) UnmarshalJSON(data []byte) (err error) {
 	// Does it look like a string?
 	var content string
