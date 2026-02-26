@@ -238,6 +238,29 @@ func (ag *ArcGIS) Services(ctx context.Context) ([]*ServiceFeature, error) {
 	}
 	return results, nil
 }
+func (ag *ArcGIS) ServiceByName(ctx context.Context, name string) (*ServiceFeature, error) {
+	logger := zerolog.Ctx(ctx)
+	query := fmt.Sprintf("type:\"Feature Service\" name:\"%s\"", name)
+	resp, err := ag.SearchInAccount(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("search err: %w", err)
+	}
+	logger.Debug().Int("total", resp.Total).Str("query", query).Msg("got results")
+	for _, result := range resp.Results {
+		if result.Type == "Feature Service" && result.Name == name {
+			u, err := url.Parse(result.URL)
+			if err != nil {
+				return nil, fmt.Errorf("parse url: %w", err)
+			}
+			r, err := newServiceFeature(ctx, name, *u, ag.requestor)
+			if err != nil {
+				return nil, fmt.Errorf("creating service: %w", err)
+			}
+			return r, nil
+		}
+	}
+	return nil, fmt.Errorf("no matching results")
+}
 func (ag *ArcGIS) populateURLs(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	path := "/sharing/rest/portals/self/urls"
