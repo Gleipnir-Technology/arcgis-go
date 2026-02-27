@@ -6,9 +6,6 @@ type Polyline struct {
 
 func (p Polyline) String() string { return "some polyline" }
 func (p Polyline) Type() string   { return "LineString" }
-func (p Polyline) ToGeoJSON() map[string]any {
-	return map[string]any{
-		"type":        "LineString",
-		"coordinates": p.Paths,
-	}
+func (p Polyline) ToGeoJSON() (string, error) {
+	panic("not implemented")
 }

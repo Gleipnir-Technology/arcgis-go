@@ -2,6 +2,6 @@ package response
 
 type Geometry interface {
 	String() string
-	ToGeoJSON() map[string]any
+	ToGeoJSON() (string, error)
 	Type() string
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -9,9 +10,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
+	//"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -74,36 +77,100 @@ func main() {
 	if err != nil {
 		log.Error().Err(err).Msg("failed query")
 	}
-	log.Info().Int("count", len(resp.ObjectIDs)).Msg("done")
+	log.Info().Int("count", len(resp.ObjectIDs)).Msg("prepping jobs")
+
 	to_get := selectRandom(resp.ObjectIDs, 10)
-	id_strs := make([]string, len(to_get))
-	for i, idx := range to_get {
-		id_strs[i] = strconv.Itoa(idx)
+
+	chanDone := make(chan struct{})
+
+	chanErrors := make(chan error)
+	chanResults := make(chan []string)
+	chanJobs := make(chan []int)
+	go csvWriter(chanResults, "output.csv", chanDone)
+
+	var wg sync.WaitGroup
+	num_workers := 2
+	for i := 0; i < num_workers; i++ {
+		wg.Add(1)
+		go worker(fs, uint(*index), *feature_name_apn, *feature_name_desc, chanJobs, chanResults, chanErrors, &wg)
 	}
-	in_clause := strings.Join(id_strs, ",")
-	q := arcgis.Query{
-		OutFields: "*",
-		Where:     fmt.Sprintf("OBJECTID IN (%s)", in_clause),
+	log.Info().Int("num_workers", num_workers).Msg("started workers")
+
+	max_records := fs.Metadata.MaxRecordCount
+	for offset := uint(0); offset < uint(len(to_get)); offset += uint(max_records) {
+		end := offset + max_records
+		if end > uint(len(to_get)) {
+			end = uint(len(to_get))
+		}
+
+		batch := to_get[offset:end]
+		log.Debug().Int("num", len(batch)).Msg("adding to the jobs queue")
+		chanJobs <- batch
 	}
-	rsp, err := fs.Query(ctx, uint(*index), q)
-	if err != nil {
-		log.Error().Err(err).Msg("failed query")
+	close(chanJobs)
+
+	log.Debug().Msg("Waiting for results")
+	go func() {
+		wg.Wait()
+		close(chanResults)
+		close(chanErrors)
+	}()
+
+	// Check for errors
+	for err := range chanErrors {
+		if err != nil {
+			log.Error().Err(err).Msg("error in worker")
+		}
 	}
-	for _, feature := range rsp.Features {
-		/*
-			for k, v := range feature.Attributes {
-				log.Info().Str("k", k).Str("v", v.String()).Send()
-			}
-		*/
-		v := feature.Attributes[*feature_name_apn]
-		if v == nil {
-			log.Error().Str("apn-name", *feature_name_apn).Msg("nil v")
+
+	// Wait for write to finish
+	log.Debug().Msg("Waiting for writes to complete")
+	<-chanDone
+	log.Info().Msg("Work complete")
+}
+
+func worker(fs *arcgis.ServiceFeature, layer_id uint, feature_name_apn string, feature_name_desc string, chanJobs <-chan []int, chanResults chan<- []string, chanErrors chan<- error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	ctx := context.Background()
+	for to_get := range chanJobs {
+		log.Debug().Int("len", len(to_get)).Msg("Working on job")
+		id_strs := make([]string, len(to_get))
+		for i, idx := range to_get {
+			id_strs[i] = strconv.Itoa(idx)
+		}
+		in_clause := strings.Join(id_strs, ",")
+		q := arcgis.Query{
+			OutFields: "*",
+			Where:     fmt.Sprintf("OBJECTID IN (%s)", in_clause),
+		}
+		rsp, err := fs.Query(ctx, layer_id, q)
+		if err != nil {
+			log.Error().Err(err).Msg("query failed")
+			chanErrors <- fmt.Errorf("query: %w", err)
 			continue
 		}
-		apn := v.String()
-		desc := feature.Attributes[*feature_name_desc].String()
-		geom := feature.Geometry.String()
-		log.Info().Str("apn", apn).Str("desc", desc).Str("geom", geom).Send()
+		log.Debug().Int("count", len(rsp.Features)).Msg("processing features")
+		for _, feature := range rsp.Features {
+			/*
+				for k, v := range feature.Attributes {
+					log.Info().Str("k", k).Str("v", v.String()).Send()
+				}
+			*/
+			apn := feature.Attributes[feature_name_apn].String()
+			desc := feature.Attributes[feature_name_desc].String()
+			geom, err := feature.Geometry.ToGeoJSON()
+			if err != nil {
+				log.Error().Err(err).Msg("to geo json")
+				chanErrors <- fmt.Errorf("geometry to geo json: %w", err)
+				continue
+			}
+			chanResults <- []string{
+				apn,
+				desc,
+				geom,
+			}
+		}
 	}
 }
 func selectRandom(cohort []int, num int) []int {
@@ -115,4 +182,34 @@ func selectRandom(cohort []int, num int) []int {
 		result[i] = cohort[ig]
 	}
 	return result
+}
+func csvWriter(chanRows <-chan []string, filename string, chanDone chan<- struct{}) {
+	// Create a new file
+	file, err := os.Create("output.csv")
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating file")
+		return
+	}
+	defer file.Close()
+
+	// Create a CSV writer
+	writer := csv.NewWriter(file)
+	defer writer.Flush() // Don't forget to flush!
+
+	// Write header
+	header := []string{"APN", "Description", "Geometry"}
+	if err := writer.Write(header); err != nil {
+		log.Error().Err(err).Msg("Error writing header")
+		return
+	}
+	for row := range chanRows {
+		if err := writer.Write(row); err != nil {
+			log.Error().Err(err).Msg("Error writing row")
+			return
+		}
+	}
+	writer.Flush()
+	file.Close()
+	chanDone <- struct{}{}
+	close(chanDone)
 }

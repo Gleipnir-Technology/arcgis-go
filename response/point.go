@@ -2,6 +2,9 @@ package response
 
 import (
 	"fmt"
+
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 )
 
 type Point struct {
@@ -14,9 +17,15 @@ type Point struct {
 
 func (p Point) String() string { return fmt.Sprintf("%f,%f", p.X, p.Y) }
 func (p Point) Type() string   { return "esriGeometryPoint" }
-func (p Point) ToGeoJSON() map[string]any {
-	return map[string]any{
-		"type":        "Point",
-		"coordinates": []float64{p.X, p.Y},
+func (p Point) ToGeoJSON() (string, error) {
+	fc := geojson.NewFeatureCollection()
+	fc.Append(geojson.NewFeature(orb.Point{
+		p.X,
+		p.Y,
+	}))
+	rawJSON, err := fc.MarshalJSON()
+	if err != nil {
+		return "", fmt.Errorf("togeojson: %w", err)
 	}
+	return string(rawJSON), nil
 }
