@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	//"fmt"
-	//"net/url"
+	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
-	//"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -73,36 +75,44 @@ func main() {
 		log.Error().Err(err).Msg("failed query")
 	}
 	log.Info().Int("count", len(resp.ObjectIDs)).Msg("done")
-
-	// Show 20 items at random
-	/*
-		q := arcgis.Query{
-			Limit: 10,
-			OutFields: "*",
-			Where: "1=1",
-		}
-		resp, err := fs.Query(ctx, uint(*index), q)
-		if err != nil {
-			log.Error().Err(err).Msg("failed query")
-		}
-		for _, feature := range resp.Features {
-			/*
+	to_get := selectRandom(resp.ObjectIDs, 10)
+	id_strs := make([]string, len(to_get))
+	for i, idx := range to_get {
+		id_strs[i] = strconv.Itoa(idx)
+	}
+	in_clause := strings.Join(id_strs, ",")
+	q := arcgis.Query{
+		OutFields: "*",
+		Where:     fmt.Sprintf("OBJECTID IN (%s)", in_clause),
+	}
+	rsp, err := fs.Query(ctx, uint(*index), q)
+	if err != nil {
+		log.Error().Err(err).Msg("failed query")
+	}
+	for _, feature := range rsp.Features {
+		/*
 			for k, v := range feature.Attributes {
 				log.Info().Str("k", k).Str("v", v.String()).Send()
 			}
-			if feature_name_apn  == nil {
-				log.Error().Msg("nil name")
-				continue
-			}
-			v := feature.Attributes[*feature_name_apn]
-			if v == nil {
-				log.Error().Str("apn-name", *feature_name_apn).Msg("nil v")
-				continue
-			}
-			apn := v.String()
-			desc := feature.Attributes[*feature_name_desc].String()
-			geom := feature.Geometry.String()
-			log.Info().Str("apn", apn).Str("desc", desc).Str("geom", geom).Send()
+		*/
+		v := feature.Attributes[*feature_name_apn]
+		if v == nil {
+			log.Error().Str("apn-name", *feature_name_apn).Msg("nil v")
+			continue
 		}
-	*/
+		apn := v.String()
+		desc := feature.Attributes[*feature_name_desc].String()
+		geom := feature.Geometry.String()
+		log.Info().Str("apn", apn).Str("desc", desc).Str("geom", geom).Send()
+	}
+}
+func selectRandom(cohort []int, num int) []int {
+	result := make([]int, num)
+	s := rand.NewSource(time.Now().Unix())
+	r := rand.New(s)
+	for i := range num {
+		ig := r.Intn(len(cohort))
+		result[i] = cohort[ig]
+	}
+	return result
 }
