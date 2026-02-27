@@ -7,7 +7,7 @@ import (
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
-	"github.com/rs/zerolog/log"
+	//"github.com/rs/zerolog/log"
 	"github.com/twpayne/go-proj/v11"
 )
 
@@ -67,6 +67,6 @@ func (p Polygon2D) ToGeoJSON() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("togeojson: %w", err)
 	}
-	log.Debug().Bytes("geojson", rawJSON).Send()
+	//log.Debug().Bytes("geojson", rawJSON).Send()
 	return string(rawJSON), nil
 }

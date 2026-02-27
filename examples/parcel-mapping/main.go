@@ -25,23 +25,15 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	ctx := context.TODO()
-	ctx = log.With().Str("component", "arcgis").Logger().WithContext(ctx)
+	ctx := log.With().Str("component", "arcgis").Logger().WithContext(context.TODO())
 
-	url_str := flag.String("feature-server-url", "", "The URL of the feature server we'll extract the data from")
+	batch_size := flag.Int("batch-size", 50, "The number of IDs to request in a single batch")
 	index := flag.Int("layer-index", -1, "The layer index within the feature server to extract from")
-	feature_name_apn := flag.String("feature-name-apn", "", "The name of the feature to pull APN values from")
-	feature_name_desc := flag.String("feature-name-description", "", "The name of the feature to pull description values from")
+	output := flag.String("output", "output.csv", "The name of the CSV file to output")
+	url_str := flag.String("feature-server-url", "", "The URL of the feature server we'll extract the data from")
+	workers := flag.Int("workers", 2, "The number of downloader workers to run in parallel")
 	flag.Parse()
 
-	if *feature_name_apn == "" {
-		log.Error().Msg("You must specify -feature-name-apn")
-		os.Exit(1)
-	}
-	if *feature_name_desc == "" {
-		log.Error().Msg("You must specify -feature-name-description")
-		os.Exit(1)
-	}
 	if *url_str == "" {
 		log.Error().Msg("You must specify -feature-server-url")
 		os.Exit(1)
@@ -69,34 +61,47 @@ func main() {
 	}
 
 	log.Info().Str("name", fs.Name).Str("url", fs.URL.String()).Str("item id", fs.Metadata.ServiceItemId).Int("len layers", len(fs.Metadata.Layers)).Msg("found feature service")
-	layer := fs.Metadata.Layers[*index]
-	log.Info().Str("name", layer.Name).Msg("layer")
+	//layer := fs.Metadata.Layers[*index]
+	log.Info().Str("name", fs.Metadata.Layers[*index].Name).Msg("layer")
+	layer, err := fs.LayerMetadata(ctx, uint(*index))
+	if err != nil {
+		log.Error().Err(err).Msg("failed layer metadata")
+		os.Exit(4)
+	}
+	field_names := make([]string, len(layer.Fields)+1)
+	for i, field := range layer.Fields {
+		field_names[i] = *field.Name
+	}
+	field_names[len(layer.Fields)] = "geometry"
+	log.Info().Strs("field names", field_names).Send()
 	resp, err := fs.QueryIDs(ctx, uint(*index), arcgis.Query{
 		Where: "1=1",
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("failed query")
+		os.Exit(5)
 	}
 	log.Info().Int("count", len(resp.ObjectIDs)).Msg("prepping jobs")
 
-	to_get := selectRandom(resp.ObjectIDs, 10)
+	//to_get := selectRandom(resp.ObjectIDs, 10)
+	to_get := resp.ObjectIDs
 
 	chanDone := make(chan struct{})
 
 	chanErrors := make(chan error)
 	chanResults := make(chan []string)
 	chanJobs := make(chan []int)
-	go csvWriter(chanResults, "output.csv", chanDone)
+	go csvWriter(chanResults, *output, field_names, chanDone)
 
 	var wg sync.WaitGroup
-	num_workers := 2
-	for i := 0; i < num_workers; i++ {
+	for i := 0; i < *workers; i++ {
 		wg.Add(1)
-		go worker(fs, uint(*index), *feature_name_apn, *feature_name_desc, chanJobs, chanResults, chanErrors, &wg)
+		go worker(fs, uint(*index), field_names, chanJobs, chanResults, chanErrors, &wg)
 	}
-	log.Info().Int("num_workers", num_workers).Msg("started workers")
+	log.Info().Int("num_workers", *workers).Msg("started workers")
 
-	max_records := fs.Metadata.MaxRecordCount
+	//max_records := fs.Metadata.MaxRecordCount
+	max_records := uint(*batch_size)
 	for offset := uint(0); offset < uint(len(to_get)); offset += uint(max_records) {
 		end := offset + max_records
 		if end > uint(len(to_get)) {
@@ -104,7 +109,7 @@ func main() {
 		}
 
 		batch := to_get[offset:end]
-		log.Debug().Int("num", len(batch)).Msg("adding to the jobs queue")
+		//log.Debug().Int("num", len(batch)).Msg("adding to the jobs queue")
 		chanJobs <- batch
 	}
 	close(chanJobs)
@@ -129,12 +134,13 @@ func main() {
 	log.Info().Msg("Work complete")
 }
 
-func worker(fs *arcgis.ServiceFeature, layer_id uint, feature_name_apn string, feature_name_desc string, chanJobs <-chan []int, chanResults chan<- []string, chanErrors chan<- error, wg *sync.WaitGroup) {
+func worker(fs *arcgis.ServiceFeature, layer_id uint, field_names []string, chanJobs <-chan []int, chanResults chan<- []string, chanErrors chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	ctx := context.Background()
+	name_to_value := make(map[string]string, len(field_names))
 	for to_get := range chanJobs {
-		log.Debug().Int("len", len(to_get)).Msg("Working on job")
+		//log.Debug().Int("len", len(to_get)).Msg("Working on job")
 		id_strs := make([]string, len(to_get))
 		for i, idx := range to_get {
 			id_strs[i] = strconv.Itoa(idx)
@@ -150,17 +156,10 @@ func worker(fs *arcgis.ServiceFeature, layer_id uint, feature_name_apn string, f
 			chanErrors <- fmt.Errorf("query: %w", err)
 			continue
 		}
-		log.Debug().Int("count", len(rsp.Features)).Msg("processing features")
+		//log.Debug().Int("count", len(rsp.Features)).Msg("processing features")
 		for _, feature := range rsp.Features {
-			/*
-				for k, v := range feature.Attributes {
-					log.Info().Str("k", k).Str("v", v.String()).Send()
-				}
-			*/
-			apn := feature.Attributes[feature_name_apn].String()
-			desc := feature.Attributes[feature_name_desc].String()
-			if desc == "" {
-				desc = "\"\""
+			for k, v := range feature.Attributes {
+				name_to_value[k] = v.String()
 			}
 			geom, err := feature.Geometry.Project("EPSG:2228", "EPSG:4326")
 			if err != nil {
@@ -169,11 +168,12 @@ func worker(fs *arcgis.ServiceFeature, layer_id uint, feature_name_apn string, f
 				continue
 			}
 			geo_json, err := geom.ToGeoJSON()
-			chanResults <- []string{
-				apn,
-				desc,
-				geo_json,
+			name_to_value["geometry"] = geo_json
+			row := make([]string, len(field_names))
+			for i, f := range field_names {
+				row[i] = name_to_value[f]
 			}
+			chanResults <- row
 		}
 	}
 }
@@ -187,7 +187,7 @@ func selectRandom(cohort []int, num int) []int {
 	}
 	return result
 }
-func csvWriter(chanRows <-chan []string, filename string, chanDone chan<- struct{}) {
+func csvWriter(chanRows <-chan []string, filename string, field_names []string, chanDone chan<- struct{}) {
 	// Create a new file
 	file, err := os.Create("output.csv")
 	if err != nil {
@@ -201,15 +201,20 @@ func csvWriter(chanRows <-chan []string, filename string, chanDone chan<- struct
 	defer writer.Flush() // Don't forget to flush!
 
 	// Write header
-	header := []string{"APN", "Description", "Geometry"}
-	if err := writer.Write(header); err != nil {
+	//header := []string{"APN", "Description", "Geometry"}
+	if err := writer.Write(field_names); err != nil {
 		log.Error().Err(err).Msg("Error writing header")
 		return
 	}
+	row_count := 0
 	for row := range chanRows {
 		if err := writer.Write(row); err != nil {
 			log.Error().Err(err).Msg("Error writing row")
 			return
+		}
+		row_count++
+		if row_count%1000 == 0 {
+			log.Info().Int("rowcount", row_count).Send()
 		}
 	}
 	writer.Flush()
