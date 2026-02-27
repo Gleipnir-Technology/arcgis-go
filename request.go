@@ -231,7 +231,7 @@ func parseJSON[T any](body []byte) (*T, error) {
 	// Decode JSON
 	var result T
 	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
+		return nil, fmt.Errorf("parseJSON: %w", err)
 	}
 
 	return &result, nil
