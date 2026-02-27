@@ -24,6 +24,7 @@ type ArcGIS struct {
 
 	urlFeatures  string
 	urlInsights  string
+	urlGeometry  url.URL
 	urlNotebooks string
 	urlTiles     string
 
@@ -249,7 +250,7 @@ func (ag *ArcGIS) ServiceByURL(ctx context.Context, url url.URL) (*ServiceFeatur
 func (ag *ArcGIS) populateURLs(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	path := "/sharing/rest/portals/self/urls"
-	resp, err := reqGetJSON[ResponseURLs](ctx, ag.requestor, path)
+	resp, err := reqGetJSON[response.URLs](ctx, ag.requestor, path)
 	if err != nil {
 		return fmt.Errorf("get urls: %w", err)
 	}
@@ -270,6 +271,11 @@ func (ag *ArcGIS) switchHostByPortal(ctx context.Context) error {
 	}
 	ag.AccountID = portals.ID
 	ag.requestor.host = fmt.Sprintf("https://%s.maps.arcgis.com", portals.UrlKey)
+	geom, err := url.Parse(portals.HelperServices.Geometry.URL)
+	if err != nil {
+		return fmt.Errorf("parse geometry: %w", err)
+	}
+	ag.urlGeometry = *geom
 	logger.Debug().Str("id", portals.ID).Str("name", portals.PortalName).Str("urlkey", portals.UrlKey).Str("host", ag.requestor.host).Msg("Switched host by portal")
 	return nil
 }

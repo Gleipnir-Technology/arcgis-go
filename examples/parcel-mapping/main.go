@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Gleipnir-Technology/arcgis-go"
-	//"github.com/Gleipnir-Technology/arcgis-go/response"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -159,16 +159,20 @@ func worker(fs *arcgis.ServiceFeature, layer_id uint, feature_name_apn string, f
 			*/
 			apn := feature.Attributes[feature_name_apn].String()
 			desc := feature.Attributes[feature_name_desc].String()
-			geom, err := feature.Geometry.ToGeoJSON()
+			if desc == "" {
+				desc = "\"\""
+			}
+			geom, err := feature.Geometry.Project("EPSG:2228", "EPSG:4326")
 			if err != nil {
-				log.Error().Err(err).Msg("to geo json")
-				chanErrors <- fmt.Errorf("geometry to geo json: %w", err)
+				log.Error().Err(err).Msg("project")
+				chanErrors <- fmt.Errorf("project: %w", err)
 				continue
 			}
+			geo_json, err := geom.ToGeoJSON()
 			chanResults <- []string{
 				apn,
 				desc,
-				geom,
+				geo_json,
 			}
 		}
 	}
@@ -212,4 +216,13 @@ func csvWriter(chanRows <-chan []string, filename string, chanDone chan<- struct
 	file.Close()
 	chanDone <- struct{}{}
 	close(chanDone)
+}
+func projectGeometry(geom response.Geometry) (string, error) {
+	// WKID 2228 is EPSG:2228 (NAD83 / California Zone 3, US Survey Feet)
+	/*pj, err := proj.NewCRSToCRS(
+		"EPSG:2228",      // Source: California Zone 3
+		"EPSG:4326",      // Target: WGS84
+		nil,
+	)*/
+	return "", nil
 }

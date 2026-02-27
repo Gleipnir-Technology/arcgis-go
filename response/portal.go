@@ -48,34 +48,34 @@ type Portal struct {
 	DevBasemapGalleryGroupQuery    string
 	EueiEnabled                    bool
 	FeaturedGroups                 []Group
-	FeaturedGroupsId               string `json:"featuredGroupsId"`
-	FeaturedItemsGroupQuery        string `json:"featuredItemsGroupQuery"`
-	FontManifestUrl                string `json:"fontManifestUrl"`
-	G3DTilesGalleryGroupQuery      string `json:"g3DTilesGalleryGroupQuery"`
-	G3dTilesEnabled                bool   `json:"g3dTilesEnabled"`
-	GalleryTemplatesGroupQuery     string `json:"galleryTemplatesGroupQuery"`
-	HasCategorySchema              bool   `json:"hasCategorySchema"`
-	HasMemberCategorySchema        bool   `json:"hasMemberCategorySchema"`
-	HelpBase                       string `json:"helpBase"`
-	//HelperServices []HelperService
-	HomePageFeaturedContent      string   `json:"homePageFeaturedContent"`
-	HomePageFeaturedContentCount int      `json:"homePageFeaturedContentCount"`
-	ID                           string   `json:"id"`
-	InactivityTimeout            int      `json:"inactivityTimeout"`
-	IsPortal                     bool     `json:"isPortal"`
-	IsVerified                   bool     `json:"isVerified"`
-	LayerTemplatesGroupQuery     string   `json:"layerTemplatesGroupQuery"`
-	LivingAtlasGroupQuery        string   `json:"livingAtlasGroupQuery"`
-	MaxTokenExpirationMinutes    int      `json:"maxTokenExpirationMinutes"`
-	MetadataEditable             bool     `json:"metadataEditable"`
-	MetadataFormats              []string `json:"metadataFormats"`
-	Modified                     int64    `json:"modified"`
-	Name                         string   `json:"name"`
-	NotificationsEnabled         bool     `json:"notificationsEnabled"`
-	PlatformSSO                  bool     `json:"platformSSO"`
-	PortalHostname               string   `json:"portalHostname"`
-	PortalMode                   string   `json:"portalMode"`
-	PortalName                   string   `json:"portalName"`
+	FeaturedGroupsId               string         `json:"featuredGroupsId"`
+	FeaturedItemsGroupQuery        string         `json:"featuredItemsGroupQuery"`
+	FontManifestUrl                string         `json:"fontManifestUrl"`
+	G3DTilesGalleryGroupQuery      string         `json:"g3DTilesGalleryGroupQuery"`
+	G3dTilesEnabled                bool           `json:"g3dTilesEnabled"`
+	GalleryTemplatesGroupQuery     string         `json:"galleryTemplatesGroupQuery"`
+	HasCategorySchema              bool           `json:"hasCategorySchema"`
+	HasMemberCategorySchema        bool           `json:"hasMemberCategorySchema"`
+	HelpBase                       string         `json:"helpBase"`
+	HelperServices                 HelperServices `json:"helperServices"`
+	HomePageFeaturedContent        string         `json:"homePageFeaturedContent"`
+	HomePageFeaturedContentCount   int            `json:"homePageFeaturedContentCount"`
+	ID                             string         `json:"id"`
+	InactivityTimeout              int            `json:"inactivityTimeout"`
+	IsPortal                       bool           `json:"isPortal"`
+	IsVerified                     bool           `json:"isVerified"`
+	LayerTemplatesGroupQuery       string         `json:"layerTemplatesGroupQuery"`
+	LivingAtlasGroupQuery          string         `json:"livingAtlasGroupQuery"`
+	MaxTokenExpirationMinutes      int            `json:"maxTokenExpirationMinutes"`
+	MetadataEditable               bool           `json:"metadataEditable"`
+	MetadataFormats                []string       `json:"metadataFormats"`
+	Modified                       int64          `json:"modified"`
+	Name                           string         `json:"name"`
+	NotificationsEnabled           bool           `json:"notificationsEnabled"`
+	PlatformSSO                    bool           `json:"platformSSO"`
+	PortalHostname                 string         `json:"portalHostname"`
+	PortalMode                     string         `json:"portalMode"`
+	PortalName                     string         `json:"portalName"`
 	//PortalProperties []PortalProperty `json:"portalProperties"`
 	PortalThumbnail                   *string `json:"portalThumbnail"`
 	RasterFunctionTemplatesGroupQuery string  `json:"rasterFunctionTemplatesGroupQuery"`

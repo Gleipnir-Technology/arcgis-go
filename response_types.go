@@ -74,9 +74,6 @@ type ResourceInfo struct {
 	//InitialExtent Extent `json:"initialExtent"`
 	//FullExtent Extent `json:"fullExtent"`
 }
-type ResponseURLs struct {
-	URLs ServerURLCollection `json:"urls"`
-}
 type SearchResponse struct {
 	Total     int            `json:"total"`
 	Start     int            `json:"start"`
@@ -131,15 +128,6 @@ type SearchResult struct {
 	ApiToken1ExpirationDate int                     `json:"apiToken1ExpirationDate"`
 	ApiToken2ExpirationDate int                     `json:"apiToken2ExpirationDate"`
 	LastViewed              int64                   `json:"lastViewed"`
-}
-type ServerURL struct {
-	HTTPS []string `json:"https"`
-}
-type ServerURLCollection struct {
-	Features  ServerURL `json:"features"`
-	Insights  ServerURL `json:"insights"`
-	Notebooks ServerURL `json:"notebooks"`
-	Tiles     ServerURL `json:"tiles"`
 }
 type ServiceListing struct {
 	Name string
