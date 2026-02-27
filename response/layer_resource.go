@@ -10,89 +10,6 @@ type LayerResource struct {
 	Title      string `json:"title"`
 }
 
-type LayerMetadata struct {
-	CurrentVersion                         *float64                                `json:"currentVersion,omitempty"`
-	ID                                     *int                                    `json:"id,omitempty"`
-	Name                                   *string                                 `json:"name,omitempty"`
-	Type                                   *string                                 `json:"type,omitempty"`
-	ParentLayer                            *int                                    `json:"parentLayer,omitempty"`
-	DisplayField                           *string                                 `json:"displayField,omitempty"`
-	Description                            *string                                 `json:"description,omitempty"`
-	CopyrightText                          *string                                 `json:"copyrightText,omitempty"`
-	SubtypeField                           *string                                 `json:"subtypeField,omitempty"`
-	DefaultSubtypeCode                     *int                                    `json:"defaultSubtypeCode,omitempty"`
-	DefaultVisibility                      *bool                                   `json:"defaultVisibility,omitempty"`
-	EditFieldsInfo                         *EditFieldsInfo                         `json:"editFieldsInfo,omitempty"`
-	OwnershipBasedAccessControlForFeatures *OwnershipBasedAccessControlForFeatures `json:"ownershipBasedAccessControlForFeatures,omitempty"`
-	SyncCanReturnChanges                   *bool                                   `json:"syncCanReturnChanges,omitempty"`
-	Relationships                          []Relationship                          `json:"relationships,omitempty"`
-	IsDataVersioned                        *bool                                   `json:"isDataVersioned,omitempty"`
-	IsDataArchived                         *bool                                   `json:"isDataArchived,omitempty"`
-	IsDataBranchVersioned                  *bool                                   `json:"isDataBranchVersioned,omitempty"`
-	IsDataReplicaTracked                   *bool                                   `json:"isDataReplicaTracked,omitempty"`
-	IsCoGoEnabled                          *bool                                   `json:"isCoGoEnabled,omitempty"`
-	SupportsRollbackOnFailureParameter     *bool                                   `json:"supportsRollbackOnFailureParameter,omitempty"`
-	DateFieldsTimeReference                *DateFieldsTimeReference                `json:"dateFieldsTimeReference,omitempty"`
-	PreferredTimeReference                 *DateFieldsTimeReference                `json:"preferredTimeReference,omitempty"`
-	DatesInUnknownTimezone                 *bool                                   `json:"datesInUnknownTimezone,omitempty"`
-	ArchivingInfo                          *ArchivingInfo                          `json:"archivingInfo,omitempty"`
-	SupportsStatistics                     *bool                                   `json:"supportsStatistics,omitempty"`
-	SupportsAdvancedQueries                *bool                                   `json:"supportsAdvancedQueries,omitempty"`
-	SupportsCoordinatesQuantization        *bool                                   `json:"supportsCoordinatesQuantization,omitempty"`
-	SupportsDatumTransformation            *bool                                   `json:"supportsDatumTransformation,omitempty"`
-	GeometryType                           *string                                 `json:"geometryType,omitempty"`
-	GeometryProperties                     *GeometryProperties                     `json:"geometryProperties,omitempty"`
-	MinScale                               *float64                                `json:"minScale,omitempty"`
-	MaxScale                               *float64                                `json:"maxScale,omitempty"`
-	EffectiveMinScale                      *float64                                `json:"effectiveMinScale,omitempty"`
-	EffectiveMaxScale                      *float64                                `json:"effectiveMaxScale,omitempty"`
-	SupportsQuantizationEditMode           *bool                                   `json:"supportsQuantizationEditMode,omitempty"`
-	SupportsAppend                         *bool                                   `json:"supportsAppend,omitempty"`
-	SupportedAppendFormats                 *string                                 `json:"supportedAppendFormats,omitempty"`
-	HasContingentValuesDefinition          *bool                                   `json:"hasContingentValuesDefinition,omitempty"`
-	SpatialReference                       *SpatialReference                       `json:"spatialReference,omitempty"`
-	AdvancedQueryCapabilities              *AdvancedQueryCapabilities              `json:"advancedQueryCapabilities,omitempty"`
-	StandardMaxRecordCountNoGeometry       *int                                    `json:"standardMaxRecordCountNoGeometry,omitempty"`
-	SupportsAsyncCalculate                 *bool                                   `json:"supportsAsyncCalculate,omitempty"`
-	SupportsFieldDescriptionProperty       *bool                                   `json:"supportsFieldDescriptionProperty,omitempty"`
-	AdvancedEditingCapabilities            *AdvancedEditingCapabilities            `json:"advancedEditingCapabilities,omitempty"`
-	AdvancedQueryAnalyticCapabilities      *AdvancedQueryAnalyticCapabilities      `json:"advancedQueryAnalyticCapabilities,omitempty"`
-	UserTypeExtensions                     []string                                `json:"userTypeExtensions,omitempty"`
-	Extent                                 *Extent                                 `json:"extent,omitempty"`
-	HeightModelInfo                        *HeightModelInfo                        `json:"heightModelInfo,omitempty"`
-	SourceHeightModelInfo                  *HeightModelInfo                        `json:"sourceHeightModelInfo,omitempty"`
-	SourceSpatialReference                 *SpatialReference                       `json:"sourceSpatialReference,omitempty"`
-	DrawingInfo                            *DrawingInfo                            `json:"drawingInfo,omitempty"`
-	HasM                                   *bool                                   `json:"hasM,omitempty"`
-	HasZ                                   *bool                                   `json:"hasZ,omitempty"`
-	EnableZDefaults                        *bool                                   `json:"enableZDefaults,omitempty"`
-	ZDefault                               *float64                                `json:"zDefault,omitempty"`
-	AllowGeometryUpdates                   *bool                                   `json:"allowGeometryUpdates,omitempty"`
-	TimeInfo                               *TimeInfo                               `json:"timeInfo,omitempty"`
-	HasAttachments                         *bool                                   `json:"hasAttachments,omitempty"`
-	HTMLPopupType                          *string                                 `json:"htmlPopupType,omitempty"`
-	ObjectIDField                          *string                                 `json:"objectIdField,omitempty"`
-	GlobalIDField                          *string                                 `json:"globalIdField,omitempty"`
-	TypeIDField                            *string                                 `json:"typeIdField,omitempty"`
-	Fields                                 []Field                                 `json:"fields,omitempty"`
-	GeometryField                          *Field                                  `json:"geometryField,omitempty"`
-	Types                                  []Type                                  `json:"types,omitempty"`
-	Templates                              []Template                              `json:"templates,omitempty"`
-	Subtypes                               []Subtype                               `json:"subtypes,omitempty"`
-	MaxRecordCount                         *int                                    `json:"maxRecordCount,omitempty"`
-	StandardMaxRecordCount                 *int                                    `json:"standardMaxRecordCount,omitempty"`
-	TileMaxRecordCount                     *int                                    `json:"tileMaxRecordCount,omitempty"`
-	MaxRecordCountFactor                   *int                                    `json:"maxRecordCountFactor,omitempty"`
-	SupportedQueryFormats                  *string                                 `json:"supportedQueryFormats,omitempty"`
-	SupportedExportFormats                 *string                                 `json:"supportedExportFormats,omitempty"`
-	SupportedSpatialRelationships          []string                                `json:"supportedSpatialRelationships,omitempty"`
-	HasMetadata                            *bool                                   `json:"hasMetadata,omitempty"`
-	HasStaticData                          *bool                                   `json:"hasStaticData,omitempty"`
-	SQLParserVersion                       *string                                 `json:"sqlParserVersion,omitempty"`
-	IsUpdatableView                        *bool                                   `json:"isUpdatableView,omitempty"`
-	Capabilities                           *string                                 `json:"capabilities,omitempty"`
-}
-
 // EditFieldsInfo contains information about edit tracking fields
 type EditFieldsInfo struct {
 	CreationDateField       *string                  `json:"creationDateField,omitempty"`
@@ -208,7 +125,7 @@ type TimeInfo struct {
 
 // Type represents a feature type
 type Type struct {
-	ID        *int                   `json:"id,omitempty"`
+	ID        *string                `json:"id,omitempty"`
 	Name      *string                `json:"name,omitempty"`
 	Domains   map[string]interface{} `json:"domains,omitempty"`
 	Templates []Template             `json:"templates,omitempty"`
