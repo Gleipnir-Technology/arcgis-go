@@ -189,7 +189,7 @@ func selectRandom(cohort []int, num int) []int {
 }
 func csvWriter(chanRows <-chan []string, filename string, field_names []string, chanDone chan<- struct{}) {
 	// Create a new file
-	file, err := os.Create("output.csv")
+	file, err := os.Create(filename)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating file")
 		return
