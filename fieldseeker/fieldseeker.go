@@ -2,7 +2,6 @@ package fieldseeker
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -99,18 +98,22 @@ func NewFieldSeekerFromURL(ctx context.Context, ag arcgis.ArcGIS, url_str string
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
 	}
-	service, err := ag.NewServiceFeature(ctx, fieldseekerFeatureName, *u)
+	service := ag.NewServiceFeature(ctx, fieldseekerFeatureName, *u)
 	if err != nil {
 		return nil, fmt.Errorf("new service feature: %w", err)
 	}
-	layer_to_id := make(map[LayerType]uint, 0)
-	for _, layer := range service.Layers {
+	metadata, err := service.PopulateMetadata(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("populate metadata: %w", err)
+	}
+	layer_to_id := make(map[LayerType]uint, len(metadata.Layers))
+	for i, layer := range metadata.Layers {
 		t, err := NameToLayerType(layer.Name)
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to handle layer")
 			continue
 		}
-		layer_to_id[t] = layer.ID
+		layer_to_id[t] = uint(i)
 	}
 
 	result := FieldSeeker{
@@ -127,19 +130,24 @@ func (fs *FieldSeeker) AdminInfo(ctx context.Context) (*arcgis.AdminInfo, error)
 	return fs.Arcgis.AdminInfo(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
-func (fs *FieldSeeker) Layers() []response.Layer {
-	return fs.ServiceFeature.Layers
+func (fs *FieldSeeker) Layers(ctx context.Context) ([]response.Layer, error) {
+	return fs.ServiceFeature.Layers(ctx)
 }
 
 func (fs *FieldSeeker) MaxRecordCount(ctx context.Context) (uint, error) {
-	return fs.ServiceFeature.MaxRecordCount, nil
+
+	_, err := fs.ServiceFeature.PopulateMetadata(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return fs.ServiceFeature.Metadata.MaxRecordCount, nil
 }
 
 func (fs *FieldSeeker) PermissionList(ctx context.Context) (*response.PermissionSlice, error) {
 	return fs.Arcgis.PermissionList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
-func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*arcgis.QueryResultCount, error) {
-	return fs.Arcgis.QueryCount(ctx, fs.ServiceName, layer_id)
+func (fs *FieldSeeker) QueryCount(ctx context.Context, layer_id uint) (*response.QueryResultCount, error) {
+	return fs.ServiceFeature.QueryCount(ctx, layer_id)
 }
 
 func (fs *FieldSeeker) SchemaRaw(ctx context.Context, layer_id uint) ([]byte, error) {
@@ -148,22 +156,22 @@ func (fs *FieldSeeker) SchemaRaw(ctx context.Context, layer_id uint) ([]byte, er
 	query.ResultOffset = 0
 	query.OutFields = "*"
 	query.Where = "1=1"
-	return fs.Arcgis.QueryRaw(ctx, fs.ServiceName, layer_id, query)
+	return fs.ServiceFeature.QueryRaw(ctx, layer_id, *query)
 }
-func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) (*arcgis.QueryResult, error) {
+func (fs *FieldSeeker) Schema(ctx context.Context, layer_id uint) (*response.QueryResult, error) {
 	query := arcgis.NewQuery()
 	query.ResultRecordCount = 1
 	query.ResultOffset = 0
 	query.OutFields = "*"
 	query.Where = "1=1"
-	return fs.Arcgis.Query(ctx, fs.ServiceName, layer_id, query)
+	return fs.ServiceFeature.Query(ctx, layer_id, *query)
 }
 
 func (fs *FieldSeeker) WebhookList(ctx context.Context) (*arcgis.WebhookSlice, error) {
 	return fs.Arcgis.WebhookList(ctx, fs.ServiceName, arcgis.ServiceTypeFeatureServer)
 }
 
-func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uint) (*arcgis.QueryResult, error) {
+func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uint) (*response.QueryResult, error) {
 	q := arcgis.NewQuery()
 	count, err := fs.MaxRecordCount(ctx)
 	if err != nil {
@@ -174,7 +182,7 @@ func (fs *FieldSeeker) doQueryAll(ctx context.Context, layer_id uint, offset uin
 	q.SpatialReference = "4326"
 	q.OutFields = "*"
 	q.Where = "1=1"
-	return fs.Arcgis.Query(ctx, fs.ServiceName, layer_id, q)
+	return fs.ServiceFeature.Query(ctx, layer_id, *q)
 }
 
 func NameToLayerType(n string) (LayerType, error) {
@@ -267,8 +275,8 @@ func NameToLayerType(n string) (LayerType, error) {
 }
 
 type Geometric interface {
-	SetGeometry(json.RawMessage)
-	GetGeometry() json.RawMessage
+	SetGeometry(response.Geometry)
+	GetGeometry() response.Geometry
 }
 
 func featureToStruct[T any, PT interface {
@@ -297,27 +305,27 @@ func featureToStruct[T any, PT interface {
 	return results, nil
 }
 
-func logFeature(f arcgis.Feature) {
-	/*
-		kv := make(map[string]string, 0)
-		l := zerolog.Dict()
-		for k, v := range f.Attributes {
-				s, ok := v.(string)
-				if ok {
-					kv[k] = s
-					continue
-				}
-				i, ok := v.(int)
-				if ok {
-					kv[k] = string(i)
-					continue
-				}
-				kv[k] = "*unknown*"
-			l.Interface(k, v)
-		}
-		log.Debug().Dict("feature", l).Msg("Handling feature")
-	*/
-}
+/*
+	func logFeature(f arcgis.Feature) {
+			kv := make(map[string]string, 0)
+			l := zerolog.Dict()
+			for k, v := range f.Attributes {
+					s, ok := v.(string)
+					if ok {
+						kv[k] = s
+						continue
+					}
+					i, ok := v.(int)
+					if ok {
+						kv[k] = string(i)
+						continue
+					}
+					kv[k] = "*unknown*"
+				l.Interface(k, v)
+			}
+			log.Debug().Dict("feature", l).Msg("Handling feature")
+	}
+*/
 func stringOrEmpty(data map[string]any, key string) string {
 	source, ok := data[key].(string)
 	if ok {

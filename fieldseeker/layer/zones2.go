@@ -1,7 +1,7 @@
 package layer
 
 import (
-	"encoding/json"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,7 +9,11 @@ import (
 
 type Zones2 struct {
 	ObjectID       uint      `field:"OBJECTID"`
-	Name           string    `field:"NAME"`
+	SystemName     string    `field:"SystemName"`
+	Dimension      string    `field:"Dimension"`
+	UnitName       string    `field:"UnitName"`
+	UnitValue      string    `field:"UnitValue"`
+	Description    string    `field:"Description"`
 	GlobalID       uuid.UUID `field:"GlobalID"`
 	CreatedUser    string    `field:"created_user"`
 	CreatedDate    time.Time `field:"created_date"`
@@ -19,10 +23,8 @@ type Zones2 struct {
 	Creator        string    `field:"Creator"`
 	EditDate       time.Time `field:"EditDate"`
 	Editor         string    `field:"Editor"`
-	ShapeArea      float64   `field:"Shape__Area"`
-	ShapeLength    float64   `field:"Shape__Length"`
-	Geometry       json.RawMessage
+	Geometry       response.Geometry
 }
 
-func (x *Zones2) GetGeometry() json.RawMessage  { return x.Geometry }
-func (x *Zones2) SetGeometry(m json.RawMessage) { x.Geometry = m }
+func (x *Zones2) GetGeometry() response.Geometry  { return x.Geometry }
+func (x *Zones2) SetGeometry(m response.Geometry) { x.Geometry = m }

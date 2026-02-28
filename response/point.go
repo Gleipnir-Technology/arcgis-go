@@ -41,8 +41,8 @@ func (p Point) Type() string   { return "esriGeometryPoint" }
 func (p Point) ToGeoJSON() (string, error) {
 	fc := geojson.NewFeatureCollection()
 	fc.Append(geojson.NewFeature(orb.Point{
-		p.X,
 		p.Y,
+		p.X,
 	}))
 	rawJSON, err := fc.MarshalJSON()
 	if err != nil {

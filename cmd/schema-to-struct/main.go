@@ -136,11 +136,11 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 
 	// Write imports
 	code.WriteString("import (\n")
-	code.WriteString("\t\"encoding/json\"\n")
 	if needsTimeImport {
 		code.WriteString("\t\"time\"\n")
 	}
 
+	code.WriteString("\t\"github.com/Gleipnir-Technology/arcgis-go/response\"\n")
 	if needsUUIDImport {
 		if needsTimeImport {
 			code.WriteString("\n")
@@ -192,12 +192,12 @@ func generateGoCode(structName string, schema Schema, packageName string) string
 		code.WriteString(fmt.Sprintf("\t%s %s `field:\"%s\"`\n", fieldName, fieldType, field.Name))
 	}
 	// Add geometry definition
-	code.WriteString("\tGeometry json.RawMessage")
+	code.WriteString("\tGeometry response.Geometry")
 
 	// Close struct definition
 	code.WriteString("}\n")
-	code.WriteString(fmt.Sprintf("func (x *%s) GetGeometry() json.RawMessage { return x.Geometry }\n", structName))
-	code.WriteString(fmt.Sprintf("func (x *%s) SetGeometry(m json.RawMessage) { x.Geometry = m }\n", structName))
+	code.WriteString(fmt.Sprintf("func (x *%s) GetGeometry() response.Geometry { return x.Geometry }\n", structName))
+	code.WriteString(fmt.Sprintf("func (x *%s) SetGeometry(m response.Geometry) { x.Geometry = m }\n", structName))
 
 	return code.String()
 }

@@ -24,7 +24,7 @@ func (ms MapService) Metadata(ctx context.Context, ag *ArcGIS) (*response.MapSer
 	}
 	return reqGetJSONFullURL[response.MapServiceMetadata](ctx, ag.requestor, ms.URL)
 }
-func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column int) ([]byte, error) {
+func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column uint) ([]byte, error) {
 	// From https://developers.arcgis.com/documentation/portal-and-data-services/data-services/map-tile-services/introduction/
 	// GET https://{host}/{organizationId}/arcgis/rest/services/{serviceName}/MapServer/tile/{z}/{y}/{x}
 	// But the URL value we popluate above is already most of it.
@@ -36,19 +36,19 @@ func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column in
 	}
 	return reqGetParamsHeadersFullURL(ctx, ag.requestor, *u, map[string]string{}, map[string]string{})
 }
-func (ms MapService) TileGPS(ctx context.Context, ag *ArcGIS, level int, lat, lng float64) ([]byte, error) {
+func (ms MapService) TileGPS(ctx context.Context, ag *ArcGIS, level uint, lat, lng float64) ([]byte, error) {
 	row, col := LatLngToTile(level, lat, lng)
 	return ms.Tile(ctx, ag, level, row, col)
 }
 
 // LatLngToTile converts GPS coordinates to ArcGIS tile coordinates
-func LatLngToTile(level int, lat, lng float64) (row, column int) {
+func LatLngToTile(level uint, lat, lng float64) (row, column uint) {
 	// Get number of tiles per dimension at this zoom level
 	numTiles := math.Pow(2, float64(level))
 
 	// Convert longitude to tile column
 	// Range: -180 to 180 degrees maps to 0 to numTiles
-	column = int(math.Floor((lng + 180.0) / 360.0 * numTiles))
+	column = uint(math.Floor((lng + 180.0) / 360.0 * numTiles))
 
 	// Convert latitude to tile row using Mercator projection
 	// First convert lat to radians
@@ -57,19 +57,19 @@ func LatLngToTile(level int, lat, lng float64) (row, column int) {
 	// Apply Mercator projection formula
 	// This maps latitude from -85.0511 to 85.0511 degrees to 0 to numTiles
 	mercatorY := 0.5 - math.Log(math.Tan(latRad)+1/math.Cos(latRad))/(2*math.Pi)
-	row = int(math.Floor(mercatorY * numTiles))
+	row = uint(math.Floor(mercatorY * numTiles))
 
 	// Ensure values are within valid range
 	if column < 0 {
 		column = 0
-	} else if column >= int(numTiles) {
-		column = int(numTiles) - 1
+	} else if column >= uint(numTiles) {
+		column = uint(numTiles) - 1
 	}
 
 	if row < 0 {
 		row = 0
-	} else if row >= int(numTiles) {
-		row = int(numTiles) - 1
+	} else if row >= uint(numTiles) {
+		row = uint(numTiles) - 1
 	}
 
 	return row, column

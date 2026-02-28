@@ -1,59 +1,72 @@
 package layer
 
 import (
-	"encoding/json"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type PointLocation struct {
-	ObjectID                    uint      `field:"OBJECTID"`
-	Name                        string    `field:"NAME"`
-	Zone                        string    `field:"ZONE"`
-	Habitat                     string    `field:"HABITAT"`
-	Priority                    string    `field:"PRIORITY"`
-	UseType                     string    `field:"USETYPE"`
-	Active                      int16     `field:"ACTIVE"`
-	Description                 string    `field:"DESCRIPTION"`
-	AccessDescription           string    `field:"ACCESSDESC"`
-	Comments                    string    `field:"COMMENTS"`
-	Symbology                   string    `field:"SYMBOLOGY"`
-	ExternalID                  string    `field:"EXTERNALID"`
-	NextScheduledAction         time.Time `field:"NEXTACTIONDATESCHEDULED"`
-	LarvalInspectionInterval    int16     `field:"LARVINSPECTINTERVAL"`
-	Zone2                       string    `field:"ZONE2"`
-	Locationnumber              int32     `field:"LOCATIONNUMBER"`
-	GlobalID                    uuid.UUID `field:"GlobalID"`
-	SourceType                  string    `field:"STYPE"`
-	LastInspectionDate          time.Time `field:"LASTINSPECTDATE"`
-	LastInspectionBreeding      string    `field:"LASTINSPECTBREEDING"`
-	LastInspectionAverageLarvae float64   `field:"LASTINSPECTAVGLARVAE"`
-	LastInspectionAveragePupae  float64   `field:"LASTINSPECTAVGPUPAE"`
-	LastInspectionLarvalStages  string    `field:"LASTINSPECTLSTAGES"`
-	LastInspectionAction        string    `field:"LASTINSPECTACTIONTAKEN"`
-	LastInspectionFieldSpecies  string    `field:"LASTINSPECTFIELDSPECIES"`
-	LastTreatmentDate           time.Time `field:"LASTTREATDATE"`
-	LastTreatmentProduct        string    `field:"LASTTREATPRODUCT"`
-	LastTreatmentQuantity       float64   `field:"LASTTREATQTY"`
-	LastTreatmentQuantityUnit   string    `field:"LASTTREATQTYUNIT"`
-	LastInspectionActivity      string    `field:"LASTINSPECTACTIVITY"`
-	LastTreatmentActivity       string    `field:"LASTTREATACTIVITY"`
-	LastInspectionConditions    string    `field:"LASTINSPECTCONDITIONS"`
-	WaterOrigin                 string    `field:"WATERORIGIN"`
-	X                           float64   `field:"X"`
-	Y                           float64   `field:"Y"`
-	AssignedTech                string    `field:"ASSIGNEDTECH"`
-	CreationDate                time.Time `field:"CreationDate"`
-	Creator                     string    `field:"Creator"`
-	EditDate                    time.Time `field:"EditDate"`
-	Editor                      string    `field:"Editor"`
-	Jurisdiction                string    `field:"JURISDICTION"`
-	ReasonForDeactivation       string    `field:"deactivate_reason"`
-	ScalarPriority              int32     `field:"scalarPriority"`
-	SourceStatus                string    `field:"sourceStatus"`
-	Geometry                    json.RawMessage
+	ObjectID               uint      `field:"OBJECTID"`
+	Dips                   int16     `field:"NUMDIPS"`
+	Activity               string    `field:"ACTIVITY"`
+	Breeding               string    `field:"BREEDING"`
+	TotalLarvae            int16     `field:"TOTLARVAE"`
+	TotalPupae             int16     `field:"TOTPUPAE"`
+	Eggs                   int16     `field:"EGGS"`
+	PositiveDips           int16     `field:"POSDIPS"`
+	AdultActivity          string    `field:"ADULTACT"`
+	LarvalStages           string    `field:"LSTAGES"`
+	DominantStage          string    `field:"DOMSTAGE"`
+	Action                 string    `field:"ACTIONTAKEN"`
+	Comments               string    `field:"COMMENTS"`
+	AverageTemperature     float64   `field:"AVETEMP"`
+	WindSpeed              float64   `field:"WINDSPEED"`
+	RainGauge              float64   `field:"RAINGAUGE"`
+	Start                  time.Time `field:"STARTDATETIME"`
+	Finish                 time.Time `field:"ENDDATETIME"`
+	WindDirection          string    `field:"WINDDIR"`
+	AverageLarvae          float64   `field:"AVGLARVAE"`
+	AveragePupae           float64   `field:"AVGPUPAE"`
+	Reviewed               int16     `field:"REVIEWED"`
+	ReviewedBy             string    `field:"REVIEWEDBY"`
+	ReviewedDate           time.Time `field:"REVIEWEDDATE"`
+	LocationName           string    `field:"LOCATIONNAME"`
+	Zone                   string    `field:"ZONE"`
+	RecordStatus           int16     `field:"RECORDSTATUS"`
+	Zone2                  string    `field:"ZONE2"`
+	PersonalContact        int16     `field:"PERSONALCONTACT"`
+	TireCount              int16     `field:"TIRECOUNT"`
+	CatchBasinCount        int16     `field:"CBCOUNT"`
+	ContainerCount         int16     `field:"CONTAINERCOUNT"`
+	FieldSpecies           string    `field:"FIELDSPECIES"`
+	GlobalID               uuid.UUID `field:"GlobalID"`
+	CreatedUser            string    `field:"created_user"`
+	CreatedDate            time.Time `field:"created_date"`
+	LastEditedUser         string    `field:"last_edited_user"`
+	LastEditedDate         time.Time `field:"last_edited_date"`
+	LinelocID              uuid.UUID `field:"LINELOCID"`
+	PointlocID             uuid.UUID `field:"POINTLOCID"`
+	PolygonlocID           uuid.UUID `field:"POLYGONLOCID"`
+	SrID                   uuid.UUID `field:"SRID"`
+	FieldTech              string    `field:"FIELDTECH"`
+	LarvaePresent          int16     `field:"LARVAEPRESENT"`
+	PupaePresent           int16     `field:"PUPAEPRESENT"`
+	StormDrainID           uuid.UUID `field:"SDID"`
+	Conditions             string    `field:"SITECOND"`
+	PositiveContainerCount int16     `field:"POSITIVECONTAINERCOUNT"`
+	CreationDate           time.Time `field:"CreationDate"`
+	Creator                string    `field:"Creator"`
+	EditDate               time.Time `field:"EditDate"`
+	Editor                 string    `field:"Editor"`
+	Jurisdiction           string    `field:"JURISDICTION"`
+	VisualMonitoring       int16     `field:"VISUALMONITORING"`
+	VmComments             string    `field:"VMCOMMENTS"`
+	AdminAction            string    `field:"adminAction"`
+	PtaID                  uuid.UUID `field:"PTAID"`
+	Geometry               response.Geometry
 }
 
-func (x *PointLocation) GetGeometry() json.RawMessage  { return x.Geometry }
-func (x *PointLocation) SetGeometry(m json.RawMessage) { x.Geometry = m }
+func (x *PointLocation) GetGeometry() response.Geometry  { return x.Geometry }
+func (x *PointLocation) SetGeometry(m response.Geometry) { x.Geometry = m }

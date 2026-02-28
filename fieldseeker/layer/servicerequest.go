@@ -1,7 +1,7 @@
 package layer
 
 import (
-	"encoding/json"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"time"
 
 	"github.com/google/uuid"
@@ -94,8 +94,8 @@ type ServiceRequest struct {
 	NotificationTimestamp   string    `field:"NOTIFICATIONTIMESTAMP"`
 	Zone                    string    `field:"ZONE"`
 	Zone2                   string    `field:"ZONE2"`
-	Geometry                json.RawMessage
+	Geometry                response.Geometry
 }
 
-func (x *ServiceRequest) GetGeometry() json.RawMessage  { return x.Geometry }
-func (x *ServiceRequest) SetGeometry(m json.RawMessage) { x.Geometry = m }
+func (x *ServiceRequest) GetGeometry() response.Geometry  { return x.Geometry }
+func (x *ServiceRequest) SetGeometry(m response.Geometry) { x.Geometry = m }

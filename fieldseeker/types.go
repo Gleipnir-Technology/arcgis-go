@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Gleipnir-Technology/arcgis-go"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
@@ -56,7 +56,7 @@ type Tracklog struct {
 func structFromFeature[T any, PT interface {
 	*T
 	Geometric
-}](ctx context.Context, feature *arcgis.Feature) (PT, error) {
+}](ctx context.Context, feature *response.Feature) (PT, error) {
 	logger := zerolog.Ctx(ctx)
 	// Create new LocationTracking instance
 	result := PT(new(T))

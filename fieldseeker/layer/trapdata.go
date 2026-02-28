@@ -1,57 +1,69 @@
 package layer
 
 import (
-	"encoding/json"
+	"github.com/Gleipnir-Technology/arcgis-go/response"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type TrapData struct {
-	ObjectID                    uint      `field:"OBJECTID"`
-	TrapType                    string    `field:"TRAPTYPE"`
-	TrapActivityType            string    `field:"TRAPACTIVITYTYPE"`
-	Start                       time.Time `field:"STARTDATETIME"`
-	Finish                      time.Time `field:"ENDDATETIME"`
-	Comments                    string    `field:"COMMENTS"`
-	TechIdentifyingSpeciesInLab string    `field:"IDBYTECH"`
-	TechSortingTrapResultsInLab string    `field:"SORTBYTECH"`
-	Processed                   int16     `field:"PROCESSED"`
-	SiteConditions              string    `field:"SITECOND"`
-	LocationName                string    `field:"LOCATIONNAME"`
-	RecordStatus                int16     `field:"RECORDSTATUS"`
-	Reviewed                    int16     `field:"REVIEWED"`
-	ReviewedBy                  string    `field:"REVIEWEDBY"`
-	ReviewedDate                time.Time `field:"REVIEWEDDATE"`
-	TrapCondition               string    `field:"TRAPCONDITION"`
-	TrapNights                  int16     `field:"TRAPNIGHTS"`
-	Zone                        string    `field:"ZONE"`
-	Zone2                       string    `field:"ZONE2"`
-	GlobalID                    uuid.UUID `field:"GlobalID"`
-	CreatedUser                 string    `field:"created_user"`
-	CreatedDate                 time.Time `field:"created_date"`
-	LastEditedUser              string    `field:"last_edited_user"`
-	LastEditedDate              time.Time `field:"last_edited_date"`
-	SrID                        uuid.UUID `field:"SRID"`
-	FieldTech                   string    `field:"FIELDTECH"`
-	GatewaySync                 int16     `field:"GATEWAYSYNC"`
-	LocID                       uuid.UUID `field:"LOC_ID"`
-	Voltage                     float64   `field:"VOLTAGE"`
-	Winddir                     string    `field:"WINDDIR"`
-	Windspeed                   float64   `field:"WINDSPEED"`
-	Avetemp                     float64   `field:"AVETEMP"`
-	Raingauge                   float64   `field:"RAINGAUGE"`
-	LandingRate                 int16     `field:"LR"`
-	Field                       int32     `field:"Field"`
-	VectorsurvtrapdataID        string    `field:"VECTORSURVTRAPDATAID"`
-	VectorsurvtraplocationID    string    `field:"VECTORSURVTRAPLOCATIONID"`
-	CreationDate                time.Time `field:"CreationDate"`
-	Creator                     string    `field:"Creator"`
-	EditDate                    time.Time `field:"EditDate"`
-	Editor                      string    `field:"Editor"`
-	Lure                        string    `field:"Lure"`
-	Geometry                    json.RawMessage
+	ObjectID             uint      `field:"OBJECTID"`
+	Activity             string    `field:"ACTIVITY"`
+	AreaTreated          float64   `field:"TREATAREA"`
+	AreaUnit             string    `field:"AREAUNIT"`
+	Product              string    `field:"PRODUCT"`
+	Quantity             float64   `field:"QTY"`
+	QuantityUnit         string    `field:"QTYUNIT"`
+	Method               string    `field:"METHOD"`
+	EquipmentType        string    `field:"EQUIPTYPE"`
+	Comments             string    `field:"COMMENTS"`
+	AverageTemperature   float64   `field:"AVETEMP"`
+	WindSpeed            float64   `field:"WINDSPEED"`
+	WindDirection        string    `field:"WINDDIR"`
+	RainGauge            float64   `field:"RAINGAUGE"`
+	Start                time.Time `field:"STARTDATETIME"`
+	Finish               time.Time `field:"ENDDATETIME"`
+	InspID               uuid.UUID `field:"INSP_ID"`
+	Reviewed             int16     `field:"REVIEWED"`
+	ReviewedBy           string    `field:"REVIEWEDBY"`
+	ReviewedDate         time.Time `field:"REVIEWEDDATE"`
+	LocationName         string    `field:"LOCATIONNAME"`
+	Zone                 string    `field:"ZONE"`
+	WarningOverride      int16     `field:"WARNINGOVERRIDE"`
+	RecordStatus         int16     `field:"RECORDSTATUS"`
+	Zone2                string    `field:"ZONE2"`
+	TreatedAcres         float64   `field:"TREATACRES"`
+	TireCount            int16     `field:"TIRECOUNT"`
+	CatchBasinCount      int16     `field:"CBCOUNT"`
+	ContainerCount       int16     `field:"CONTAINERCOUNT"`
+	GlobalID             uuid.UUID `field:"GlobalID"`
+	TreatmentLength      float64   `field:"TREATMENTLENGTH"`
+	TreatmentHours       float64   `field:"TREATMENTHOURS"`
+	TreatmentLengthUnits string    `field:"TREATMENTLENGTHUNITS"`
+	LinelocID            uuid.UUID `field:"LINELOCID"`
+	PointlocID           uuid.UUID `field:"POINTLOCID"`
+	PolygonlocID         uuid.UUID `field:"POLYGONLOCID"`
+	SrID                 uuid.UUID `field:"SRID"`
+	SdID                 uuid.UUID `field:"SDID"`
+	BarrierrouteID       uuid.UUID `field:"BARRIERROUTEID"`
+	UlvrouteID           uuid.UUID `field:"ULVROUTEID"`
+	FieldTech            string    `field:"FIELDTECH"`
+	PtaID                uuid.UUID `field:"PTAID"`
+	Flowrate             float64   `field:"FLOWRATE"`
+	Habitat              string    `field:"HABITAT"`
+	TreatHectares        float64   `field:"TREATHECTARES"`
+	InventoryLocation    string    `field:"INVLOC"`
+	TempConditions       string    `field:"temp_SITECOND"`
+	Conditions           string    `field:"SITECOND"`
+	TotalCostProduct     float64   `field:"TotalCostProdcut"`
+	CreationDate         time.Time `field:"CreationDate"`
+	Creator              string    `field:"Creator"`
+	EditDate             time.Time `field:"EditDate"`
+	Editor               string    `field:"Editor"`
+	TargetSpecies        string    `field:"TARGETSPECIES"`
+	Geometry             response.Geometry
 }
 
-func (x *TrapData) GetGeometry() json.RawMessage  { return x.Geometry }
-func (x *TrapData) SetGeometry(m json.RawMessage) { x.Geometry = m }
+func (x *TrapData) GetGeometry() response.Geometry  { return x.Geometry }
+func (x *TrapData) SetGeometry(m response.Geometry) { x.Geometry = m }

@@ -38,10 +38,12 @@ func (sf *ServiceFeature) Query(ctx context.Context, layer_id uint, query Query)
 	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
 	return reqGetJSONParamsHeadersFullURL[response.QueryResult](ctx, *sf.requestor, *url, params, map[string]string{})
 }
-func (sf *ServiceFeature) QueryRaw(ctx context.Context, service string, layer_id uint, query Query) ([]byte, error) {
+func (sf *ServiceFeature) QueryRaw(ctx context.Context, layer_id uint, query Query) ([]byte, error) {
 	// path := fmt.Sprintf("/services/%s/FeatureServer/%d/query?f=json", service, layer_id)
-	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query?f=json")
-	return reqGetParamsHeadersFullURL(ctx, *sf.requestor, *url, map[string]string{}, map[string]string{})
+	params := query.toParams()
+	params["f"] = "json"
+	url := sf.URL.JoinPath(strconv.Itoa(int(layer_id)), "query")
+	return reqGetParamsHeadersFullURL(ctx, *sf.requestor, *url, params, map[string]string{})
 }
 func (sf *ServiceFeature) QueryIDs(ctx context.Context, layer_id uint, query Query) (*response.QueryResultOnlyIDs, error) {
 	params := query.toParams()
@@ -93,6 +95,9 @@ func (sf *ServiceFeature) QueryWithin(ctx context.Context, layer_id uint, point 
 
 }
 func (sf *ServiceFeature) PopulateMetadata(ctx context.Context) (*response.FeatureService, error) {
+	if sf.Metadata != nil {
+		return sf.Metadata, nil
+	}
 	logger := zerolog.Ctx(ctx)
 	// POST https://services8.arcgis.com/<context>/ArcGIS/rest/services/BorderDistrict/FeatureServer
 	meta, err := reqPostFormToJSONFullURL[response.FeatureService](ctx, *sf.requestor, sf.URL, map[string]string{})
@@ -113,4 +118,15 @@ func (sf *ServiceFeature) Layers(ctx context.Context) ([]response.Layer, error) 
 		return make([]response.Layer, 0), err
 	}
 	return meta.Layers, nil
+}
+func (fs *ServiceFeature) SchemaRaw(ctx context.Context, layer_id uint) ([]byte, error) {
+	query := NewQuery()
+	query.ResultRecordCount = 1
+	query.ResultOffset = 0
+	query.OutFields = "*"
+	query.Where = "1=1"
+	params := query.toParams()
+	params["f"] = "json"
+	url := fs.URL.JoinPath(strconv.Itoa(int(layer_id)))
+	return reqGetParamsHeadersFullURL(ctx, *fs.requestor, *url, params, map[string]string{})
 }
