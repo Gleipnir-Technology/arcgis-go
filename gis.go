@@ -140,12 +140,12 @@ func (ag *ArcGIS) MapServices(ctx context.Context) ([]MapService, error) {
 			continue
 		}
 		m := MapService{
-			ID:    r.ID,
-			Name:  r.Name,
-			Title: r.Title,
-			URL:   *u,
-
-			meta: nil,
+			ID:        r.ID,
+			Metadata:  nil,
+			Name:      r.Name,
+			Title:     r.Title,
+			URL:       *u,
+			requestor: &ag.requestor,
 		}
 		results = append(results, m)
 	}

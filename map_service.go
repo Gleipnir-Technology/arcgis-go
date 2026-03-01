@@ -2,43 +2,41 @@ package arcgis
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"net/url"
+	"strconv"
 
 	"github.com/Gleipnir-Technology/arcgis-go/response"
+	"github.com/rs/zerolog/log"
 )
 
 type MapService struct {
-	ID    string
-	Name  string
-	Title string
-	URL   url.URL
+	ID       string
+	Metadata *response.MapServiceMetadata
+	Name     string
+	Title    string
+	URL      url.URL
 
-	meta *response.MapServiceMetadata
+	requestor *gisRequestor
 }
 
-func (ms MapService) Metadata(ctx context.Context, ag *ArcGIS) (*response.MapServiceMetadata, error) {
-	if ms.meta != nil {
-		return ms.meta, nil
+func (ms MapService) PopulateMetadata(ctx context.Context) (*response.MapServiceMetadata, error) {
+	if ms.Metadata != nil {
+		return ms.Metadata, nil
 	}
-	return reqGetJSONFullURL[response.MapServiceMetadata](ctx, ag.requestor, ms.URL)
+	return reqGetJSONFullURL[response.MapServiceMetadata](ctx, *ms.requestor, ms.URL)
 }
-func (ms MapService) Tile(ctx context.Context, ag *ArcGIS, level, row, column uint) ([]byte, error) {
+func (ms MapService) Tile(ctx context.Context, level, row, column uint) ([]byte, error) {
 	// From https://developers.arcgis.com/documentation/portal-and-data-services/data-services/map-tile-services/introduction/
 	// GET https://{host}/{organizationId}/arcgis/rest/services/{serviceName}/MapServer/tile/{z}/{y}/{x}
-	// But the URL value we popluate above is already most of it.
-	// It should look like
-	// https://tiles.arcgis.com/tiles/{organizationId}/arcgis/rest/services/{serviceName}/MapServer
-	u, err := url.Parse(fmt.Sprintf("%s/tile/%d/%d/%d", ms.URL, level, row, column))
-	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
-	}
-	return reqGetParamsHeadersFullURL(ctx, ag.requestor, *u, map[string]string{}, map[string]string{})
+	log.Info().Str("url", ms.URL.String()).Uint("lvl", level).Uint("row", row).Uint("col", column).Msg("creating tile URL")
+	u := ms.URL.JoinPath("tile", strconv.Itoa(int(level)), strconv.Itoa(int(row)), strconv.Itoa(int(column)))
+	return reqGetParamsHeadersFullURL(ctx, *ms.requestor, *u, map[string]string{}, map[string]string{})
 }
-func (ms MapService) TileGPS(ctx context.Context, ag *ArcGIS, level uint, lat, lng float64) ([]byte, error) {
+func (ms MapService) TileGPS(ctx context.Context, level uint, lat, lng float64) ([]byte, error) {
 	row, col := LatLngToTile(level, lat, lng)
-	return ms.Tile(ctx, ag, level, row, col)
+	log.Info().Float64("lat", lat).Float64("lng", lng).Uint("row", row).Uint("col", col).Msg("GPS to tile")
+	return ms.Tile(ctx, level, row, col)
 }
 
 // LatLngToTile converts GPS coordinates to ArcGIS tile coordinates
