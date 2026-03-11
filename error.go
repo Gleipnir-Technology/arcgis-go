@@ -111,3 +111,19 @@ func newAPIError(ctx context.Context, e ErrorResponse) apiError {
 		Message:     e.Error.Message,
 	}
 }
+
+type ErrorWithStatus struct {
+	Status  int
+	Message string
+}
+
+func (e ErrorWithStatus) Error() string {
+	return e.Message
+}
+func newErrorWithStatus(s int, m string, params ...any) *ErrorWithStatus {
+	message := fmt.Sprintf(m, params...)
+	return &ErrorWithStatus{
+		Message: message,
+		Status:  s,
+	}
+}

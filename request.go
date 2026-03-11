@@ -27,7 +27,7 @@ func doGetParamsHeaders(ctx context.Context, client http.Client, host string, pa
 	}
 	return doGetParamsHeadersFullURL(ctx, client, *req_url, params, headers)
 }
-func doGetParamsHeadersFullURL(ctx context.Context, client http.Client, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, error) {
+func doGetParamsHeadersFullURL(ctx context.Context, client http.Client, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, *ErrorWithStatus) {
 	logger := zerolog.Ctx(ctx)
 	// Parse the URL
 
@@ -44,7 +44,7 @@ func doGetParamsHeadersFullURL(ctx context.Context, client http.Client, req_url 
 	logger.Debug().Str("method", "GET").Str("url", req_url.String()).Msg("Making request")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, req_url.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
+		return nil, newErrorWithStatus(0, "creating request: %w", err)
 	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
@@ -52,14 +52,14 @@ func doGetParamsHeadersFullURL(ctx context.Context, client http.Client, req_url 
 	// Make the request
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("making request: %w", err)
+		return nil, newErrorWithStatus(0, "making request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check status code
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, string(body))
+		return nil, newErrorWithStatus(resp.StatusCode, "body: %s", string(body))
 	}
 	return body, nil
 }
@@ -126,7 +126,7 @@ func reqGetParamsHeaders(ctx context.Context, r gisRequestor, path string, param
 	}
 	return reqGetParamsHeadersFullURL(ctx, r, *req_url, params, headers)
 }
-func reqGetParamsHeadersFullURL(ctx context.Context, r gisRequestor, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, error) {
+func reqGetParamsHeadersFullURL(ctx context.Context, r gisRequestor, req_url url.URL, params map[string]string, headers map[string]string) ([]byte, *ErrorWithStatus) {
 	headers = r.authenticator.addAuthHeaders(ctx, headers)
 	return doGetParamsHeadersFullURL(ctx, r.client, req_url, params, headers)
 }

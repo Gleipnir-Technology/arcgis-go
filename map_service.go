@@ -26,12 +26,20 @@ func (ms MapService) PopulateMetadata(ctx context.Context) (*response.MapService
 	}
 	return reqGetJSONFullURL[response.MapServiceMetadata](ctx, *ms.requestor, ms.URL)
 }
-func (ms MapService) Tile(ctx context.Context, level, row, column uint) ([]byte, error) {
+func (ms MapService) Tile(ctx context.Context, level, row, column uint) ([]byte, *ErrorWithStatus) {
 	// From https://developers.arcgis.com/documentation/portal-and-data-services/data-services/map-tile-services/introduction/
 	// GET https://{host}/{organizationId}/arcgis/rest/services/{serviceName}/MapServer/tile/{z}/{y}/{x}
 	log.Info().Str("url", ms.URL.String()).Uint("lvl", level).Uint("row", row).Uint("col", column).Msg("creating tile URL")
 	u := ms.URL.JoinPath("tile", strconv.Itoa(int(level)), strconv.Itoa(int(row)), strconv.Itoa(int(column)))
-	return reqGetParamsHeadersFullURL(ctx, *ms.requestor, *u, map[string]string{}, map[string]string{})
+	result, err := reqGetParamsHeadersFullURL(ctx, *ms.requestor, *u, map[string]string{}, map[string]string{})
+	if err != nil {
+		if err.Status == 404 {
+			log.Info().Msg("404, assuming empty tile data")
+			return []byte{}, nil
+		}
+		return nil, err
+	}
+	return result, nil
 }
 func (ms MapService) TileGPS(ctx context.Context, level uint, lat, lng float64) ([]byte, error) {
 	row, col := LatLngToTile(level, lat, lng)
